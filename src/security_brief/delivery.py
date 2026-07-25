@@ -12,6 +12,12 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
+from .branding import (
+    LOGO_CONTENT_ID,
+    apply_email_branding,
+    load_logo_bytes,
+)
+
 
 GMAIL_SEND_SCOPE = "https://www.googleapis.com/auth/gmail.send"
 GOOGLE_TOKEN_URI = "https://oauth2.googleapis.com/token"
@@ -24,14 +30,33 @@ def build_message(
     text_body: str,
     html_body: str,
 ) -> EmailMessage:
-    """Build the multipart briefing message."""
+    """Build the multipart briefing message with an inline report logo."""
+
+    branded_text, branded_html = apply_email_branding(
+        text_body,
+        html_body,
+    )
 
     message = EmailMessage()
     message["From"] = username
     message["To"] = recipient
     message["Subject"] = subject
-    message.set_content(text_body, charset="utf-8")
-    message.add_alternative(html_body, subtype="html", charset="utf-8")
+    message.set_content(branded_text, charset="utf-8")
+    message.add_alternative(
+        branded_html,
+        subtype="html",
+        charset="utf-8",
+    )
+
+    html_part = message.get_payload()[-1]
+    html_part.add_related(
+        load_logo_bytes(),
+        maintype="image",
+        subtype="png",
+        cid=f"<{LOGO_CONTENT_ID}>",
+        disposition="inline",
+    )
+
     return message
 
 

@@ -16,6 +16,15 @@ releases.
 The format broadly follows [Keep a Changelog](https://keepachangelog.com/) and uses semantic-style versioning where practical.
 
 ---
+## 5.5.1 - 2026-07-25
+
+### Fixed
+- Replaced test token
+
+### Changed
+- Added logo and removed versioning from Title
+  
+---
 ## 5.5.0 - 2026-07-17
 
 ### Fixed
@@ -46,6 +55,7 @@ The format broadly follows [Keep a Changelog](https://keepachangelog.com/) and u
 - Added regression coverage for source configuration, CVSS severity, critical
   filtering, DEFCON calibration, actor attribution and EU AI Act milestones.
 ---
+
 ## 5.4.0 - 2026-07-17
 
 ### Fixed

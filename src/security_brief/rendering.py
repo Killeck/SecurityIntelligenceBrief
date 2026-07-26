@@ -868,12 +868,12 @@ def render_text_report(
 # ---------------------------------------------------------------------------
 
 DASHBOARD_COLOURS = {
-    "background": "#020705",
-    "panel": "#07110D",
-    "panel_alt": "#173226",
-    "border": "#2a3644",
-    "text": "#eef3f8",
-    "muted": "#9caabd",
+    "background": "#011417",
+    "panel": "#22329",
+    "panel_alt": "#032D32",
+    "border": "#0D4650",
+    "text": "#EEF3F8",
+    "muted": "#9CB6BA",
     "link": "#c084fc",
     "critical": "#ff5f57",
     "high": "#ff9f43",

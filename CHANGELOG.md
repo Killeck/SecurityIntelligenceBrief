@@ -16,6 +16,14 @@ releases.
 The format broadly follows [Keep a Changelog](https://keepachangelog.com/) and uses semantic-style versioning where practical.
 
 ---
+## 5.5.2 - 2026-07-26
+
+### Changed
+- "background": "#07110D"  # Near-black forest
+- "panel": "#0B1712"       # Deep pine
+- "panel_alt": "#0B1712"   # Deep pine
+
+---
 ## 5.5.1 - 2026-07-25
 
 ### Fixed

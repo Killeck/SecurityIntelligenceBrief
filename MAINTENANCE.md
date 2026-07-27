@@ -27,3 +27,5 @@
   - Store generated HTML or structured JSON.
   - Compare daily, weekly and monthly trends.
   - Avoid introducing paid infrastructure.
+- **Threat Intelligence **
+  - Add links whenever there is an item for user deepdive    

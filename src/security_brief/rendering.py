@@ -25,6 +25,7 @@ from .analysis import (
 from .config import (
     BRIEF_NAME,
     BRIEF_VERSION,
+    CISA_KEV_CATALOGUE,
     DEFCON_LEVELS,
     GOVERNANCE_SECTIONS,
     MONITORED_GOVERNANCE_TOPICS,
@@ -53,6 +54,11 @@ _VENDOR_INFORMATION_URLS = {
     "Fortinet": "https://www.fortiguard.com/psirt",
     "Palo Alto": "https://security.paloaltonetworks.com/",
     "Cisco": "https://sec.cloudapps.cisco.com/security/center/publicationListing.x",
+    "Google": "https://cloud.google.com/support/bulletins",
+    "Apple": "https://support.apple.com/en-us/100100",
+    "AWS": "https://aws.amazon.com/security/security-bulletins/",
+    "Okta": "https://trust.okta.com/security-advisories/",
+    "CrowdStrike": "https://www.crowdstrike.com/en-us/blog/",
     "HPE / Aruba": "https://support.hpe.com/connect/s/securitybulletinlibrary",
 }
 
@@ -1023,6 +1029,8 @@ def _metric_card(
     anchor_id: str = "",
     background: str = "",
     foreground: str = "",
+    width: str = "20%",
+    compact: bool = False,
 ) -> str:
     """Render one top-level metric card as a single clickable control.
 
@@ -1052,36 +1060,68 @@ def _metric_card(
         card_start = f'<div style="{card_style}">'
         card_end = "</div>"
 
-    return f"""
-    <td width="16.66%" valign="top" style="padding:4px;">
-      {card_start}
-        <span style="display:block;padding:11px 10px 5px 10px;
+    if compact:
+        card_content = f"""
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+          <tr>
+            <td width="31%" style="padding:8px 12px;color:{accent};
+                font-size:11px;font-weight:700;white-space:nowrap;">
+              {_escape(title)}
+            </td>
+            <td width="25%" style="padding:8px 12px;color:{card_foreground};
+                font-size:18px;font-weight:700;white-space:nowrap;">
+              <span style="color:{accent};">{_escape(icon)}</span>
+              {_escape(value)}
+            </td>
+            <td style="padding:8px 12px;color:{card_foreground};
+                font-size:10px;text-align:right;opacity:.88;">
+              {_escape(detail)}
+            </td>
+          </tr>
+        </table>
+        """
+    else:
+        card_content = f"""
+        <span style="display:block;padding:10px 10px 4px 10px;
                      color:{accent};font-size:11px;font-weight:700;">
           {_escape(title)}
         </span>
         <span style="display:block;padding:0 10px;
                      color:{card_foreground};
-                     font-size:20px;font-weight:700;white-space:nowrap;">
-          <span style="color:{accent};font-size:20px;">
+                     font-size:19px;font-weight:700;white-space:nowrap;">
+          <span style="color:{accent};font-size:19px;">
             {_escape(icon)}
           </span>
           <span style="color:{card_foreground};">
             {_escape(value)}
           </span>
         </span>
-        <span style="display:block;padding:5px 10px 11px 10px;
+        <span style="display:block;padding:4px 10px 10px 10px;
                      color:{card_foreground};font-size:10px;opacity:.88;">
           {_escape(detail)}
         </span>
+        """
+
+    return f"""
+    <td width="{html.escape(width, quote=True)}" valign="top" style="padding:4px;">
+      {card_start}
+        {card_content}
       {card_end}
     </td>
     """
 
 
 def _render_defcon_triangle(current_level: int) -> str:
-    """Render a layered triangle that explains the enterprise DEFCON scale."""
+    """Render a compact, non-rectangular DEFCON legend triangle.
 
-    layer_widths = {1: "28%", 2: "42%", 3: "56%", 4: "70%", 5: "84%"}
+    ``current_level`` is retained for the established renderer/test interface,
+    but the reference legend deliberately does not highlight a current layer.
+    The live level belongs only in the Overall Threat metric card.
+    """
+
+    if current_level not in DEFCON_LEVELS:
+        raise ValueError(f"Unsupported DEFCON level: {current_level}")
+
     descriptions = {
         1: "Immediate action: direct exposure or exceptional verified threat.",
         2: "Urgent action required for relevant active exploitation.",
@@ -1093,47 +1133,35 @@ def _render_defcon_triangle(current_level: int) -> str:
     rows: list[str] = []
     for level in range(1, 6):
         definition = DEFCON_LEVELS[level]
-        is_current = level == current_level
-        current_label = ""
-        if is_current:
-            current_label = (
-                '<div style="margin-top:2px;font-size:8px;font-weight:700;'
-                f'color:{definition["text_colour"]};">Current enterprise level</div>'
-            )
-        border = '2px solid #FFFFFF' if is_current else f'1px solid {DASHBOARD_COLOURS["border"]}'
+        layer = "▲" * (level * 2 - 1)
         rows.append(
             f"""
             <tr>
-              <td align="center" style="padding:0 0 3px 0;">
-                <table role="presentation" width="{layer_widths[level]}" cellspacing="0" cellpadding="0"
-                       style="width:{layer_widths[level]};margin:0 auto;border-collapse:separate;">
-                  <tr>
-                    <td style="padding:4px 6px;border-radius:4px;border:{border};
-                               background:{definition['colour']};
-                               color:{definition['text_colour']};text-align:center;">
-                      <div style="font-size:9px;font-weight:700;line-height:1.15;">
-                        DEFCON {level} — {_escape(definition['label'])}
-                      </div>
-                      <div style="font-size:8px;line-height:1.2;margin-top:1px;">
-                        {_escape(descriptions[level])}
-                      </div>
-                      {current_label}
-                    </td>
-                  </tr>
-                </table>
+              <td width="116" align="center" valign="middle" nowrap
+                  style="padding:2px 8px 2px 0;line-height:10px;
+                         color:{definition['colour']};font-family:'Segoe UI Symbol',Arial,sans-serif;
+                         font-size:11px;font-weight:700;letter-spacing:-2px;">
+                {_escape(layer)}
+              </td>
+              <td valign="middle" style="padding:2px 0 2px 8px;
+                  border-left:1px solid {DASHBOARD_COLOURS['border']};
+                  color:{DASHBOARD_COLOURS['text']};line-height:1.15;">
+                <div style="font-size:8px;font-weight:700;">
+                  DEFCON {level} — {_escape(definition['label'])}
+                </div>
+                <div style="margin-top:1px;color:{DASHBOARD_COLOURS['muted']};
+                            font-size:7px;line-height:1.2;">
+                  {_escape(descriptions[level])}
+                </div>
               </td>
             </tr>
             """
         )
 
-    current_display = _escape(DEFCON_LEVELS[current_level]["label"])
     return (
-        f'<div style="color:{DASHBOARD_COLOURS["muted"]};font-size:9px;line-height:1.25;margin-bottom:6px;">'
-        f'Layered enterprise threat scale. Current enterprise level: <strong style="color:{DASHBOARD_COLOURS["text"]};">DEFCON {current_level} — {current_display}</strong>.'
-        '</div>'
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
-        + ''.join(rows)
-        + '</table>'
+        + "".join(rows)
+        + "</table>"
     )
 
 
@@ -1228,7 +1256,7 @@ def _render_priority_vendor_status(
     items: list[Item],
     failed_sources: Iterable[str] = (),
 ) -> str:
-    """State whether KEV and priority vendors produced material updates."""
+    """Rank KEV/vendor groups and link their leading material updates."""
 
     vendors = (
         "Microsoft",
@@ -1243,14 +1271,22 @@ def _render_priority_vendor_status(
         "HPE / Aruba",
     )
     failed_text = " ".join(failed_sources).lower()
-    statuses: list[tuple[str, str, str]] = []
+    statuses: list[dict[str, Any]] = []
     kev_items = [item for item in items if item.kev]
     statuses.append(
-        (
-            "CISA KEV",
-            f"{len(kev_items)} addition(s)" if kev_items else "No new additions",
-            DASHBOARD_COLOURS["critical"] if kev_items else DASHBOARD_COLOURS["green"],
-        )
+        {
+            "label": "CISA KEV",
+            "status": (
+                f"{len(kev_items)} addition(s)" if kev_items else "No new additions"
+            ),
+            "colour": (
+                DASHBOARD_COLOURS["critical"]
+                if kev_items else DASHBOARD_COLOURS["green"]
+            ),
+            "count": len(kev_items),
+            "entries": kev_items,
+            "information_url": CISA_KEV_CATALOGUE,
+        }
     )
     for vendor in vendors:
         vendor_terms = (
@@ -1279,19 +1315,77 @@ def _render_priority_vendor_status(
         else:
             status = "No material update"
             colour = DASHBOARD_COLOURS["green"]
-        statuses.append((vendor, status, colour))
+        statuses.append(
+            {
+                "label": vendor,
+                "status": status,
+                "colour": colour,
+                "count": len(material),
+                "entries": material,
+                "information_url": _vendor_information_url(vendor, matched),
+            }
+        )
+
+    statuses.sort(
+        key=lambda value: (-int(value["count"]), str(value["label"]).casefold())
+    )
 
     cells = []
-    for label, status, colour in statuses:
+    for vendor_status in statuses:
+        label = str(vendor_status["label"])
+        status = str(vendor_status["status"])
+        colour = str(vendor_status["colour"])
+        entries = sorted(
+            vendor_status["entries"],
+            key=lambda item: (
+                item.score,
+                item.cvss_score or 0.0,
+                item.published,
+                item.title.casefold(),
+            ),
+            reverse=True,
+        )
+        entry_rows = []
+        for item in entries[:2]:
+            identifier = item.cves[0] if item.cves else ""
+            entry_label = truncate(item.title, 68)
+            if identifier and identifier.lower() not in entry_label.lower():
+                entry_label = f"{identifier} — {entry_label}"
+            entry_rows.append(
+                '<tr><td valign="top" style="padding:3px 5px 0 0;'
+                f'color:{colour};font-size:9px;">•</td>'
+                '<td style="padding:3px 0 0;font-size:10px;line-height:1.3;">'
+                f'{_link(entry_label, item.link, source=item.source, colour=DASHBOARD_COLOURS["highlight"])}'
+                '</td></tr>'
+            )
+        entries_html = ""
+        if entry_rows:
+            entries_html = (
+                '<table role="presentation" width="100%" cellspacing="0" '
+                'cellpadding="0" style="margin-top:3px;">'
+                + "".join(entry_rows)
+                + "</table>"
+            )
+        information_link = _link(
+            "More information ›",
+            str(vendor_status["information_url"]),
+            source=label,
+        )
         cells.append(
-            f'<td width="25%" valign="top" style="padding:4px;">'
+            f'<td width="33.33%" valign="top" style="padding:4px;">'
             f'<div style="background:{DASHBOARD_COLOURS["panel_alt"]};'
             f'border:1px solid {DASHBOARD_COLOURS["border"]};border-radius:5px;'
-            f'padding:7px 8px;font-size:10px;color:{DASHBOARD_COLOURS["muted"]};">'
+            f'padding:8px 9px;font-size:10px;color:{DASHBOARD_COLOURS["muted"]};">'
             f'<strong style="color:{DASHBOARD_COLOURS["text"]};">{_escape(label)}</strong><br>'
-            f'<span style="color:{colour};">{_escape(status)}</span></div></td>'
+            f'<span style="color:{colour};">{_escape(status)}</span>'
+            f'{entries_html}'
+            f'<div style="margin-top:5px;font-size:9px;">{information_link}</div>'
+            '</div></td>'
         )
-    rows = ["<tr>" + "".join(cells[index:index + 4]) + "</tr>" for index in range(0, len(cells), 4)]
+    rows = [
+        "<tr>" + "".join(cells[index:index + 3]) + "</tr>"
+        for index in range(0, len(cells), 3)
+    ]
     return (
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
         + "".join(rows) + "</table>"
@@ -2246,7 +2340,11 @@ def render_html_report(
             "executive-summary",
             background=defcon_definition["colour"],
             foreground=defcon_definition["text_colour"],
+            width="100%",
+            compact=True,
         )}
+      </tr>
+      <tr>
         {_metric_card(
             "Active Exploitation",
             str(active_exploitation_count),
@@ -2307,11 +2405,26 @@ def render_html_report(
         DASHBOARD_COLOURS["green"],
     )
 
-    defcon_panel = _panel(
-        "Enterprise DEFCON Scale",
-        _render_defcon_triangle(int(enterprise_status["level"])),
-        DASHBOARD_COLOURS["purple"],
-    )
+    defcon_panel = f"""
+    <table role="presentation" width="390" cellspacing="0" cellpadding="0"
+           bgcolor="{DASHBOARD_COLOURS['panel']}"
+           style="width:100%;max-width:390px;margin-left:auto;
+                  background:{DASHBOARD_COLOURS['panel']};
+                  border:1px solid {DASHBOARD_COLOURS['border']};
+                  border-radius:6px;">
+      <tr>
+        <td style="padding:6px 8px 3px;color:{DASHBOARD_COLOURS['purple']};
+                   font-size:10px;font-weight:700;text-align:left;">
+          Enterprise DEFCON Legend
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:2px 8px 7px;">
+          {_render_defcon_triangle(int(enterprise_status["level"]))}
+        </td>
+      </tr>
+    </table>
+    """
 
     vulnerability_panel = _panel(
         "1. Critical Vulnerabilities / Zero-Days",
@@ -2458,7 +2571,7 @@ def render_html_report(
                     <table role="presentation" width="100%" cellspacing="0"
                            cellpadding="0">
                       <tr>
-                        <td valign="middle">
+                        <td valign="top" style="padding-right:14px;">
                           <div style="color:{DASHBOARD_COLOURS['text']};
                                       font-size:28px;font-weight:700;">
                             <span style="color:{DASHBOARD_COLOURS['purple']};">◈</span>
@@ -2469,13 +2582,16 @@ def render_html_report(
                             Security Advisory + Threat Intelligence
                           </div>
                         </td>
-                        <td align="right" valign="middle"
-                            style="color:{DASHBOARD_COLOURS['muted']};font-size:11px;">
-                          Reporting window: previous {lookback_hours} hours<br>
-                          Primary sources: {len(context.active_sources) +
-                              context.quiet_source_count +
-                              len(context.failed_sources)}<br>
-                          Version {BRIEF_VERSION}
+                        <td width="410" align="right" valign="top">
+                          {defcon_panel}
+                          <div style="padding-top:5px;color:{DASHBOARD_COLOURS['muted']};
+                                      font-size:10px;line-height:1.35;">
+                            Reporting window: previous {lookback_hours} hours ·
+                            Primary sources: {len(context.active_sources) +
+                                context.quiet_source_count +
+                                len(context.failed_sources)} ·
+                            Version {BRIEF_VERSION}
+                          </div>
                         </td>
                       </tr>
                     </table>
@@ -2486,21 +2602,7 @@ def render_html_report(
                 <tr><td>{executive_panel}</td></tr>
                 <tr><td>{vendor_status_panel}</td></tr>
 
-                <tr>
-                  <td>
-                    <table role="presentation" width="100%" cellspacing="0"
-                           cellpadding="0">
-                      <tr>
-                        <td width="66%" valign="top" style="padding-right:6px;">
-                          {vulnerability_panel}
-                        </td>
-                        <td width="34%" valign="top" style="padding-left:6px;">
-                          {defcon_panel}
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
+                <tr><td>{vulnerability_panel}</td></tr>
 
                 <tr><td>{threat_panel}</td></tr>
                 <tr><td>{news_panel}</td></tr>

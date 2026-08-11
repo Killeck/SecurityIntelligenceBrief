@@ -30,6 +30,7 @@ from security_brief.collectors import (
 from security_brief.models import ExposureSignal, Item, NewsLink
 from security_brief.rendering import (
     _render_defcon_triangle,
+    _metric_card,
     _render_threat_rows,
     _render_vulnerability_table,
     _threat_actor,
@@ -893,6 +894,14 @@ class PipelineTests(unittest.TestCase):
         )
 
         triangle = _render_defcon_triangle(3)
+        self.assertEqual(triangle.count("▲"), 25)
+        self.assertNotIn("Current enterprise level", triangle)
+        self.assertNotIn(
+            f"background:{DEFCON_LEVELS[3]['colour']}",
+            triangle,
+        )
+        self.assertIn("border-left:1px solid", triangle)
+        self.assertEqual(triangle.count("font-size:7px"), 5)
         for repeated_label in (
             "Critical: immediate action",
             "High: urgent action",
@@ -910,6 +919,30 @@ class PipelineTests(unittest.TestCase):
             "Routine background threat activity and normal monitoring.",
         ):
             self.assertIn(description, triangle)
+
+    def test_overall_threat_metric_can_use_a_shallow_full_width_row(self) -> None:
+        metric = _metric_card(
+            "Overall Threat",
+            "DEFCON 3",
+            "!",
+            "#FFFFFF",
+            "ELEVATED · Evidence-based enterprise level",
+            width="100%",
+            compact=True,
+        )
+
+        self.assertIn('width="100%" valign="top"', metric)
+        self.assertIn('font-size:18px', metric)
+        self.assertNotIn('font-size:19px', metric)
+
+        standard_metric = _metric_card(
+            "Zero-Days",
+            "2",
+            "▲",
+            "#FFFFFF",
+            "Explicit zero-day references",
+        )
+        self.assertIn('width="20%" valign="top"', standard_metric)
 
 
 if __name__ == "__main__":

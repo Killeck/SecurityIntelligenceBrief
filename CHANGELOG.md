@@ -16,6 +16,54 @@ releases.
 The format broadly follows [Keep a Changelog](https://keepachangelog.com/) and uses semantic-style versioning where practical.
 
 ---
+## 5.6.0 - 2026-08-11
+
+### Added
+
+- Added a companion Weekly Vulnerability Report generated from the shared
+  collection and enrichment pipeline.
+- Added CVE-centred remediation prioritisation using CVSS, EPSS, CISA KEV,
+  confirmed exploitation, ransomware association, exposure relevance and age.
+- Added SQLite vulnerability lifecycle history, state-change reporting and an
+  embedded month-to-date vulnerability overview.
+- Added direct advisory and vendor-centre links to KEV and priority-vendor
+  status cards, including up to two leading entries per populated card.
+
+### Changed
+
+- Ranked KEV and priority-vendor cards by material item count, with
+  alphabetical ordering when counts are equal.
+- Moved the compact Enterprise DEFCON legend to the top-right report header.
+- Replaced rectangular DEFCON bands with a layered pyramid and aligned the
+  smaller descriptive text in a separate right-hand column.
+- Moved Overall Threat to a shallow full-width row and resized the remaining
+  five headline metrics evenly across the following row.
+- Expanded the critical-vulnerability panel to the full report width.
+- Scheduled the weekly report for Monday at 08:00 Europe/Oslo.
+
+### Fixed
+
+- Limited weekly NVD collection to the supported maximum of 100 CVEs.
+- Updated weekly lifecycle cache restore and save steps to Node.js
+  24-compatible `actions/cache/*@v6` releases.
+- Prevented cache-save failures after an unsuccessful report run or when the
+  lifecycle database was not created.
+
+### Validation
+
+- Passed 48 focused offline regression tests covering the daily and weekly
+  reporting family.
+
+---
+
+## 5.5.3 - 2026-08-11
+
+### Changed
+
+- Synchronized the repository version after the preceding daily brief update.
+
+---
+
 ## 5.5.2 - 2026-07-26
 
 ### Changed

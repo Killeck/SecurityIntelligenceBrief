@@ -1,9 +1,37 @@
 # Maintenance priorities
 
-- Adjust Layout
-	- change top layout
-	- Decrease defcon style legend space consumption
-	- 
+## Release discipline
+
+Every functional or presentation update must include, as applicable:
+
+- Increment `VERSION` using semantic-style versioning.
+- Add a dated entry to `CHANGELOG.md` describing added, changed and fixed
+  behaviour.
+- Update `README.md` when features, layout, operation, configuration or
+  repository structure changes.
+- Update `MAINTENANCE.md` to close completed work and capture follow-up work.
+- Update focused operating documents such as
+  `WEEKLY_VULNERABILITY_REPORT.md` when their report or workflow changes.
+- Add or update regression tests and record the validation result in the
+  changelog.
+- Commit the implementation, tests, version and documentation together unless
+  a version-only release is explicitly intended.
+
+## Completed in 5.6.0
+
+- Introduced the Weekly Vulnerability Report and month-to-date overview.
+- Added persistent vulnerability lifecycle tracking through SQLite and the
+  GitHub Actions cache.
+- Corrected weekly NVD limits and upgraded lifecycle cache actions for Node.js
+  24 runners.
+- Reworked the top layout with a compact top-right layered DEFCON legend.
+- Separated DEFCON descriptions from the pyramid layers.
+- Moved Overall Threat to a shallow full-width row and balanced the remaining
+  five metrics.
+- Added ranked, linked KEV and priority-vendor status cards.
+
+## Current priorities
+
 - Restore and protect core functionality
   - Add live parser-health and source-freshness monitoring.
   - Detect failed requests.
@@ -31,5 +59,6 @@
   - Store generated HTML or structured JSON.
   - Compare daily, weekly and monthly trends.
   - Avoid introducing paid infrastructure.
-- **Threat Intelligence **
-  - Add links whenever there is an item for user deep-dive    
+- **Threat intelligence**
+  - Continue expanding source-specific deep-dive links where a trusted
+    destination is available.

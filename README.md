@@ -9,6 +9,8 @@ A Python and GitHub Actions cybersecurity intelligence pipeline for Security
 Advisors, Technical Account Managers, SOC advisory functions, CISOs and
 customer-facing security teams.
 
+Current release: **5.6.0**.
+
 The current release retains the broad CISO intelligence coverage introduced in v4.0,
 including critical vulnerabilities, active exploitation, Microsoft, Fortinet,
 HPE and Aruba, cloud and identity, SOC detection, OT and energy, Scandinavia,
@@ -60,8 +62,13 @@ dashboard-style daily digest.
 
 The email now begins with:
 
-- Six headline metrics
+- A compact layered DEFCON pyramid in the top-right header, with its smaller
+  explanatory text kept in a separate right-hand column
+- A shallow full-width Overall Threat status row
+- Five evenly sized supporting metric cards
 - Executive TL;DR
+- KEV and priority-vendor cards ranked by material item count, then
+  alphabetically for equal counts, with leading advisory and reference links
 - Critical vulnerability table
 - Active exploitation and actor activity
 - Dark-web and exposure cards
@@ -388,6 +395,9 @@ The entry point now delegates to focused modules:
 - `rules.py` — deterministic scoring and classification rules.
 - `models.py` — shared data contracts.
 - `delivery.py` — Gmail SMTP delivery.
+- `vulnerability_reporting.py` — weekly CVE prioritisation, lifecycle history
+  and HTML/text rendering.
+- `weekly_app.py` — weekly report orchestration and delivery.
 
 Independent sources are fetched concurrently using a bounded worker pool. The
 default is eight workers, configurable through `SOURCE_WORKERS`. Source
@@ -411,6 +421,7 @@ See `OPTIMISATION.md` for the detailed before-and-after design notes.
 ├── .github/
 │   └── workflows/
 │       ├── daily-security-brief.yml
+│       ├── weekly-vulnerability-report.yml
 │       └── test-security-brief.yml
 ├── config/
 │   └── upcoming_governance.json
@@ -428,13 +439,19 @@ See `OPTIMISATION.md` for the detailed before-and-after design notes.
 │   │   ├── rendering.py
 │   │   ├── rules.py
 │   │   ├── sources.py
-│   │   └── utils.py
-│   └── send_security_advisory.py
+│   │   ├── utils.py
+│   │   ├── vulnerability_reporting.py
+│   │   └── weekly_app.py
+│   ├── send_security_advisory.py
+│   └── send_weekly_vulnerability_report.py
 ├── tests/
-│   └── test_smoke.py
+│   ├── test_smoke.py
+│   └── test_vulnerability_reporting.py
 ├── CHANGELOG.md
+├── MAINTENANCE.md
 ├── OPTIMISATION.md
 ├── README.md
+├── WEEKLY_VULNERABILITY_REPORT.md
 ├── VERSION
 └── requirements.txt
 ```

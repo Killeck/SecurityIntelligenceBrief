@@ -5,11 +5,14 @@
 
 from __future__ import annotations
 
+import struct
 import unittest
 
 from security_brief.branding import (
+    DEFCON_LEGEND_CONTENT_ID,
     LEGACY_REPORT_TITLE,
     LOGO_CONTENT_ID,
+    load_defcon_legend_bytes,
     load_logo_bytes,
 )
 from security_brief.config import BRIEF_NAME, BRIEF_VERSION
@@ -24,6 +27,13 @@ class BrandingTests(unittest.TestCase):
 
         self.assertTrue(logo.startswith(b"\x89PNG\r\n\x1a\n"))
         self.assertLessEqual(len(logo), 1_000_000)
+
+    def test_defcon_legend_is_valid_and_compact(self) -> None:
+        legend = load_defcon_legend_bytes()
+
+        self.assertTrue(legend.startswith(b"\x89PNG\r\n\x1a\n"))
+        self.assertLessEqual(len(legend), 500_000)
+        self.assertEqual(struct.unpack(">II", legend[16:24]), (660, 364))
 
     def test_build_message_uses_logo_and_keeps_metadata_version(self) -> None:
         text_body = (
@@ -51,6 +61,8 @@ class BrandingTests(unittest.TestCase):
                   Reporting window: previous 24 hours<br>
                   Primary sources: 42<br>
                   Version {BRIEF_VERSION}
+                  <img src="cid:{DEFCON_LEGEND_CONTENT_ID}"
+                       alt="Enterprise DEFCON legend">
                 </td>
               </tr>
             </table>
@@ -84,6 +96,30 @@ class BrandingTests(unittest.TestCase):
         self.assertNotIn(
             "Security Advisory + Threat Intelligence",
             html_content,
+        )
+
+        image_parts = [
+            part
+            for part in message.walk()
+            if part.get_content_maintype() == "image"
+        ]
+        self.assertEqual(len(image_parts), 2)
+        self.assertEqual(
+            image_parts[0]["Content-ID"],
+            f"<{LOGO_CONTENT_ID}>",
+        )
+        self.assertEqual(
+            image_parts[1]["Content-ID"],
+            f"<{DEFCON_LEGEND_CONTENT_ID}>",
+        )
+
+    def test_defcon_asset_is_omitted_when_report_does_not_reference_it(self) -> None:
+        message = build_message(
+            "sender@example.com",
+            "recipient@example.com",
+            "Weekly Vulnerability Report",
+            "Weekly Vulnerability Report",
+            "<html><body><p>Weekly Vulnerability Report</p></body></html>",
         )
 
         image_parts = [

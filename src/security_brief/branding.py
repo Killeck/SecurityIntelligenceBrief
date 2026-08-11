@@ -14,6 +14,8 @@ from .config import BRIEF_NAME, BRIEF_VERSION, PROJECT_ROOT
 
 LOGO_CONTENT_ID = "daily-security-brief-logo"
 LOGO_PATH = PROJECT_ROOT / "assets" / "DailySecurityBrief.png"
+DEFCON_LEGEND_CONTENT_ID = "enterprise-defcon-legend"
+DEFCON_LEGEND_PATH = PROJECT_ROOT / "assets" / "DefconLegend.png"
 LEGACY_REPORT_TITLE = f"{BRIEF_NAME} v{BRIEF_VERSION}"
 
 _HEADER_BLOCK_RE = re.compile(
@@ -49,6 +51,25 @@ def load_logo_bytes(path: Path = LOGO_PATH) -> bytes:
         )
 
     return logo
+
+
+def load_defcon_legend_bytes(path: Path = DEFCON_LEGEND_PATH) -> bytes:
+    """Read and validate the compact inline DEFCON pyramid PNG."""
+
+    try:
+        legend = path.read_bytes()
+    except OSError as error:
+        raise RuntimeError(f"Unable to read DEFCON legend: {path}") from error
+
+    if not legend.startswith(b"\x89PNG\r\n\x1a\n"):
+        raise RuntimeError(f"DEFCON legend is not a valid PNG: {path}")
+
+    if len(legend) > 500_000:
+        raise RuntimeError(
+            f"DEFCON legend exceeds the 500 KB limit: {len(legend)} bytes"
+        )
+
+    return legend
 
 
 def apply_email_branding(

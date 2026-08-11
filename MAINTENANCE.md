@@ -17,6 +17,19 @@ Every functional or presentation update must include, as applicable:
 - Commit the implementation, tests, version and documentation together unless
   a version-only release is explicitly intended.
 
+## Completed in 5.6.1
+
+- Replaced the character-based DEFCON approximation with a compact embedded
+  solid-layer pyramid containing labels inside each level.
+- Moved the legend below the report metadata and right-aligned it beside the
+  bottom-aligned 20% Overall Threat box.
+- Centered the compact numeric threat level and status without a redundant
+  icon or `DEFCON` prefix.
+- Isolated the five supporting metrics in their own fixed-layout table to
+  prevent email-client column collapse.
+- Preserved `VERSION` as the single runtime source of truth and left the
+  existing logo unchanged.
+
 ## Completed in 5.6.0
 
 - Introduced the Weekly Vulnerability Report and month-to-date overview.

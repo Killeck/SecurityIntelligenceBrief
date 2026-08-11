@@ -10,6 +10,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
 
+from bs4 import BeautifulSoup
+
 from security_brief import BRIEF_VERSION, collectors
 from security_brief.analysis import (
     advisory_status,
@@ -884,6 +886,50 @@ class PipelineTests(unittest.TestCase):
         ):
             self.assertIn(expected, text_body + html_body)
 
+        self.assertIn('width="20%" valign="bottom"', html_body)
+        self.assertRegex(
+            html_body,
+            r">\s*[1-5] — (Critical|High|Elevated|Guarded|Low)\s*<",
+        )
+        self.assertNotIn("! DEFCON", html_body)
+        self.assertLess(
+            html_body.index("Reporting window:"),
+            html_body.index("Enterprise DEFCON Legend"),
+        )
+        self.assertLess(
+            html_body.index("Enterprise DEFCON Legend"),
+            html_body.index("Active Exploitation"),
+        )
+
+        document = BeautifulSoup(html_body, "html.parser")
+        overall_label = document.find(
+            "span",
+            string=lambda value: value and value.strip() == "Overall Threat",
+        )
+        self.assertIsNotNone(overall_label)
+        status_row = overall_label.find_parent("tr")
+        self.assertEqual(
+            [
+                cell.get("width")
+                for cell in status_row.find_all("td", recursive=False)
+            ],
+            ["20%", "80%"],
+        )
+
+        active_label = document.find(
+            "span",
+            string=lambda value: value and value.strip() == "Active Exploitation",
+        )
+        self.assertIsNotNone(active_label)
+        metric_row = active_label.find_parent("tr")
+        self.assertEqual(
+            [
+                cell.get("width")
+                for cell in metric_row.find_all("td", recursive=False)
+            ],
+            ["20%"] * 5,
+        )
+
 
     def test_defcon_scale_uses_distinct_colours_without_repeated_labels(self) -> None:
         self.assertEqual(DEFCON_LEVELS[1]["colour"], "#B71C1C")
@@ -894,13 +940,10 @@ class PipelineTests(unittest.TestCase):
         )
 
         triangle = _render_defcon_triangle(3)
-        self.assertEqual(triangle.count("▲"), 25)
+        self.assertNotIn("▲", triangle)
         self.assertNotIn("Current enterprise level", triangle)
-        self.assertNotIn(
-            f"background:{DEFCON_LEVELS[3]['colour']}",
-            triangle,
-        )
-        self.assertIn("border-left:1px solid", triangle)
+        self.assertIn("cid:enterprise-defcon-legend", triangle)
+        self.assertIn('width="165"', triangle)
         self.assertEqual(triangle.count("font-size:7px"), 5)
         for repeated_label in (
             "Critical: immediate action",
@@ -920,21 +963,7 @@ class PipelineTests(unittest.TestCase):
         ):
             self.assertIn(description, triangle)
 
-    def test_overall_threat_metric_can_use_a_shallow_full_width_row(self) -> None:
-        metric = _metric_card(
-            "Overall Threat",
-            "DEFCON 3",
-            "!",
-            "#FFFFFF",
-            "ELEVATED · Evidence-based enterprise level",
-            width="100%",
-            compact=True,
-        )
-
-        self.assertIn('width="100%" valign="top"', metric)
-        self.assertIn('font-size:18px', metric)
-        self.assertNotIn('font-size:19px', metric)
-
+    def test_standard_metric_uses_one_fifth_width(self) -> None:
         standard_metric = _metric_card(
             "Zero-Days",
             "2",

@@ -9,8 +9,6 @@ A Python and GitHub Actions cybersecurity intelligence pipeline for Security
 Advisors, Technical Account Managers, SOC advisory functions, CISOs and
 customer-facing security teams.
 
-Current release: **5.6.0**.
-
 The current release retains the broad CISO intelligence coverage introduced in v4.0,
 including critical vulnerabilities, active exploitation, Microsoft, Fortinet,
 HPE and Aruba, cloud and identity, SOC detection, OT and energy, Scandinavia,
@@ -62,9 +60,12 @@ dashboard-style daily digest.
 
 The email now begins with:
 
-- A compact layered DEFCON pyramid in the top-right header, with its smaller
-  explanatory text kept in a separate right-hand column
-- A shallow full-width Overall Threat status row
+- Reporting-window, source-count and version metadata above the executive
+  status row
+- A compact right-aligned DEFCON legend with labelled solid pyramid layers and
+  smaller dash descriptions to the right
+- A bottom-aligned, one-fifth-width Overall Threat box showing only the numeric
+  level and status, for example `4 — Guarded`
 - Five evenly sized supporting metric cards
 - Executive TL;DR
 - KEV and priority-vendor cards ranked by material item count, then
@@ -423,6 +424,10 @@ See `OPTIMISATION.md` for the detailed before-and-after design notes.
 │       ├── daily-security-brief.yml
 │       ├── weekly-vulnerability-report.yml
 │       └── test-security-brief.yml
+├── assets/
+│   ├── DailySecurityBrief.png
+│   ├── DefconLegend.png
+│   └── DefconLegend.svg
 ├── config/
 │   └── upcoming_governance.json
 ├── src/

@@ -22,6 +22,7 @@ from .analysis import (
     group_exposure_signals,
     priority,
 )
+from .branding import DEFCON_LEGEND_CONTENT_ID
 from .config import (
     BRIEF_NAME,
     BRIEF_VERSION,
@@ -1112,7 +1113,7 @@ def _metric_card(
 
 
 def _render_defcon_triangle(current_level: int) -> str:
-    """Render a compact, non-rectangular DEFCON legend triangle.
+    """Render the compact labelled DEFCON pyramid and its descriptions.
 
     ``current_level`` is retained for the established renderer/test interface,
     but the reference legend deliberately does not highlight a current layer.
@@ -1132,27 +1133,12 @@ def _render_defcon_triangle(current_level: int) -> str:
 
     rows: list[str] = []
     for level in range(1, 6):
-        definition = DEFCON_LEVELS[level]
-        layer = "▲" * (level * 2 - 1)
         rows.append(
             f"""
             <tr>
-              <td width="116" align="center" valign="middle" nowrap
-                  style="padding:2px 8px 2px 0;line-height:10px;
-                         color:{definition['colour']};font-family:'Segoe UI Symbol',Arial,sans-serif;
-                         font-size:11px;font-weight:700;letter-spacing:-2px;">
-                {_escape(layer)}
-              </td>
-              <td valign="middle" style="padding:2px 0 2px 8px;
-                  border-left:1px solid {DASHBOARD_COLOURS['border']};
-                  color:{DASHBOARD_COLOURS['text']};line-height:1.15;">
-                <div style="font-size:8px;font-weight:700;">
-                  DEFCON {level} — {_escape(definition['label'])}
-                </div>
-                <div style="margin-top:1px;color:{DASHBOARD_COLOURS['muted']};
-                            font-size:7px;line-height:1.2;">
-                  {_escape(descriptions[level])}
-                </div>
+              <td valign="middle" style="padding:1px 0;color:{DASHBOARD_COLOURS['muted']};
+                  font-size:7px;line-height:1.15;">
+                — {_escape(descriptions[level])}
               </td>
             </tr>
             """
@@ -1160,8 +1146,15 @@ def _render_defcon_triangle(current_level: int) -> str:
 
     return (
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
+        '<tr><td width="180" valign="middle" align="center" style="padding-right:8px;">'
+        f'<img src="cid:{DEFCON_LEGEND_CONTENT_ID}" '
+        'alt="Five labelled enterprise DEFCON pyramid layers" width="165" '
+        'style="display:block;width:165px;max-width:165px;height:auto;'
+        'border:0;outline:none;text-decoration:none;">'
+        '</td><td valign="middle">'
+        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
         + "".join(rows)
-        + "</table>"
+        + "</table></td></tr></table>"
     )
 
 
@@ -2332,20 +2325,6 @@ def render_html_report(
            style="table-layout:fixed;margin:0 0 10px 0;">
       <tr>
         {_metric_card(
-            "Overall Threat",
-            f"DEFCON {enterprise_status['level']}",
-            "!",
-            defcon_definition["text_colour"],
-            f"{defcon_definition['label'].upper()} · Evidence-based enterprise level",
-            "executive-summary",
-            background=defcon_definition["colour"],
-            foreground=defcon_definition["text_colour"],
-            width="100%",
-            compact=True,
-        )}
-      </tr>
-      <tr>
-        {_metric_card(
             "Active Exploitation",
             str(active_exploitation_count),
             "◉",
@@ -2406,9 +2385,9 @@ def render_html_report(
     )
 
     defcon_panel = f"""
-    <table role="presentation" width="390" cellspacing="0" cellpadding="0"
+    <table role="presentation" width="570" cellspacing="0" cellpadding="0"
            bgcolor="{DASHBOARD_COLOURS['panel']}"
-           style="width:100%;max-width:390px;margin-left:auto;
+           style="width:100%;max-width:570px;margin-left:auto;
                   background:{DASHBOARD_COLOURS['panel']};
                   border:1px solid {DASHBOARD_COLOURS['border']};
                   border-radius:6px;">
@@ -2421,6 +2400,36 @@ def render_html_report(
       <tr>
         <td style="padding:2px 8px 7px;">
           {_render_defcon_triangle(int(enterprise_status["level"]))}
+        </td>
+      </tr>
+    </table>
+    """
+
+    status_legend_html = f"""
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+           style="table-layout:fixed;margin:0 0 6px 0;">
+      <tr>
+        <td width="20%" valign="bottom" style="padding:4px;">
+          <a href="#executive-summary" aria-label="Jump to Overall Threat detail"
+             style="display:block;width:100%;box-sizing:border-box;
+                    background:{defcon_definition['colour']};
+                    border:1px solid {DASHBOARD_COLOURS['border']};
+                    border-radius:7px;text-decoration:none;color:inherit;">
+            <span style="display:block;padding:9px 10px 3px;
+                         color:{defcon_definition['text_colour']};
+                         font-size:11px;font-weight:700;">
+              Overall Threat
+            </span>
+            <span style="display:block;padding:2px 8px 10px;
+                         color:{defcon_definition['text_colour']};
+                         font-size:16px;font-weight:700;text-align:center;
+                         white-space:nowrap;">
+              {_escape(str(enterprise_status['level']))} — {_escape(defcon_definition['label'])}
+            </span>
+          </a>
+        </td>
+        <td width="80%" align="right" valign="bottom" style="padding:4px;">
+          {defcon_panel}
         </td>
       </tr>
     </table>
@@ -2582,9 +2591,8 @@ def render_html_report(
                             Security Advisory + Threat Intelligence
                           </div>
                         </td>
-                        <td width="410" align="right" valign="top">
-                          {defcon_panel}
-                          <div style="padding-top:5px;color:{DASHBOARD_COLOURS['muted']};
+                        <td width="410" align="right" valign="bottom">
+                          <div style="padding-bottom:1px;color:{DASHBOARD_COLOURS['muted']};
                                       font-size:10px;line-height:1.35;">
                             Reporting window: previous {lookback_hours} hours ·
                             Primary sources: {len(context.active_sources) +
@@ -2598,6 +2606,7 @@ def render_html_report(
                   </td>
                 </tr>
 
+                <tr><td>{status_legend_html}</td></tr>
                 <tr><td>{metrics_html}</td></tr>
                 <tr><td>{executive_panel}</td></tr>
                 <tr><td>{vendor_status_panel}</td></tr>

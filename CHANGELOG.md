@@ -16,6 +16,36 @@ releases.
 The format broadly follows [Keep a Changelog](https://keepachangelog.com/) and uses semantic-style versioning where practical.
 
 ---
+## 5.6.1 - 2026-08-11
+
+### Changed
+
+- Rebuilt the daily executive header so report metadata appears above the
+  compact DEFCON legend while leaving the existing logo unchanged.
+- Replaced the character-based DEFCON approximation with five solid,
+  colour-coded pyramid layers containing severity and DEFCON labels.
+- Reduced the displayed pyramid width to 165 pixels and placed five smaller
+  dash descriptions to its right.
+- Moved the Overall Threat box to the bottom-left of the legend row at 20%
+  width and centered the combined numeric level and status text.
+- Removed the exclamation icon and repeated `DEFCON` prefix from Overall
+  Threat; the box now displays values such as `4 — Guarded`.
+
+### Fixed
+
+- Split Overall Threat and the five supporting metrics into separate
+  email-safe tables, preventing one metric from expanding while the remaining
+  cards collapse into a narrow right-hand column.
+
+### Validation
+
+- Added regression coverage for the embedded DEFCON asset, MIME content IDs,
+  compact legend structure, bottom-aligned threat box and metric widths.
+- Passed 50 offline regression tests under the GitHub Actions Python 3.12
+  runtime across the daily and weekly reporting family.
+
+---
+
 ## 5.6.0 - 2026-08-11
 
 ### Added

@@ -13,8 +13,10 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from .branding import (
+    DEFCON_LEGEND_CONTENT_ID,
     LOGO_CONTENT_ID,
     apply_email_branding,
+    load_defcon_legend_bytes,
     load_logo_bytes,
 )
 
@@ -56,6 +58,14 @@ def build_message(
         cid=f"<{LOGO_CONTENT_ID}>",
         disposition="inline",
     )
+    if f"cid:{DEFCON_LEGEND_CONTENT_ID}" in branded_html:
+        html_part.add_related(
+            load_defcon_legend_bytes(),
+            maintype="image",
+            subtype="png",
+            cid=f"<{DEFCON_LEGEND_CONTENT_ID}>",
+            disposition="inline",
+        )
 
     return message
 

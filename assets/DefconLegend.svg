@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="660" height="364"
+     viewBox="0 0 330 182" role="img"
+     aria-label="Five labelled enterprise DEFCON pyramid layers">
+  <polygon points="110,2 220,2 239,34 91,34" fill="#B71C1C"/>
+  <text x="165" y="16" text-anchor="middle" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif" font-size="16"
+        font-weight="700">Critical</text>
+  <text x="165" y="29" text-anchor="middle" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif" font-size="14">DEFCON 1</text>
+
+  <polygon points="87,38 243,38 262,70 68,70" fill="#F57C00"/>
+  <text x="165" y="52" text-anchor="middle" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif" font-size="16"
+        font-weight="700">High</text>
+  <text x="165" y="65" text-anchor="middle" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif" font-size="14">DEFCON 2</text>
+
+  <polygon points="64,74 266,74 285,106 45,106" fill="#F9A825"/>
+  <text x="165" y="88" text-anchor="middle" fill="#111111"
+        font-family="Arial, Helvetica, sans-serif" font-size="16"
+        font-weight="700">Elevated</text>
+  <text x="165" y="101" text-anchor="middle" fill="#111111"
+        font-family="Arial, Helvetica, sans-serif" font-size="14">DEFCON 3</text>
+
+  <polygon points="41,110 289,110 308,142 22,142" fill="#1565C0"/>
+  <text x="165" y="124" text-anchor="middle" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif" font-size="16"
+        font-weight="700">Guarded</text>
+  <text x="165" y="137" text-anchor="middle" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif" font-size="14">DEFCON 4</text>
+
+  <polygon points="18,146 312,146 329,180 1,180" fill="#2E7D32"/>
+  <text x="165" y="161" text-anchor="middle" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif" font-size="16"
+        font-weight="700">Low</text>
+  <text x="165" y="175" text-anchor="middle" fill="#FFFFFF"
+        font-family="Arial, Helvetica, sans-serif" font-size="14">DEFCON 5</text>
+</svg>

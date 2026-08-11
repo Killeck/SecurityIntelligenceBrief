@@ -1,5 +1,9 @@
 # Maintenance priorities
 
+- Adjust Layout
+	- change top layout
+	- Decrease defcon style legend space consumption
+	- 
 - Restore and protect core functionality
   - Add live parser-health and source-freshness monitoring.
   - Detect failed requests.
@@ -28,4 +32,4 @@
   - Compare daily, weekly and monthly trends.
   - Avoid introducing paid infrastructure.
 - **Threat Intelligence **
-  - Add links whenever there is an item for user deepdive    
+  - Add links whenever there is an item for user deep-dive    

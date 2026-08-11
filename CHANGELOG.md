@@ -16,6 +16,23 @@ releases.
 The format broadly follows [Keep a Changelog](https://keepachangelog.com/) and uses semantic-style versioning where practical.
 
 ---
+## 5.6.3 - 2026-08-11
+
+### Fixed
+
+- Fixed the displayed DEFCON pyramid height at 91 pixels and aligned its five
+  descriptions using matching fixed 18-pixel rows.
+- Shortened and prevented wrapping of the legend descriptions so each dash and
+  description remains centered beside its corresponding pyramid layer.
+
+### Validation
+
+- Added regression coverage for the fixed pyramid height, five description-row
+  heights and non-wrapping alignment.
+- Passed all 50 offline regression tests under Python 3.12.
+
+---
+
 ## 5.6.2 - 2026-08-11
 
 ### Changed

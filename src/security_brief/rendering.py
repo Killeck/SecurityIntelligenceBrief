@@ -1124,11 +1124,11 @@ def _render_defcon_triangle(current_level: int) -> str:
         raise ValueError(f"Unsupported DEFCON level: {current_level}")
 
     descriptions = {
-        1: "Immediate action: direct exposure or exceptional verified threat.",
-        2: "Urgent action required for relevant active exploitation.",
-        3: "Credible increased risk requiring enhanced attention.",
-        4: "Meaningful developments, but no immediate direct exposure.",
-        5: "Routine background threat activity and normal monitoring.",
+        1: "Immediate action for exceptional verified threat.",
+        2: "Urgent action for relevant active exploitation.",
+        3: "Increased risk requiring enhanced attention.",
+        4: "Meaningful developments; no direct exposure.",
+        5: "Routine activity and normal monitoring.",
     }
 
     rows: list[str] = []
@@ -1136,8 +1136,9 @@ def _render_defcon_triangle(current_level: int) -> str:
         rows.append(
             f"""
             <tr>
-              <td valign="middle" style="padding:1px 0;color:{DASHBOARD_COLOURS['muted']};
-                  font-size:7px;line-height:1.15;">
+              <td height="18" valign="middle" nowrap
+                  style="height:18px;padding:0;color:{DASHBOARD_COLOURS['muted']};
+                  font-size:7px;line-height:18px;white-space:nowrap;">
                 — {_escape(descriptions[level])}
               </td>
             </tr>
@@ -1148,8 +1149,8 @@ def _render_defcon_triangle(current_level: int) -> str:
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
         '<tr><td width="180" valign="middle" align="center" style="padding-right:8px;">'
         f'<img src="cid:{DEFCON_LEGEND_CONTENT_ID}" '
-        'alt="Five labelled enterprise DEFCON pyramid layers" width="165" '
-        'style="display:block;width:165px;max-width:165px;height:auto;'
+        'alt="Five labelled enterprise DEFCON pyramid layers" width="165" height="91" '
+        'style="display:block;width:165px;max-width:165px;height:91px;'
         'border:0;outline:none;text-decoration:none;">'
         '</td><td valign="middle">'
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'

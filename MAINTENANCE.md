@@ -18,6 +18,14 @@ Every functional or presentation update must include, as applicable:
 - Commit the implementation, tests, version and documentation together unless
   a version-only release is explicitly intended.
 
+## Completed in 5.6.3
+
+- Fixed the embedded DEFCON pyramid display height at 91 pixels.
+- Aligned five non-wrapping description rows at 18 pixels each with the five
+  pyramid layers.
+- Shortened legend descriptions to retain readable one-line alignment inside
+  the compact 400-pixel panel.
+
 ## Completed in 5.6.2
 
 - Reduced the DEFCON legend panel width by approximately 30%, from 570 to 400

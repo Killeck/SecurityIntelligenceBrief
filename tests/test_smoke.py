@@ -961,6 +961,9 @@ class PipelineTests(unittest.TestCase):
         self.assertNotIn("Current enterprise level", triangle)
         self.assertIn("cid:enterprise-defcon-legend", triangle)
         self.assertIn('width="165"', triangle)
+        self.assertIn('height="91"', triangle)
+        self.assertEqual(triangle.count('height="18"'), 5)
+        self.assertEqual(triangle.count("white-space:nowrap"), 5)
         self.assertEqual(triangle.count("font-size:7px"), 5)
         for repeated_label in (
             "Critical: immediate action",
@@ -972,11 +975,11 @@ class PipelineTests(unittest.TestCase):
             self.assertNotIn(repeated_label, triangle)
 
         for description in (
-            "Immediate action: direct exposure or exceptional verified threat.",
-            "Urgent action required for relevant active exploitation.",
-            "Credible increased risk requiring enhanced attention.",
-            "Meaningful developments, but no immediate direct exposure.",
-            "Routine background threat activity and normal monitoring.",
+            "Immediate action for exceptional verified threat.",
+            "Urgent action for relevant active exploitation.",
+            "Increased risk requiring enhanced attention.",
+            "Meaningful developments; no direct exposure.",
+            "Routine activity and normal monitoring.",
         ):
             self.assertIn(description, triangle)
 

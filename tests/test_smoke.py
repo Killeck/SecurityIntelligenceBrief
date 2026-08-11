@@ -887,6 +887,8 @@ class PipelineTests(unittest.TestCase):
             self.assertIn(expected, text_body + html_body)
 
         self.assertIn('width="20%" valign="bottom"', html_body)
+        self.assertIn('width="400"', html_body)
+        self.assertIn("max-width:400px", html_body)
         self.assertRegex(
             html_body,
             r">\s*[1-5] — (Critical|High|Elevated|Guarded|Low)\s*<",
@@ -902,6 +904,21 @@ class PipelineTests(unittest.TestCase):
         )
 
         document = BeautifulSoup(html_body, "html.parser")
+        metadata_text = document.find(
+            string=lambda value: value and "Reporting window:" in value,
+        )
+        self.assertIsNotNone(metadata_text)
+        metadata_cell = metadata_text.find_parent("td")
+        self.assertEqual(metadata_cell.get("align"), "right")
+        self.assertEqual(metadata_cell.get("valign"), "top")
+
+        legend_title = document.find(
+            string=lambda value: value
+            and value.strip() == "Enterprise DEFCON Legend",
+        )
+        self.assertIsNotNone(legend_title)
+        self.assertEqual(legend_title.find_parent("table").get("width"), "400")
+
         overall_label = document.find(
             "span",
             string=lambda value: value and value.strip() == "Overall Threat",

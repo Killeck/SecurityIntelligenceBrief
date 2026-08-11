@@ -62,8 +62,8 @@ The email now begins with:
 
 - Reporting-window, source-count and version metadata above the executive
   status row
-- A compact right-aligned DEFCON legend with labelled solid pyramid layers and
-  smaller dash descriptions to the right
+- A narrow 400-pixel, right-aligned DEFCON legend with labelled solid pyramid
+  layers and smaller dash descriptions to the right
 - A bottom-aligned, one-fifth-width Overall Threat box showing only the numeric
   level and status, for example `4 — Guarded`
 - Five evenly sized supporting metric cards

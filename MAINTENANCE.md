@@ -14,8 +14,17 @@ Every functional or presentation update must include, as applicable:
   `WEEKLY_VULNERABILITY_REPORT.md` when their report or workflow changes.
 - Add or update regression tests and record the validation result in the
   changelog.
+- Format every update commit message as `<VERSION> - <short comment>`.
 - Commit the implementation, tests, version and documentation together unless
   a version-only release is explicitly intended.
+
+## Completed in 5.6.2
+
+- Reduced the DEFCON legend panel width by approximately 30%, from 570 to 400
+  pixels.
+- Moved reporting-window, source-count and `VERSION` metadata to the top-right
+  of the daily header.
+- Preserved the existing logo and compact embedded DEFCON asset.
 
 ## Completed in 5.6.1
 

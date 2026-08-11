@@ -16,6 +16,25 @@ releases.
 The format broadly follows [Keep a Changelog](https://keepachangelog.com/) and uses semantic-style versioning where practical.
 
 ---
+## 5.6.2 - 2026-08-11
+
+### Changed
+
+- Reduced the Enterprise DEFCON Legend panel from 570 to 400 pixels, making it
+  approximately 30% narrower while retaining the 165-pixel labelled pyramid.
+- Moved reporting-window, primary-source and `VERSION` metadata to the top-right
+  of the daily report header.
+- Left the existing logo and embedded DEFCON pyramid asset unchanged.
+- Standardized update commit messages as `<VERSION> - <short comment>`.
+
+### Validation
+
+- Added structural regression coverage for the 400-pixel legend width and
+  top-right metadata alignment.
+- Passed all 50 offline regression tests under Python 3.12.
+
+---
+
 ## 5.6.1 - 2026-08-11
 
 ### Changed

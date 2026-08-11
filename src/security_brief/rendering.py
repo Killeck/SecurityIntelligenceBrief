@@ -2385,9 +2385,9 @@ def render_html_report(
     )
 
     defcon_panel = f"""
-    <table role="presentation" width="570" cellspacing="0" cellpadding="0"
+    <table role="presentation" width="400" cellspacing="0" cellpadding="0"
            bgcolor="{DASHBOARD_COLOURS['panel']}"
-           style="width:100%;max-width:570px;margin-left:auto;
+           style="width:100%;max-width:400px;margin-left:auto;
                   background:{DASHBOARD_COLOURS['panel']};
                   border:1px solid {DASHBOARD_COLOURS['border']};
                   border-radius:6px;">
@@ -2591,8 +2591,8 @@ def render_html_report(
                             Security Advisory + Threat Intelligence
                           </div>
                         </td>
-                        <td width="410" align="right" valign="bottom">
-                          <div style="padding-bottom:1px;color:{DASHBOARD_COLOURS['muted']};
+                        <td width="410" align="right" valign="top">
+                          <div style="padding-top:1px;color:{DASHBOARD_COLOURS['muted']};
                                       font-size:10px;line-height:1.35;">
                             Reporting window: previous {lookback_hours} hours ·
                             Primary sources: {len(context.active_sources) +

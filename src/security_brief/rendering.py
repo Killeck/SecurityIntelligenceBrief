@@ -558,14 +558,19 @@ def render_text_report(
         "Security Advisory Overview",
         "--------------------------",
         "",
-        "Priority Security Advisories",
+        "Executive Summary — Top 5 Developments",
     ]
 
     if top_advisories:
         for index, item in enumerate(top_advisories, start=1):
-            text.append(
-                f"{index}. [{priority(item)}] {item.title} "
-                f"— {item.source}: {item.link}"
+            text.extend(
+                [
+                    f"{index}. [{priority(item)}] {item.title}",
+                    f"   Why: {item.why or _short_tldr(item, 180)}",
+                    f"   Affected: {item.affected or 'Relevant deployments and exposed services.'}",
+                    f"   Action: {item.action or 'Validate exposure and follow the vendor guidance.'}",
+                    f"   Source: {item.source}: {item.link}",
+                ]
             )
     else:
         text.append("No qualifying primary advisories were collected.")
@@ -815,21 +820,31 @@ def render_text_report(
     text.extend(
         [
             "",
-            "Security Advisory and CISO Watch List",
-            "-------------------------------------",
-            "- New credential and stealer-log exposure affecting monitored domains.",
-            "- Ransomware victim claims involving customers, suppliers or key sectors.",
-            "- New access-broker activity targeting remote access and cloud identity.",
-            "- Data leaks containing credentials, tokens, source code or customer data.",
-            "- Brand impersonation, typosquatting and adversary-in-the-middle phishing.",
-            "- New CISA KEV additions and confirmation of active exploitation.",
-            "- Microsoft identity, Azure and Microsoft 365 attack activity.",
-            "- Fortinet, HPE and Aruba advisories affecting customer estates.",
-            "- OT, energy, oil and gas, and critical-infrastructure targeting.",
-            "- Scandinavian and European cybercrime or law-enforcement developments.",
-            "- Material EU AI Act, NIS2, Sikkerhetsloven, DORA and standards deadlines.",
+            "Security Advisory & CISO Watch Next — 24/72h",
+            "----------------------------------------------",
         ]
     )
+    watch_candidates = sorted(
+        items,
+        key=lambda item: (item.exploited, item.kev, item.zero_day, item.score),
+        reverse=True,
+    )
+    for item in watch_candidates[:4]:
+        horizon = "24h" if item.exploited or item.kev else "72h"
+        text.append(
+            f"- {horizon}: Watch for exploitation, vendor updates and exposure "
+            f"changes related to {item.title} — {item.source}: {item.link}"
+        )
+    for signal in exposure_signals[: max(0, 6 - len(watch_candidates[:4]))]:
+        text.append(
+            f"- 72h: Watch for corroboration or scope changes — {signal.title} "
+            f"— {_email_source_label(signal.source)}: "
+            f"{_plain_email_link(signal.link, source=signal.source, confidence=signal.confidence)}"
+        )
+    if not watch_candidates and not exposure_signals:
+        text.append(
+            "- 72h: Monitor KEV, priority-vendor and exposure sources for material changes."
+        )
 
     text.extend(
         [
@@ -868,8 +883,8 @@ def render_text_report(
 # ---------------------------------------------------------------------------
 
 DASHBOARD_COLOURS = {
-    "background": "#011417",
-    "panel": "#22329",
+    "background": "#00090A",
+    "panel": "#022329",
     "panel_alt": "#032D32",
     "border": "#0D4650",
     "text": "#EEF3F8",
@@ -978,6 +993,7 @@ def _panel(
 
     return f"""
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+           bgcolor="{DASHBOARD_COLOURS['panel']}"
            style="border-collapse:separate;border-spacing:0;
                   background:{DASHBOARD_COLOURS['panel']};
                   border:1px solid {DASHBOARD_COLOURS['border']};
@@ -1005,6 +1021,8 @@ def _metric_card(
     accent: str,
     detail: str,
     anchor_id: str = "",
+    background: str = "",
+    foreground: str = "",
 ) -> str:
     """Render one top-level metric card as a single clickable control.
 
@@ -1013,8 +1031,10 @@ def _metric_card(
     duplicate links inside the same card.
     """
 
+    card_background = background or DASHBOARD_COLOURS["panel"]
+    card_foreground = foreground or DASHBOARD_COLOURS["text"]
     card_style = (
-        f'display:block;background:{DASHBOARD_COLOURS["panel"]};'
+        f'display:block;background:{card_background};'
         f'border:1px solid {DASHBOARD_COLOURS["border"]};'
         'border-radius:7px;text-decoration:none;color:inherit;'
         'width:100%;box-sizing:border-box;cursor:pointer;'
@@ -1040,17 +1060,17 @@ def _metric_card(
           {_escape(title)}
         </span>
         <span style="display:block;padding:0 10px;
-                     color:{DASHBOARD_COLOURS['text']};
+                     color:{card_foreground};
                      font-size:20px;font-weight:700;white-space:nowrap;">
           <span style="color:{accent};font-size:20px;">
             {_escape(icon)}
           </span>
-          <span style="color:{DASHBOARD_COLOURS['text']};">
+          <span style="color:{card_foreground};">
             {_escape(value)}
           </span>
         </span>
         <span style="display:block;padding:5px 10px 11px 10px;
-                     color:{DASHBOARD_COLOURS['muted']};font-size:10px;">
+                     color:{card_foreground};font-size:10px;opacity:.88;">
           {_escape(detail)}
         </span>
       {card_end}
@@ -1061,7 +1081,7 @@ def _metric_card(
 def _render_defcon_triangle(current_level: int) -> str:
     """Render a layered triangle that explains the enterprise DEFCON scale."""
 
-    layer_widths = {1: "36%", 2: "50%", 3: "64%", 4: "78%", 5: "92%"}
+    layer_widths = {1: "28%", 2: "42%", 3: "56%", 4: "70%", 5: "84%"}
     descriptions = {
         1: "Immediate action: direct exposure or exceptional verified threat.",
         2: "Urgent action required for relevant active exploitation.",
@@ -1077,24 +1097,24 @@ def _render_defcon_triangle(current_level: int) -> str:
         current_label = ""
         if is_current:
             current_label = (
-                '<div style="margin-top:4px;font-size:10px;font-weight:700;'
+                '<div style="margin-top:2px;font-size:8px;font-weight:700;'
                 f'color:{definition["text_colour"]};">Current enterprise level</div>'
             )
         border = '2px solid #FFFFFF' if is_current else f'1px solid {DASHBOARD_COLOURS["border"]}'
         rows.append(
             f"""
             <tr>
-              <td align="center" style="padding:0 0 6px 0;">
+              <td align="center" style="padding:0 0 3px 0;">
                 <table role="presentation" width="{layer_widths[level]}" cellspacing="0" cellpadding="0"
                        style="width:{layer_widths[level]};margin:0 auto;border-collapse:separate;">
                   <tr>
-                    <td style="padding:8px 10px;border-radius:6px;border:{border};
+                    <td style="padding:4px 6px;border-radius:4px;border:{border};
                                background:{definition['colour']};
                                color:{definition['text_colour']};text-align:center;">
-                      <div style="font-size:12px;font-weight:700;line-height:1.2;">
+                      <div style="font-size:9px;font-weight:700;line-height:1.15;">
                         DEFCON {level} — {_escape(definition['label'])}
                       </div>
-                      <div style="font-size:10px;line-height:1.35;margin-top:3px;">
+                      <div style="font-size:8px;line-height:1.2;margin-top:1px;">
                         {_escape(descriptions[level])}
                       </div>
                       {current_label}
@@ -1108,7 +1128,7 @@ def _render_defcon_triangle(current_level: int) -> str:
 
     current_display = _escape(DEFCON_LEVELS[current_level]["label"])
     return (
-        f'<div style="color:{DASHBOARD_COLOURS["muted"]};font-size:11px;line-height:1.35;margin-bottom:10px;">'
+        f'<div style="color:{DASHBOARD_COLOURS["muted"]};font-size:9px;line-height:1.25;margin-bottom:6px;">'
         f'Layered enterprise threat scale. Current enterprise level: <strong style="color:{DASHBOARD_COLOURS["text"]};">DEFCON {current_level} — {current_display}</strong>.'
         '</div>'
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
@@ -1138,6 +1158,195 @@ def _compact_bullet(text: str, accent: str = "#6ea8fe") -> str:
         f'<td style="padding:3px 0;color:{DASHBOARD_COLOURS["text"]};'
         f'font-size:13px;line-height:1.35;">{_bold_prefix_html(text)}</td></tr>'
     )
+
+
+def _linked_compact_bullet(
+    text: str,
+    url: str,
+    *,
+    source: str = "",
+    accent: str = "#6ea8fe",
+    link_label: str = "Deep dive ›",
+) -> str:
+    """Render a compact row with a source-aware investigation link."""
+
+    return (
+        '<tr><td valign="top" style="padding:3px 8px 3px 0;'
+        f'color:{accent};font-weight:700;">•</td>'
+        f'<td style="padding:3px 0;color:{DASHBOARD_COLOURS["text"]};'
+        f'font-size:13px;line-height:1.35;">{_bold_prefix_html(text)} '
+        f'<span style="white-space:nowrap;">{_link(link_label, url, source=source)}</span>'
+        '</td></tr>'
+    )
+
+
+def _render_top_developments(items: list[Item], limit: int = 5) -> str:
+    """Render decision-oriented executive developments."""
+
+    if not items:
+        return (
+            f'<p style="margin:0;color:{DASHBOARD_COLOURS["muted"]};">'
+            "No immediate material development identified.</p>"
+        )
+
+    rows: list[str] = []
+    for number, item in enumerate(items[:limit], start=1):
+        why = item.why or _short_tldr(item, 150)
+        affected = item.affected or "Relevant deployments and exposed services."
+        action = item.action or "Validate exposure and follow the vendor guidance."
+        rows.append(
+            f"""
+            <tr>
+              <td valign="top" width="28" style="padding:9px 8px 9px 0;
+                  color:{DASHBOARD_COLOURS['blue']};font-weight:700;">
+                {number}.
+              </td>
+              <td style="padding:9px 0;border-top:1px solid {DASHBOARD_COLOURS['border']};">
+                <div style="color:{DASHBOARD_COLOURS['highlight']};font-size:13px;font-weight:700;">
+                  {_escape(item.title)}
+                </div>
+                <div style="margin-top:3px;color:{DASHBOARD_COLOURS['text']};font-size:12px;line-height:1.4;">
+                  <strong>Why:</strong> {_escape(truncate(why, 190))}<br>
+                  <strong>Affected:</strong> {_escape(truncate(affected, 165))}<br>
+                  <strong>Action:</strong> {_escape(truncate(action, 175))}
+                </div>
+                <div style="margin-top:4px;font-size:11px;">
+                  {_link("Source ›", item.link, source=item.source)}
+                  <span style="color:{DASHBOARD_COLOURS['muted']};"> · {_escape(item.source)}</span>
+                </div>
+              </td>
+            </tr>
+            """
+        )
+    return (
+        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
+        'style="border-collapse:collapse;">' + "".join(rows) + "</table>"
+    )
+
+
+def _render_priority_vendor_status(
+    items: list[Item],
+    failed_sources: Iterable[str] = (),
+) -> str:
+    """State whether KEV and priority vendors produced material updates."""
+
+    vendors = (
+        "Microsoft",
+        "Fortinet",
+        "Palo Alto",
+        "Cisco",
+        "Google",
+        "Apple",
+        "AWS",
+        "Okta",
+        "CrowdStrike",
+        "HPE / Aruba",
+    )
+    failed_text = " ".join(failed_sources).lower()
+    statuses: list[tuple[str, str, str]] = []
+    kev_items = [item for item in items if item.kev]
+    statuses.append(
+        (
+            "CISA KEV",
+            f"{len(kev_items)} addition(s)" if kev_items else "No new additions",
+            DASHBOARD_COLOURS["critical"] if kev_items else DASHBOARD_COLOURS["green"],
+        )
+    )
+    for vendor in vendors:
+        vendor_terms = (
+            ("hpe", "aruba") if vendor == "HPE / Aruba"
+            else (vendor.lower(),)
+        )
+        matched = [
+            item for item in items
+            if any(
+                term in f"{item.vendor} {item.source} {item.section}".lower()
+                for term in vendor_terms
+            )
+        ]
+        material = [
+            item for item in matched
+            if item.kev or item.exploited or item.zero_day
+            or (item.cvss_score is not None and item.cvss_score >= 7.0)
+        ]
+        source_failed = any(term in failed_text for term in vendor_terms)
+        if source_failed:
+            status = "Source unavailable"
+            colour = DASHBOARD_COLOURS["critical"]
+        elif material:
+            status = f"{len(material)} material update(s)"
+            colour = DASHBOARD_COLOURS["high"]
+        else:
+            status = "No material update"
+            colour = DASHBOARD_COLOURS["green"]
+        statuses.append((vendor, status, colour))
+
+    cells = []
+    for label, status, colour in statuses:
+        cells.append(
+            f'<td width="25%" valign="top" style="padding:4px;">'
+            f'<div style="background:{DASHBOARD_COLOURS["panel_alt"]};'
+            f'border:1px solid {DASHBOARD_COLOURS["border"]};border-radius:5px;'
+            f'padding:7px 8px;font-size:10px;color:{DASHBOARD_COLOURS["muted"]};">'
+            f'<strong style="color:{DASHBOARD_COLOURS["text"]};">{_escape(label)}</strong><br>'
+            f'<span style="color:{colour};">{_escape(status)}</span></div></td>'
+        )
+    rows = ["<tr>" + "".join(cells[index:index + 4]) + "</tr>" for index in range(0, len(cells), 4)]
+    return (
+        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
+        + "".join(rows) + "</table>"
+    )
+
+
+def _render_watch_next(
+    items: list[Item],
+    exposure_signals: list[ExposureSignal],
+    limit: int = 6,
+) -> str:
+    """Create a dynamic 24/72-hour watch list with investigation links."""
+
+    rows: list[str] = []
+    candidates = sorted(
+        items,
+        key=lambda item: (
+            item.exploited,
+            item.kev,
+            item.zero_day,
+            item.score,
+        ),
+        reverse=True,
+    )
+    for item in candidates[:4]:
+        horizon = "24h" if item.exploited or item.kev else "72h"
+        focus = (
+            f"{horizon}: Watch for exploitation, vendor updates and exposure changes "
+            f"related to {truncate(item.title, 105)}"
+        )
+        rows.append(
+            _linked_compact_bullet(
+                focus,
+                item.link,
+                source=item.source,
+                accent=DASHBOARD_COLOURS["purple"],
+            )
+        )
+    for signal in exposure_signals[: max(0, limit - len(rows))]:
+        rows.append(
+            _linked_compact_bullet(
+                f"72h: Watch for corroboration or scope changes — {truncate(signal.title, 115)}",
+                signal.link,
+                source=signal.source,
+                accent=DASHBOARD_COLOURS["purple"],
+            )
+        )
+    if not rows:
+        rows.append(
+            _compact_bullet(
+                "72h: Monitor KEV, priority-vendor and exposure sources for material changes.",
+                DASHBOARD_COLOURS["purple"],
+            )
+        )
+    return '<table role="presentation" cellspacing="0" cellpadding="0">' + "".join(rows[:limit]) + "</table>"
 
 
 def _short_tldr(item: Item, limit: int = 120) -> str:
@@ -1874,19 +2083,25 @@ def _render_compact_detail_sections(
             rows = []
             for opportunity in detection_opportunities[:4]:
                 rows.append(
-                    _compact_bullet(
+                    _linked_compact_bullet(
                         (
                             f"{opportunity.title}: "
-                            f"{truncate(opportunity.detection, 135)}"
+                            f"{truncate(opportunity.detection, 110)}; "
+                            f"Data: {truncate(opportunity.data_sources, 55)}; "
+                            f"MITRE: {opportunity.mitre}"
                         ),
-                        DASHBOARD_COLOURS["cyan"],
+                        opportunity.link,
+                        source=opportunity.source,
+                        accent=DASHBOARD_COLOURS["cyan"],
                     )
                 )
             for item in section_items[:4]:
                 rows.append(
-                    _compact_bullet(
+                    _linked_compact_bullet(
                         f"{item.title}: {_short_tldr(item, 120)}",
-                        DASHBOARD_COLOURS["cyan"],
+                        item.link,
+                        source=item.source,
+                        accent=DASHBOARD_COLOURS["cyan"],
                     )
                 )
             blocks.append(
@@ -1904,16 +2119,20 @@ def _render_compact_detail_sections(
             if not section_items and not regional_links:
                 continue
             rows = [
-                _compact_bullet(
+                _linked_compact_bullet(
                     f"{link.title} — {link.source}",
-                    DASHBOARD_COLOURS["blue"],
+                    link.link,
+                    source=link.source,
+                    accent=DASHBOARD_COLOURS["blue"],
                 )
                 for link in regional_links[:4]
             ]
             rows.extend(
-                _compact_bullet(
+                _linked_compact_bullet(
                     f"{item.title}: {_short_tldr(item, 120)}",
-                    DASHBOARD_COLOURS["blue"],
+                    item.link,
+                    source=item.source,
+                    accent=DASHBOARD_COLOURS["blue"],
                 )
                 for item in section_items[:4]
             )
@@ -1947,9 +2166,11 @@ def _render_compact_detail_sections(
             continue
 
         rows = "".join(
-            _compact_bullet(
+            _linked_compact_bullet(
                 f"{item.title}: {_short_tldr(item, 125)}",
-                DASHBOARD_COLOURS["blue"],
+                item.link,
+                source=item.source,
+                accent=DASHBOARD_COLOURS["blue"],
             )
             for item in section_items[:5]
         )
@@ -2009,31 +2230,8 @@ def render_html_report(
         1 for item in items if item.section in GOVERNANCE_SECTIONS
     ) + len(upcoming_events)
 
-    summary_lines: list[str] = []
-    for item in context.top_advisories[:3]:
-        summary_lines.append(
-            f"{item.title} — {_short_tldr(item, 105)}"
-        )
-    if context.top_exposure:
-        summary_lines.append(
-            (
-                f"{context.top_exposure[0].signal_type}: "
-                f"{truncate(context.top_exposure[0].title, 95)}"
-            )
-        )
-    if not summary_lines:
-        summary_lines.append(
-            "No immediate critical development identified in the reporting window."
-        )
-
-    summary_html = (
-        '<table role="presentation" cellspacing="0" cellpadding="0">'
-        + "".join(
-            _compact_bullet(line, DASHBOARD_COLOURS["blue"])
-            for line in summary_lines[:4]
-        )
-        + "</table>"
-    )
+    summary_html = _render_top_developments(context.top_advisories)
+    defcon_definition = DEFCON_LEVELS[int(enterprise_status["level"])]
 
     metrics_html = f"""
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
@@ -2041,11 +2239,13 @@ def render_html_report(
       <tr>
         {_metric_card(
             "Overall Threat",
-            status["display"].upper(),
+            f"DEFCON {enterprise_status['level']}",
             "!",
-            status["colour"],
-            f"Enterprise: {enterprise_status['display']}",
+            defcon_definition["text_colour"],
+            f"{defcon_definition['label'].upper()} · Evidence-based enterprise level",
             "executive-summary",
+            background=defcon_definition["colour"],
+            foreground=defcon_definition["text_colour"],
         )}
         {_metric_card(
             "Active Exploitation",
@@ -2092,10 +2292,19 @@ def render_html_report(
     """
 
     executive_panel = _panel(
-        "Executive Summary (TL;DR)",
+        "Executive Summary — Top 5 Developments",
         summary_html,
         DASHBOARD_COLOURS["blue"],
         anchor_id="executive-summary",
+    )
+
+    vendor_status_panel = _panel(
+        "KEV & Priority Vendor Status",
+        _render_priority_vendor_status(
+            items,
+            (health["source"] for health in context.failed_sources),
+        ),
+        DASHBOARD_COLOURS["green"],
     )
 
     defcon_panel = _panel(
@@ -2155,9 +2364,11 @@ def render_html_report(
     sector_panel = ""
     if sector_impacts:
         sector_rows = "".join(
-            _compact_bullet(
+            _linked_compact_bullet(
                 f"{impact.sector}: {truncate(impact.implication, 145)}",
-                DASHBOARD_COLOURS["green"],
+                impact.link,
+                source=impact.source,
+                accent=DASHBOARD_COLOURS["green"],
             )
             for impact in sector_impacts[:5]
         )
@@ -2208,23 +2419,9 @@ def render_html_report(
         DASHBOARD_COLOURS["muted"],
     )
 
-    watch_items = (
-        "Credential or stealer-log exposure affecting monitored domains.",
-        "Ransomware claims involving customers, suppliers or key sectors.",
-        "Initial-access activity targeting remote access or cloud identity.",
-        "New CISA KEV additions and confirmed active exploitation.",
-        "Microsoft, Fortinet, HPE, Aruba, cloud and identity advisories.",
-        "OT, energy and critical-infrastructure targeting.",
-        "Material EU AI Act, NIS2, Sikkerhetsloven, DORA and standards deadlines.",
-    )
     watch_panel = _panel(
-        "Security Advisory and CISO Watch List",
-        '<table role="presentation" cellspacing="0" cellpadding="0">'
-        + "".join(
-            _compact_bullet(item, DASHBOARD_COLOURS["purple"])
-            for item in watch_items
-        )
-        + "</table>",
+        "Security Advisory & CISO Watch Next — 24/72h",
+        _render_watch_next(items, exposure_signals),
         DASHBOARD_COLOURS["purple"],
     )
 
@@ -2242,9 +2439,15 @@ def render_html_report(
     return f"""
     <!doctype html>
     <html lang="en">
-      <body style="margin:0;padding:0;background:{DASHBOARD_COLOURS['background']};
+      <head>
+        <meta name="color-scheme" content="dark">
+        <meta name="supported-color-schemes" content="dark">
+      </head>
+      <body bgcolor="{DASHBOARD_COLOURS['background']}"
+            style="margin:0;padding:0;background:{DASHBOARD_COLOURS['background']};
                    font-family:Arial,Helvetica,sans-serif;">
         <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
+               bgcolor="{DASHBOARD_COLOURS['background']}"
                style="background:{DASHBOARD_COLOURS['background']};">
           <tr>
             <td align="center" style="padding:16px 10px;">
@@ -2280,6 +2483,8 @@ def render_html_report(
                 </tr>
 
                 <tr><td>{metrics_html}</td></tr>
+                <tr><td>{executive_panel}</td></tr>
+                <tr><td>{vendor_status_panel}</td></tr>
 
                 <tr>
                   <td>
@@ -2291,7 +2496,6 @@ def render_html_report(
                         </td>
                         <td width="34%" valign="top" style="padding-left:6px;">
                           {defcon_panel}
-                          {executive_panel}
                         </td>
                       </tr>
                     </table>

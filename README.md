@@ -34,6 +34,20 @@ The report presents two related levels:
   based on confirmed exploitation, operational reach and source confidence. A
   single KEV or critical CVSS record does not automatically create a High state.
 
+## Reporting family
+
+The project now produces two companion reports from one intelligence engine:
+
+- **Daily Security Brief** — immediate developments, exposure and actions.
+- **Weekly Vulnerability Report** — CVE-centred remediation priorities,
+  lifecycle changes and a month-to-date vulnerability overview.
+
+The weekly report runs Monday at 08:00 Europe/Oslo and persists vulnerability
+state in a small SQLite database restored through the GitHub Actions cache. It
+uses the existing collectors, Gmail settings and optional NVD key. See
+[`WEEKLY_VULNERABILITY_REPORT.md`](WEEKLY_VULNERABILITY_REPORT.md) for setup and
+operating details.
+
 The pipeline uses public and authorised sources. It does **not** connect to
 onion services, criminal forums, ransomware leak sites, stolen-data
 repositories or illicit marketplace.
@@ -84,7 +98,7 @@ stylesheet or hosted dashboard is required.
 
 1. Security Advisory Level
 2. Enterprise Cyber Threat Level
-3. Priority Security Advisories
+3. Executive Summary — Top 5 Developments
 4. Dark Web and Exposure Highlights
 5. Ransomware and Extortion Watch
 6. Credential and Stealer Exposure
@@ -123,7 +137,7 @@ stylesheet or hosted dashboard is required.
 15. Standards
 16. GRC
 17. Source Coverage
-18. Security Advisory and CISO Watch List
+18. Security Advisory & CISO Watch Next — 24/72h
 
 Empty sections are not displayed.
 

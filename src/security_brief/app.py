@@ -29,6 +29,7 @@ from .analysis import (
     select_executive_news,
     select_final_items,
 )
+from .archive import archive_report
 from .collectors import (
     enrich_nvd,
     fetch_executive_news_html,
@@ -509,6 +510,17 @@ def run_pipeline(settings: RuntimeSettings) -> None:
 
     advisory = advisory_status(items, exposure_signals)
     subject = EMAIL_SUBJECT
+    archive_directory = archive_report(
+        generated_at=utc_now,
+        html_body=html_body,
+        text_body=text_body,
+        summary={
+            "advisory": advisory["display"],
+            "items": len(items),
+            "exposure_signals": len(exposure_signals),
+            "warnings": len(state.warnings),
+        },
+    )
 
     send_email(
         settings.username,
@@ -532,6 +544,8 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         f"{len(regional_links)} regional link(s), "
         f"{len(state.warnings)} warning(s)."
     )
+    if archive_directory:
+        print(f"Private report archive updated: {archive_directory}")
 
 
 def main() -> int:

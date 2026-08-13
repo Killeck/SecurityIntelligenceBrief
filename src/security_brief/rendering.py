@@ -380,6 +380,7 @@ class ReportContext:
     active_sources: list[dict[str, Any]]
     failed_sources: list[dict[str, Any]]
     quiet_source_count: int
+    source_health: list[dict[str, Any]]
 
 
 def build_report_context(
@@ -481,6 +482,7 @@ def build_report_context(
             for health in source_health
             if health["status"] == "OK" and health["items"] == 0
         ),
+        source_health=source_health,
     )
 
 
@@ -507,6 +509,7 @@ def _bind_context(context: ReportContext) -> tuple[Any, ...]:
         context.active_sources,
         context.failed_sources,
         context.quiet_source_count,
+        context.source_health,
     )
 
 
@@ -545,6 +548,7 @@ def render_text_report(
         active_sources,
         failed_sources,
         quiet_source_count,
+        _,
     ) = _bind_context(context)
 
     text = [
@@ -2475,7 +2479,7 @@ def render_html_report(
     )
     
     governance_panel = _panel(
-        "5. Standards / Compliance / Governance",
+        "5. GRC & Standards",
         _render_governance_cards(
             items,
             upcoming_events,
@@ -2519,36 +2523,38 @@ def render_html_report(
         regional_links,
     )
 
-    health_rows = []
-    for health in context.active_sources[:12]:
-        health_rows.append(
-            _compact_bullet(
-                f"{_source_health_label(health['source'])}: {health['items']} qualifying item(s)",
-                DASHBOARD_COLOURS["green"],
-            )
+    health_colours = {
+        "CONTENT": DASHBOARD_COLOURS["green"],
+        "QUIET": DASHBOARD_COLOURS["blue"],
+        "DEGRADED": DASHBOARD_COLOURS["high"],
+        "STALE": DASHBOARD_COLOURS["high"],
+        "PARTIAL": DASHBOARD_COLOURS["high"],
+        "FAILED": DASHBOARD_COLOURS["critical"],
+    }
+    health_entries = sorted(
+        context.source_health,
+        key=lambda health: (
+            {"CONTENT": 0, "QUIET": 1, "DEGRADED": 2, "STALE": 2, "PARTIAL": 2, "FAILED": 3}.get(str(health.get("health_state", "FAILED")).upper(), 3),
+            _source_health_label(health["source"]).casefold(),
+        ),
+    )
+    health_rows = [
+        _compact_bullet(
+            f"{_source_health_label(health['source'])}: "
+            + (f"{health['items']} qualifying item(s)" if health["status"] == "OK" else "temporarily unavailable"),
+            health_colours.get(str(health.get("health_state", "FAILED")).upper(), DASHBOARD_COLOURS["critical"]),
         )
-    if context.quiet_source_count:
-        health_rows.append(
-            _compact_bullet(
-                (
-                    f"{context.quiet_source_count} additional source(s) "
-                    "checked without qualifying updates"
-                ),
-                DASHBOARD_COLOURS["blue"],
-            )
-        )
-    for health in context.failed_sources:
-        health_rows.append(
-            _compact_bullet(
-                f"{_source_health_label(health['source'])}: temporarily unavailable",
-                DASHBOARD_COLOURS["critical"],
-            )
-        )
+        for health in health_entries
+    ]
+    midpoint = (len(health_rows) + 1) // 2
     source_panel = _panel(
         "Source Coverage",
-        '<table role="presentation" cellspacing="0" cellpadding="0">'
-        + "".join(health_rows)
-        + "</table>",
+        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>'
+        '<td width="50%" valign="top" style="padding-right:5px;"><table role="presentation" cellspacing="0" cellpadding="0">'
+        + "".join(health_rows[:midpoint])
+        + '</table></td><td width="50%" valign="top" style="padding-left:5px;"><table role="presentation" cellspacing="0" cellpadding="0">'
+        + "".join(health_rows[midpoint:])
+        + "</table></td></tr></table>",
         DASHBOARD_COLOURS["muted"],
     )
 
@@ -2645,6 +2651,7 @@ def render_html_report(
                   </td>
                 </tr>
 
+                <tr><td style="padding:8px 0 10px;color:{DASHBOARD_COLOURS['purple']};font-size:14px;font-weight:700;border-top:2px solid {DASHBOARD_COLOURS['purple']};">Operational Intelligence &amp; Impact</td></tr>
                 <tr><td>{sector_panel}</td></tr>
                 <tr><td>{detail_sections}</td></tr>
                 <tr><td>{watch_panel}</td></tr>

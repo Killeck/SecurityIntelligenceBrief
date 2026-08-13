@@ -44,6 +44,8 @@ def assess_and_persist(entry: dict[str, Any], *, freshness_days: int = 14) -> di
     newest_at = _timestamp(newest)
     if state in {"CONTENT", "QUIET"} and newest_at and newest_at < datetime.now(timezone.utc) - timedelta(days=freshness_days):
         state = "STALE"
+    if state == "QUIET" and previous.get("health_state") in {"FAILED", "STALE"}:
+        state = "PARTIAL"
     entry["health_state"] = state
     entry["previous_health_state"] = str(previous.get("health_state", ""))
     entry["health_changed"] = bool(entry["previous_health_state"] and entry["previous_health_state"] != state)

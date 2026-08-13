@@ -162,6 +162,7 @@ class FetchTask(Generic[T]):
     fetch: Callable[[], list[T]]
     detail: str = ""
     unit: str = "item(s)"
+    freshness_days: int = 14
 
 
 @dataclass(frozen=True)
@@ -241,7 +242,7 @@ def collect_tasks(
                         "detail": task.detail,
                         "checked_at": datetime.now(timezone.utc).isoformat(),
                         "newest_item": _newest_value_timestamp(outcome.values),
-                    })
+                    }, freshness_days=task.freshness_days)
                 )
                 print(
                     f"{task.name}: {len(outcome.values)} {task.unit}"
@@ -261,7 +262,7 @@ def collect_tasks(
                     "detail": detail,
                     "checked_at": datetime.now(timezone.utc).isoformat(),
                     "newest_item": "",
-                })
+                }, freshness_days=task.freshness_days)
             )
             print(f"WARNING: {warning}", file=sys.stderr)
 
@@ -292,6 +293,7 @@ def primary_tasks(
                 cutoff,
             ),
             detail="Authoritative vendor security bulletin feed",
+            freshness_days=source.freshness_days,
         )
         for source in AUTHORITATIVE_VENDOR_RSS_SOURCES
     )
@@ -308,6 +310,7 @@ def primary_tasks(
         FetchTask(
             name=source.name,
             fetch=lambda source=source: fetch_rss(source, cutoff),
+            freshness_days=source.freshness_days,
         )
         for source in RSS_SOURCES
     )
@@ -316,6 +319,7 @@ def primary_tasks(
         FetchTask(
             name=source.name,
             fetch=lambda source=source: fetch_html(source, cutoff),
+            freshness_days=source.freshness_days,
         )
         for source in HTML_SOURCES
         if source.name not in REPLACED_GENERIC_HTML_SOURCES

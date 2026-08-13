@@ -37,7 +37,6 @@ from .collectors import (
     fetch_hibp_domain_exposure,
     fetch_html,
     fetch_kev,
-    fetch_recent_nvd_coverage,
     fetch_rss,
 )
 from .config import EMAIL_SUBJECT, OSLO_TIMEZONE
@@ -54,6 +53,13 @@ from .governance import (
     load_configured_governance_events,
 )
 from .models import ExposureSignal, Item, NewsLink
+from .priority_vendor_sources import (
+    AUTHORITATIVE_VENDOR_RSS_SOURCES,
+    REPLACED_GENERIC_HTML_SOURCES,
+    fetch_authoritative_vendor_rss,
+    fetch_hpe_security_bulletins,
+    fetch_priority_vendor_nvd,
+)
 from .rendering import render_report
 from .utils import (
     csv_setting,
@@ -244,10 +250,32 @@ def primary_tasks(
             fetch=lambda: fetch_kev(kev_days),
         ),
         FetchTask(
-            name="NVD recent priority-vendor CVEs",
-            fetch=lambda: fetch_recent_nvd_coverage(cutoff),
+            name="NVD priority-vendor CVEs",
+            fetch=lambda: fetch_priority_vendor_nvd(cutoff),
+            detail="Priority-vendor CVE corroboration and fallback",
         ),
     ]
+
+    tasks.extend(
+        FetchTask(
+            name=source.name,
+            fetch=lambda source=source: fetch_authoritative_vendor_rss(
+                source,
+                cutoff,
+            ),
+            detail="Authoritative vendor security bulletin feed",
+        )
+        for source in AUTHORITATIVE_VENDOR_RSS_SOURCES
+    )
+
+    tasks.append(
+        FetchTask(
+            name="HPE Security Bulletin Library",
+            fetch=lambda: fetch_hpe_security_bulletins(cutoff),
+            detail="Authoritative HPE/Aruba bulletin library",
+        )
+    )
+
     tasks.extend(
         FetchTask(
             name=source.name,
@@ -255,12 +283,14 @@ def primary_tasks(
         )
         for source in RSS_SOURCES
     )
+
     tasks.extend(
         FetchTask(
             name=source.name,
             fetch=lambda source=source: fetch_html(source, cutoff),
         )
         for source in HTML_SOURCES
+        if source.name not in REPLACED_GENERIC_HTML_SOURCES
     )
     return tasks
 

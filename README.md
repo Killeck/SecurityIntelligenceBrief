@@ -50,7 +50,7 @@ or illicit marketplaces.
 
 ## Authoritative priority-vendor vulnerability coverage
 
-Version 5.6.4 separates vendor-owned security-bulletin channels from research
+Version 5.6.5 retains vendor-owned security-bulletin channels from research
 and news sources.
 
 | Vendor / area | Authoritative collection path |
@@ -71,9 +71,14 @@ Research sources such as Palo Alto Unit 42, FortiGuard Labs, Google Security
 Blog, Google Project Zero and AWS Security Blog remain useful context sources,
 but they no longer stand in for the vendor's vulnerability-advisory channel.
 
-The NVD fallback now attributes records to specific priority vendors rather than
+The NVD fallback attributes records to specific priority vendors rather than
 leaving AWS, Google and Okta inside a broad cloud bucket or Palo Alto/Cisco/Apple
 inside a generic `Other priority vendors` bucket.
+
+Version 5.6.5 makes KEV & Priority Vendor Status health-aware. A clean negative
+is shown only when the expected authoritative source was successfully checked.
+Failed or partial authoritative coverage is shown as unknown/degraded instead of
+`No material update`.
 
 ## Daily report behaviour
 
@@ -108,12 +113,18 @@ The current dashboard includes:
 ## Weekly vulnerability report
 
 The weekly report runs Monday at **08:00 Europe/Oslo** and uses the same
-`primary_tasks()` pipeline as the daily report. Version 5.6.4 therefore gives the
-weekly report the same authoritative Fortinet, AWS, Google, Palo Alto, HPE/Aruba
-and Okta coverage without a second source configuration.
+`primary_tasks()` pipeline as the daily report. It shares authoritative
+Fortinet, AWS, Google, Palo Alto, HPE/Aruba and Okta coverage without a second
+source configuration.
+
+The header and subject include ISO week number/year. The main table uses fixed
+Outlook-safe column widths. The raw internal 0–100 priority score is no longer
+shown; remediation bands remain user-facing. Every displayed full CVE identifier
+links directly to NVD.
 
 It provides:
 
+- ISO week number/year and reporting window
 - Critical, High, exploited, KEV and zero-day metrics
 - CVSS and EPSS prioritisation
 - priority-vendor vulnerability overview
@@ -170,18 +181,22 @@ independently establish a confirmed organisational incident.
 │   │   ├── http_client.py
 │   │   ├── models.py
 │   │   ├── priority_vendor_sources.py
+│   │   ├── report_policy.py
 │   │   ├── rendering.py
 │   │   ├── rules.py
 │   │   ├── sources.py
 │   │   ├── utils.py
 │   │   ├── vulnerability_reporting.py
-│   │   └── weekly_app.py
+│   │   ├── weekly_app.py
+│   │   └── weekly_rendering.py
 │   ├── send_security_advisory.py
 │   └── send_weekly_vulnerability_report.py
 ├── tests/
 │   ├── test_priority_vendor_sources.py
+│   ├── test_report_policy.py
 │   ├── test_smoke.py
-│   └── test_vulnerability_reporting.py
+│   ├── test_vulnerability_reporting.py
+│   └── test_weekly_rendering.py
 ├── CHANGELOG.md
 ├── MAINTENANCE.md
 ├── OPTIMISATION.md
@@ -241,7 +256,7 @@ Then run:
 Actions → Test Daily Security Brief
 ```
 
-For v5.6.4, verify the Actions log contains successful checks for:
+For v5.6.5, verify the Actions log contains successful checks for:
 
 ```text
 Fortinet PSIRT RSS
@@ -254,9 +269,9 @@ HPE Security Bulletin Library
 NVD priority-vendor CVEs
 ```
 
-A failed authoritative source must be investigated in GitHub Actions rather than
-assuming the vendor had no security updates. The report-status wording itself is
-the next maintenance priority and is tracked in `MAINTENANCE.md`.
+A failed authoritative source must be investigated in GitHub Actions rather
+than assuming the vendor had no security updates. Version 5.6.5 exposes failed
+or partial authoritative coverage as unknown/degraded in the vendor-status view.
 
 ## Documentation roles
 
@@ -275,9 +290,9 @@ To avoid duplicated or contradictory project records:
   available in returned HTML.
 - NVD is a corroborating/fallback source and may publish CVE enrichment later
   than the vendor advisory.
-- The current KEV & Priority Vendor Status wording does not yet fully model
-  degraded/stale/unknown authoritative-source state; this is Maintenance
-  Priority 1.
+- Collection distinguishes content, quiet and failed source operations, but
+  persistent stale-feed detection and cross-run source-health history remain
+  Maintenance Priority 1.
 - No direct dark-web/onion collection.
 - No customer CMDB or asset-inventory integration.
 

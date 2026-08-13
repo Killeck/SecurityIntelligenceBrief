@@ -5,8 +5,7 @@ Proprietary software. See LICENSE.
 
 # Maintenance Backlog
 
-`MAINTENANCE.md` contains **open work only**. Completed work is removed from this
-file when released and recorded in `CHANGELOG.md`.
+`MAINTENANCE.md` contains **open work only**. Completed work is removed from this file when released and recorded in `CHANGELOG.md`.
 
 ## Documentation ownership
 
@@ -16,121 +15,74 @@ file when released and recorded in `CHANGELOG.md`.
 - `WEEKLY_VULNERABILITY_REPORT.md` — current weekly-report operating reference.
 - `OPTIMISATION.md` — current architecture and optimisation rationale.
 
-Do not duplicate completed release notes in this file.
-
 ## Release discipline
 
-Every functional or presentation release must, where applicable:
+Every functional or presentation release must increment `VERSION`, update the changelog and current-state documentation, remove completed backlog items, update tests, record actual validation, and use commit format `<VERSION> - <short comment>`.
 
-- increment `VERSION` using semantic-style versioning;
-- add a dated release entry to `CHANGELOG.md`;
-- update `README.md` when current behaviour, architecture, setup or source
-  coverage changes;
-- update this backlog by removing completed items and retaining follow-up work;
-- update focused operating documentation where behaviour changes;
-- add or update regression tests;
-- record actual validation performed in `CHANGELOG.md`;
-- use commit format `<VERSION> - <short comment>`;
-- commit implementation, tests, version and documentation together.
+## Priority 1 — Source-health truth, phase 2
 
-## Priority 1 — Source-health truth and vendor-status correctness
+Version 5.6.5 establishes explicit `CONTENT`, `QUIET` and `FAILED` collection states, records check/newest-item timestamps, and makes KEV / priority-vendor status depend on the expected authoritative source path. Remaining work:
 
-- Replace ambiguous `No material update` wording with explicit states:
-  - `Material update(s)`
-  - `Checked — no material update`
-  - `Degraded / stale / partial`
-  - `Source unavailable — status unknown`
-- Make KEV & Priority Vendor Status depend on authoritative-source health as well
-  as selected report items.
-- Detect successful HTTP responses that yield no usable records.
-- Detect stale feeds and broken HTML selectors.
-- Record per-source last-success time and newest-item timestamp.
-- Report source-health changes between runs.
-- Ensure a source failure can never be represented as a clean negative result.
+- Detect stale feeds even when their newest entry falls outside the reporting window.
+- Detect selectors that return structurally valid pages but no longer match publisher content.
+- Introduce source-specific freshness thresholds.
+- Add `DEGRADED`, `STALE` and `PARTIAL` states directly at collection time.
+- Persist per-source last-success and newest-seen timestamps across runs.
+- Report meaningful source-health changes between runs.
+- Add dedicated authoritative Cisco security-advisory coverage.
+- Add a stronger authoritative CrowdStrike product/security-advisory path if a stable public source is available.
+- Keep source failure from being confused with a clean negative in every future report component.
 
-## Priority 2 — Critical Vulnerabilities / Zero-Days ordering
-
-- Sort every current zero-day first, irrespective of CVSS.
-- Follow with confirmed exploitation and CISA KEV records.
-- List remaining `No evidence` vulnerabilities by CVSS descending.
-- Use EPSS descending as the tie-breaker for equal CVSS scores.
-- Preserve critical items even when the normal report item limit is reached.
-
-## Priority 3 — GRC & Standards redesign
+## Priority 2 — GRC & Standards redesign
 
 - Rename `5. Standards / Compliance / Governance` to `5. GRC & Standards`.
-- Add a direct source/deep-dive link for every current change and forward-look
-  milestone where a trusted source exists.
-- Expand authoritative forward-looking coverage for:
-  - European Union
-  - Norway
-  - Sweden
-  - Finland
-  - Denmark
-- Strengthen coverage of NIS2, DORA, EU AI Act, Cyber Resilience Act, relevant
-  privacy/security legislation and national implementations.
-- Expand ISO/IEC coverage to relevant security, risk, privacy, resilience and
-  management-system standards.
-- Convert the forward look into a persistent governance horizon instead of
-  relying mainly on dates found inside the current 36/72-hour collection window.
+- Add direct source/deep-dive links for current changes and forward-look milestones.
+- Expand authoritative coverage for the EU, Norway, Sweden, Finland and Denmark.
+- Strengthen NIS2, DORA, EU AI Act, Cyber Resilience Act and national implementation coverage.
+- Expand relevant ISO/IEC security, risk, privacy, resilience and management-system coverage.
+- Convert the forward look into a persistent governance horizon.
 
-## Priority 4 — Enterprise DEFCON legend
+## Priority 3 — Enterprise DEFCON legend
 
-- Remove the secondary embedded DEFCON PNG and render the layered triangle using
-  email-safe HTML/table structures.
-- Increase the legend title by approximately two font sizes.
-- Increase the descriptive text by approximately two font sizes.
+- Remove the secondary embedded DEFCON PNG and render the layered triangle in email-safe HTML/tables.
+- Increase legend title and descriptive text by approximately two font sizes.
 - Preserve compact sizing and current-level emphasis.
-- Re-test Outlook rendering and deliverability after the MIME image is removed.
+- Re-test Outlook rendering and deliverability.
 
-## Priority 5 — Operational Intelligence & Impact divider
+## Priority 4 — Operational Intelligence & Impact divider
 
-- Add a full-width visual break after `5. GRC & Standards` and
-  `6. Recommended Actions Today`.
+- Add a full-width visual break after `5. GRC & Standards` and `6. Recommended Actions Today`.
 - Proposed heading: `Operational Intelligence & Impact`.
-- Use it to introduce:
-  - Customer & Sector Impact
-  - SOC & Detection Engineering
-  - Threat Intelligence
-  - Security Advisory & CISO Watch Next
-  - Source Coverage
+- Use it to introduce Customer & Sector Impact, SOC & Detection Engineering, Threat Intelligence, Security Advisory & CISO Watch Next, and Source Coverage.
 
-## Priority 6 — Source Coverage compact layout
+## Priority 5 — Source Coverage compact layout
 
-- Render Source Coverage as two balanced columns.
-- Group by health state/colour first and alphabetically inside each group.
-- Green: qualifying content collected.
-- Blue: checked successfully with no qualifying content.
-- Amber: degraded, stale or partial.
-- Red: failed/unavailable.
+- Render Daily Source Coverage as two balanced columns.
+- Group by health state/colour first and alphabetically within each group.
+- Green: qualifying content; Blue: checked/quiet; Amber: degraded/stale/partial; Red: failed/unavailable.
 
-## Priority 7 — Reliability and security
+## Priority 6 — Reliability and security
 
 - Pin Python dependencies with hashes.
 - Generate a machine-readable CycloneDX or SPDX SBOM.
 - Add persistent state and cross-run deduplication to the daily report.
-- Prevent repeated advisories across overlapping reporting windows.
-- Retain meaningful updates to previously reported developments.
+- Prevent repeated advisories across overlapping windows and retain meaningful updates.
 - Track first-seen and last-seen timestamps.
 
-## Priority 8 — Maintainability
+## Priority 7 — Maintainability
 
-- Externalise frequently changed source definitions and relevance rules.
-- Externalise source URLs, selectors, keywords, vendor priorities, sector
-  mappings and source limits.
-- Reduce source-specific logic inside large generic modules where a dedicated
-  adapter provides clearer ownership.
+- Externalise frequently changed source definitions, URLs, selectors, keywords, vendor priorities, sector mappings and source limits.
+- Reduce source-specific logic inside generic modules.
+- Fold the 5.6.5 report-policy compatibility layer into the main renderer during its next structural refactor.
 
-## Priority 9 — Historical capability
+## Priority 8 — Historical capability
 
 - Add private report archiving and historical comparison.
-- Store generated HTML or structured JSON.
-- Compare daily, weekly and monthly trends.
-- Avoid paid infrastructure unless there is a clear operational need.
+- Store generated HTML or structured JSON and compare daily/weekly/monthly trends.
+- Avoid paid infrastructure unless operationally justified.
 
-## Priority 10 — Threat-intelligence enrichment
+## Priority 9 — Threat-intelligence enrichment
 
 - Continue adding trusted deep-dive links.
 - Improve source trust tiers and corroboration rules.
-- Correlate vendor advisories, NVD, KEV and primary research into one logical
-  development where they describe the same underlying vulnerability or event.
+- Correlate vendor advisories, NVD, KEV and primary research into one logical development.

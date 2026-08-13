@@ -20,6 +20,9 @@ from .utils import integer_setting, required
 from .vulnerability_reporting import (
     VulnerabilityStore,
     build_vulnerability_records,
+)
+from .weekly_rendering import (
+    iso_week_label,
     render_weekly_vulnerability_report,
 )
 
@@ -47,13 +50,22 @@ class WeeklySettings:
             refresh_token=required("GMAIL_REFRESH_TOKEN"),
             recipient=required("EMAIL_TO"),
             lookback_days=integer_setting(
-                "WEEKLY_LOOKBACK_DAYS", default=7, minimum=7, maximum=31
+                "WEEKLY_LOOKBACK_DAYS",
+                default=7,
+                minimum=7,
+                maximum=31,
             ),
             max_records=integer_setting(
-                "WEEKLY_MAX_RECORDS", default=100, minimum=10, maximum=500
+                "WEEKLY_MAX_RECORDS",
+                default=100,
+                minimum=10,
+                maximum=500,
             ),
             source_workers=integer_setting(
-                "SOURCE_WORKERS", default=8, minimum=1, maximum=16
+                "SOURCE_WORKERS",
+                default=8,
+                minimum=1,
+                maximum=16,
             ),
             database_path=Path(
                 os.getenv(
@@ -80,7 +92,10 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
     )
     items = deduplicate(state.primary_items)
     enrich_nvd(items, state.warnings)
-    records = build_vulnerability_records(items, now=utc_now)[: settings.max_records]
+    records = build_vulnerability_records(
+        items,
+        now=utc_now,
+    )[: settings.max_records]
 
     with VulnerabilityStore(settings.database_path) as store:
         changes = store.record(records, utc_now)
@@ -89,6 +104,8 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
 
     week_end = local_now.date()
     week_start = week_end - timedelta(days=settings.lookback_days - 1)
+    week_label = iso_week_label(week_end)
+
     text_body, html_body = render_weekly_vulnerability_report(
         records,
         changes,
@@ -98,7 +115,10 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
         week_end,
         state.source_health,
     )
-    subject = f"Weekly Vulnerability Report — {week_end.isoformat()}"
+    subject = (
+        f"Weekly Vulnerability Report — {week_label} — "
+        f"{week_end.isoformat()}"
+    )
     send_email(
         settings.username,
         settings.client_id,
@@ -110,8 +130,10 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
         html_body,
     )
     print(
-        f"Weekly vulnerability report sent: {len(records)} CVE(s), "
-        f"{len(changes)} lifecycle change(s), {len(mtd_records)} MTD CVE(s), "
+        f"Weekly vulnerability report sent: {week_label}, "
+        f"{len(records)} CVE(s), "
+        f"{len(changes)} lifecycle change(s), "
+        f"{len(mtd_records)} MTD CVE(s), "
         f"{len(state.warnings)} warning(s)."
     )
 

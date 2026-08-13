@@ -14,6 +14,36 @@ history remains available in Git history.
 
 ---
 
+## 5.6.5 - 2026-08-13
+
+### Added
+
+- Added `CONTENT`, `QUIET` and `FAILED` source-health metadata with check and newest selected-item timestamps.
+- Added a daily report policy layer that derives KEV / priority-vendor status from all collected intelligence and expected authoritative source health.
+- Added ISO week number/year to the Weekly Vulnerability Report title, plain text, subject and run summary.
+- Added an Outlook-safe weekly presentation layer with explicit matching header/body widths and alignment.
+- Added direct NVD links whenever a full CVE identifier is displayed in the weekly main table, lifecycle-change section or remediation lists.
+
+### Changed
+
+- Replaced ambiguous vendor `No material update` output with health-aware clean, degraded, unavailable and unknown states.
+- Vendors without a configured authoritative advisory channel no longer receive an authoritative clean-negative claim from supporting/research sources alone.
+- Critical vulnerability presentation now orders current zero-days first, then confirmed exploitation / CISA KEV, then remaining entries by CVSS descending with EPSS as the equal-CVSS tie-breaker.
+- Zero-day, exploited, KEV and CVSS 9+ records are retained past the normal report item cap.
+- Removed the raw 0–100 internal priority score from the Weekly Vulnerability Report; the score remains internal for ordering and remediation-band calculation.
+- Weekly vulnerability columns are now CVE, Vendor, CVSS, EPSS, KEV, Exploited and Action with explicit widths/alignment.
+
+### Documentation
+
+- Updated `README.md`, `WEEKLY_VULNERABILITY_REPORT.md` and `OPTIMISATION.md`.
+- Removed the completed former Maintenance Priority 2 vulnerability-ordering work and re-numbered the remaining open backlog.
+
+### Validation
+
+- Syntax-compiled all Python files supplied in the 5.6.5 release package.
+- Added focused tests for vendor/source truth, critical ordering, mandatory retention, ISO week numbering, weekly alignment, hidden raw priority scores and CVE hyperlinking.
+- Full repository regression and live-source validation must run after overlaying the release onto v5.6.4.
+
 ## 5.6.4 - 2026-08-13
 
 ### Added

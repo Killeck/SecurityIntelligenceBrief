@@ -1,60 +1,76 @@
 {
-  "version": "5.6.4",
+  "version": "5.6.5",
+  "base_version": "5.6.4",
+  "validation": {
+    "syntax_compile": "pass",
+    "focused_offline_tests": "11/11 pass (stubbed dependency harness)",
+    "full_repository_tests": "run after overlay"
+  },
   "files": [
     {
       "path": "CHANGELOG.md",
-      "bytes": 7752,
-      "sha256": "4884295cd1c54d3a1e09211c169712c1ea943d90c5fcd00b270c49d47fbf2265"
+      "bytes": 9873,
+      "sha256": "5d6a5c74704d3367ae297e3f4e5acb432547123b896066a72b56697d2c8bafb5"
     },
     {
       "path": "MAINTENANCE.md",
-      "bytes": 5620,
-      "sha256": "5c031a18b50acbb172cb479e1c484cdc8342c341b5d622920604b90fa6dc6d29"
+      "bytes": 4600,
+      "sha256": "4ba832b27bb7622682dd727c240324cafd5dd750081a4fc9f7e42befb531652c"
     },
     {
       "path": "OPTIMISATION.md",
-      "bytes": 3339,
-      "sha256": "7ca185f10054f2b61ba6c2ad72e572b3baa1eab1206f40155dac61cc6deae338"
+      "bytes": 2039,
+      "sha256": "5810b65dedd5ab30bca7311344f842c723d23664be5ff4942cea02a790917947"
     },
     {
       "path": "README.md",
-      "bytes": 10747,
-      "sha256": "cf0f68409156ff2df14865a32e9e027aa1e59b2a6e186df45d8a392625c0aafe"
+      "bytes": 11450,
+      "sha256": "7c6e3a1fbdb1dedd74287b981e68c3f4f76b2c2a8253ecfca3b3f7ba887e41d1"
     },
     {
-      "path": "RELEASE_5.6.4.md",
-      "bytes": 2241,
-      "sha256": "c059f8a55f400257f89b4e57857d56bd33cc7223ce0db8e22f5be6f5817a7868"
+      "path": "RELEASE_5.6.5.md",
+      "bytes": 1250,
+      "sha256": "6f7149a3151a0599418cfd08ee73baa44b4c00032933922ce4828c3bb3031bb6"
     },
     {
       "path": "VERSION",
       "bytes": 6,
-      "sha256": "3aa82ceeb7c8a944e4c0b5339f0fb5bdf1041763c3d6f02acf629243b5b4b7c1"
+      "sha256": "5b06ace719ca41392a5e00297951d0bd66458a736474dbfb5ba1e361baf01110"
     },
     {
       "path": "WEEKLY_VULNERABILITY_REPORT.md",
-      "bytes": 2715,
-      "sha256": "11f3000ffab9bfb4589ec4a480571392f6d9c0e5caca2c1dec1c386952259216"
+      "bytes": 2741,
+      "sha256": "b0e1ac0a41411ee3d3ce02af416cc17b787136e515fc21579c3191549b3172e3"
     },
     {
       "path": "src/security_brief/app.py",
-      "bytes": 14710,
-      "sha256": "fb83c4fb28ae1771a6a440ebe39a6fb4daec434f2ced284ce295697729c7c6f5"
+      "bytes": 15958,
+      "sha256": "3f6aea5a0fe1ae8d6ee3747fc7b139893a2f01e100043575215efa24257f6eaf"
     },
     {
-      "path": "src/security_brief/priority_vendor_sources.py",
-      "bytes": 17035,
-      "sha256": "73814ccbbdf0307297be5416026e2906767fc023e7f645b30a57799a0906f5a6"
+      "path": "src/security_brief/report_policy.py",
+      "bytes": 22161,
+      "sha256": "7cbf5a1985c3929cccceb5ccd8786a882f210bf571610aeda206b56bd0310ec7"
     },
     {
-      "path": "tests/test_priority_vendor_sources.py",
-      "bytes": 5538,
-      "sha256": "3976bd55e1af5eabdef840352d07ef3884add78352b2776457cc05416e1b8c8b"
+      "path": "src/security_brief/weekly_app.py",
+      "bytes": 4403,
+      "sha256": "0b971a4de7d00fd445a499dac504fc4066bef17e39fb065ca3ae307c592c450d"
+    },
+    {
+      "path": "src/security_brief/weekly_rendering.py",
+      "bytes": 18776,
+      "sha256": "e24263b7e1e9040a363fc0da64654a0580e741a9c2b1ac730135e4b4bc1dddcb"
+    },
+    {
+      "path": "tests/test_report_policy.py",
+      "bytes": 4895,
+      "sha256": "9d8c15f866085561f3b04b5ecaf06281e1e2f4ceca54ebcb11c8bba6789b7c1f"
+    },
+    {
+      "path": "tests/test_weekly_rendering.py",
+      "bytes": 3690,
+      "sha256": "682cc88c90856eb9540c5ff174ec108ee0791f23cca596025033b05ea5539c03"
     }
-  ],
-  "syntax_compiled": [
-    "src/security_brief/app.py",
-    "src/security_brief/priority_vendor_sources.py",
-    "tests/test_priority_vendor_sources.py"
   ]
 }

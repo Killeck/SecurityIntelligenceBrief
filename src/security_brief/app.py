@@ -60,7 +60,7 @@ from .priority_vendor_sources import (
     fetch_hpe_security_bulletins,
     fetch_priority_vendor_nvd,
 )
-from .rendering import render_report
+from .report_policy import ensure_mandatory_vulnerabilities, render_report
 from .utils import (
     csv_setting,
     integer_setting,
@@ -181,6 +181,25 @@ def _execute_task(task: FetchTask[T]) -> FetchOutcome[T]:
         return FetchOutcome(task=task, values=[], error=error)
 
 
+def _newest_value_timestamp(values: list[Any]) -> str:
+    """Return the newest timestamp exposed by collected values, when available."""
+
+    candidates: list[datetime] = []
+    for value in values:
+        for attribute in ("published", "observed"):
+            timestamp = getattr(value, attribute, None)
+            if not isinstance(timestamp, datetime):
+                continue
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.replace(tzinfo=timezone.utc)
+            candidates.append(timestamp.astimezone(timezone.utc))
+            break
+
+    if not candidates:
+        return ""
+    return max(candidates).isoformat()
+
+
 def collect_tasks(
     tasks: list[FetchTask[T]],
     target: list[T],
@@ -214,8 +233,13 @@ def collect_tasks(
                     {
                         "source": task.name,
                         "status": "OK",
+                        "health_state": (
+                            "CONTENT" if outcome.values else "QUIET"
+                        ),
                         "items": len(outcome.values),
                         "detail": task.detail,
+                        "checked_at": datetime.now(timezone.utc).isoformat(),
+                        "newest_item": _newest_value_timestamp(outcome.values),
                     }
                 )
                 print(
@@ -231,8 +255,11 @@ def collect_tasks(
                 {
                     "source": task.name,
                     "status": "FAILED",
+                    "health_state": "FAILED",
                     "items": 0,
                     "detail": detail,
+                    "checked_at": datetime.now(timezone.utc).isoformat(),
+                    "newest_item": "",
                 }
             )
             print(f"WARNING: {warning}", file=sys.stderr)
@@ -405,6 +432,7 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         reverse=True,
     )
     items = select_final_items(all_items, settings.max_items)
+    items = ensure_mandatory_vulnerabilities(items, all_items)
 
     executive_news = select_executive_news(
         state.news_candidates,
@@ -471,6 +499,7 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         exposure_signals,
         settings.monitored_brands,
         settings.monitored_domains,
+        status_items=all_items,
     )
 
     advisory = advisory_status(items, exposure_signals)

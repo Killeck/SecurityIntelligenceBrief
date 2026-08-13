@@ -1,0 +1,60 @@
+{
+  "version": "5.6.4",
+  "files": [
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 7752,
+      "sha256": "4884295cd1c54d3a1e09211c169712c1ea943d90c5fcd00b270c49d47fbf2265"
+    },
+    {
+      "path": "MAINTENANCE.md",
+      "bytes": 5620,
+      "sha256": "5c031a18b50acbb172cb479e1c484cdc8342c341b5d622920604b90fa6dc6d29"
+    },
+    {
+      "path": "OPTIMISATION.md",
+      "bytes": 3339,
+      "sha256": "7ca185f10054f2b61ba6c2ad72e572b3baa1eab1206f40155dac61cc6deae338"
+    },
+    {
+      "path": "README.md",
+      "bytes": 10747,
+      "sha256": "cf0f68409156ff2df14865a32e9e027aa1e59b2a6e186df45d8a392625c0aafe"
+    },
+    {
+      "path": "RELEASE_5.6.4.md",
+      "bytes": 2241,
+      "sha256": "c059f8a55f400257f89b4e57857d56bd33cc7223ce0db8e22f5be6f5817a7868"
+    },
+    {
+      "path": "VERSION",
+      "bytes": 6,
+      "sha256": "3aa82ceeb7c8a944e4c0b5339f0fb5bdf1041763c3d6f02acf629243b5b4b7c1"
+    },
+    {
+      "path": "WEEKLY_VULNERABILITY_REPORT.md",
+      "bytes": 2715,
+      "sha256": "11f3000ffab9bfb4589ec4a480571392f6d9c0e5caca2c1dec1c386952259216"
+    },
+    {
+      "path": "src/security_brief/app.py",
+      "bytes": 14710,
+      "sha256": "fb83c4fb28ae1771a6a440ebe39a6fb4daec434f2ced284ce295697729c7c6f5"
+    },
+    {
+      "path": "src/security_brief/priority_vendor_sources.py",
+      "bytes": 17035,
+      "sha256": "73814ccbbdf0307297be5416026e2906767fc023e7f645b30a57799a0906f5a6"
+    },
+    {
+      "path": "tests/test_priority_vendor_sources.py",
+      "bytes": 5538,
+      "sha256": "3976bd55e1af5eabdef840352d07ef3884add78352b2776457cc05416e1b8c8b"
+    }
+  ],
+  "syntax_compiled": [
+    "src/security_brief/app.py",
+    "src/security_brief/priority_vendor_sources.py",
+    "tests/test_priority_vendor_sources.py"
+  ]
+}

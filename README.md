@@ -82,7 +82,7 @@ Failed or partial authoritative coverage is shown as unknown/degraded instead of
 
 ## Daily report behaviour
 
-- Runs automatically at **07:07 Europe/Oslo**.
+- Runs automatically at **06:17 Europe/Oslo**.
 - Uses the previous **72 hours on Mondays**.
 - Uses the previous **36 hours Tuesday through Sunday**.
 - Continues when individual sources fail.
@@ -94,7 +94,7 @@ Failed or partial authoritative coverage is shown as unknown/degraded instead of
 
 The current dashboard includes:
 
-- Enterprise DEFCON legend and Overall Threat
+- Outlook-safe HTML/table Enterprise DEFCON legend with the live level highlighted, and Overall Threat
 - supporting metric cards
 - Executive Summary / Top Developments
 - KEV & Priority Vendor Status
@@ -112,7 +112,7 @@ The current dashboard includes:
 
 ## Weekly vulnerability report
 
-The weekly report runs Monday at **08:00 Europe/Oslo** and uses the same
+The weekly report runs Monday at **07:23 Europe/Oslo** and uses the same
 `primary_tasks()` pipeline as the daily report. It shares authoritative
 Fortinet, AWS, Google, Palo Alto, HPE/Aruba and Okta coverage without a second
 source configuration.
@@ -222,7 +222,9 @@ Required GitHub Actions secrets:
 | `MONITORED_DOMAINS` | No | Comma-separated authorised domains |
 | `MONITORED_BRANDS` | No | Comma-separated organisation/brand names |
 
-The application does not require the old Gmail App Password/SMTP path.
+The application does not require the old Gmail App Password/SMTP path. Both
+delivery workflows verify required Gmail API secrets before attempting to send
+and log only safe milestones: OAuth refresh and Gmail API acceptance.
 
 ## Runtime settings
 

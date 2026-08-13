@@ -3,7 +3,7 @@ Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
 -->
 
-# Architecture and Optimisation Notes — 5.6.5
+# Architecture and Optimisation Notes — 5.6.6
 
 ## Objective
 
@@ -40,4 +40,10 @@ The internal composite urgency score remains used for sorting/remediation but is
 
 ## Delivery and documentation
 
-Delivery remains Gmail API OAuth. `README.md` is current state, `CHANGELOG.md` released history, `MAINTENANCE.md` open work and this file architecture/rationale.
+Delivery remains Gmail API OAuth, with workflow preflight for required secrets
+and safe logs for token refresh/Gmail acceptance. The Daily DEFCON legend is
+now table-based HTML, avoiding a second inline image and making the current
+level explicit in Outlook-compatible markup. `README.md` is current state,
+`CHANGELOG.md` released history, `MAINTENANCE.md` open work and this file
+architecture/rationale. Release notes and manifests reside under
+`docs/releases/`.

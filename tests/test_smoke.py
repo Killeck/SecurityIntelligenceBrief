@@ -958,13 +958,12 @@ class PipelineTests(unittest.TestCase):
 
         triangle = _render_defcon_triangle(3)
         self.assertNotIn("▲", triangle)
-        self.assertNotIn("Current enterprise level", triangle)
-        self.assertIn("cid:enterprise-defcon-legend", triangle)
-        self.assertIn('width="165"', triangle)
-        self.assertIn('height="91"', triangle)
-        self.assertEqual(triangle.count('height="18"'), 5)
+        self.assertIn("(current level)", triangle)
+        self.assertNotIn("cid:enterprise-defcon-legend", triangle)
+        self.assertEqual(triangle.count("DEFCON "), 5)
         self.assertEqual(triangle.count("white-space:nowrap"), 5)
-        self.assertEqual(triangle.count("font-size:7px"), 5)
+        self.assertEqual(triangle.count("font-size:12px"), 5)
+        self.assertEqual(triangle.count("font-size:9px"), 5)
         for repeated_label in (
             "Critical: immediate action",
             "High: urgent action",

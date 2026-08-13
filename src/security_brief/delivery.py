@@ -13,10 +13,8 @@ from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 
 from .branding import (
-    DEFCON_LEGEND_CONTENT_ID,
     LOGO_CONTENT_ID,
     apply_email_branding,
-    load_defcon_legend_bytes,
     load_logo_bytes,
 )
 
@@ -58,15 +56,6 @@ def build_message(
         cid=f"<{LOGO_CONTENT_ID}>",
         disposition="inline",
     )
-    if f"cid:{DEFCON_LEGEND_CONTENT_ID}" in branded_html:
-        html_part.add_related(
-            load_defcon_legend_bytes(),
-            maintype="image",
-            subtype="png",
-            cid=f"<{DEFCON_LEGEND_CONTENT_ID}>",
-            disposition="inline",
-        )
-
     return message
 
 
@@ -98,7 +87,9 @@ def send_email(
         client_secret=client_secret,
         scopes=[GMAIL_SEND_SCOPE],
     )
+    print("Refreshing Gmail API credentials.")
     credentials.refresh(Request())
+    print("Gmail API credentials refreshed; submitting message.")
 
     service = build(
         "gmail",
@@ -122,3 +113,4 @@ def send_email(
 
     if not response.get("id"):
         raise RuntimeError("Gmail API returned no message ID.")
+    print("Gmail API accepted message for delivery.")

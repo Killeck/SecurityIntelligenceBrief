@@ -103,14 +103,10 @@ class BrandingTests(unittest.TestCase):
             for part in message.walk()
             if part.get_content_maintype() == "image"
         ]
-        self.assertEqual(len(image_parts), 2)
+        self.assertEqual(len(image_parts), 1)
         self.assertEqual(
             image_parts[0]["Content-ID"],
             f"<{LOGO_CONTENT_ID}>",
-        )
-        self.assertEqual(
-            image_parts[1]["Content-ID"],
-            f"<{DEFCON_LEGEND_CONTENT_ID}>",
         )
 
     def test_defcon_asset_is_omitted_when_report_does_not_reference_it(self) -> None:

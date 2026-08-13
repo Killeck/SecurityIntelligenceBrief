@@ -14,6 +14,26 @@ history remains available in Git history.
 
 ---
 
+## 5.6.6 - 2026-08-13
+
+### Fixed
+
+- Added an explicit Gmail-secret preflight to the Daily Security Brief and Weekly Vulnerability Report workflows.
+- Added safe delivery-path logging for OAuth refresh and Gmail API acceptance; no credential material is logged.
+- Replaced the secondary inline DEFCON PNG with an Outlook-safe HTML/table legend and highlighted the current level.
+
+### Changed
+
+- Scheduled the Daily Security Brief for 06:17 Europe/Oslo and the Weekly Vulnerability Report for Monday 07:23 Europe/Oslo, providing delivery buffer while avoiding the top of the hour.
+- Increased DEFCON legend title and explanatory text sizes.
+- Moved release notes and manifests to `docs/releases/`.
+
+### Validation
+
+- Full offline regression suite to be recorded after the release changes are applied.
+
+---
+
 ## 5.6.5 - 2026-08-13
 
 ### Added

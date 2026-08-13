@@ -1,0 +1,11 @@
+{
+  "version": "5.6.6",
+  "date": "2026-08-13",
+  "title": "Harden report delivery and operational email layout",
+  "scope": [
+    "Gmail delivery preflight and safe operational logging",
+    "Daily and weekly schedule adjustment",
+    "Outlook-safe HTML DEFCON legend",
+    "Release-record documentation layout"
+  ]
+}

@@ -22,7 +22,6 @@ from .analysis import (
     group_exposure_signals,
     priority,
 )
-from .branding import DEFCON_LEGEND_CONTENT_ID
 from .config import (
     BRIEF_NAME,
     BRIEF_VERSION,
@@ -1113,12 +1112,7 @@ def _metric_card(
 
 
 def _render_defcon_triangle(current_level: int) -> str:
-    """Render the compact labelled DEFCON pyramid and its descriptions.
-
-    ``current_level`` is retained for the established renderer/test interface,
-    but the reference legend deliberately does not highlight a current layer.
-    The live level belongs only in the Overall Threat metric card.
-    """
+    """Render an Outlook-safe HTML DEFCON legend with the live level highlighted."""
 
     if current_level not in DEFCON_LEVELS:
         raise ValueError(f"Unsupported DEFCON level: {current_level}")
@@ -1133,29 +1127,30 @@ def _render_defcon_triangle(current_level: int) -> str:
 
     rows: list[str] = []
     for level in range(1, 6):
+        definition = DEFCON_LEVELS[level]
+        active = level == current_level
+        background = definition["colour"] if active else DASHBOARD_COLOURS["panel"]
+        foreground = definition["text_colour"] if active else DASHBOARD_COLOURS["text"]
+        emphasis = "font-weight:700;" if active else "font-weight:400;"
         rows.append(
             f"""
             <tr>
-              <td height="18" valign="middle" nowrap
-                  style="height:18px;padding:0;color:{DASHBOARD_COLOURS['muted']};
-                  font-size:7px;line-height:18px;white-space:nowrap;">
-                — {_escape(descriptions[level])}
+              <td width="58" valign="middle" align="center"
+                  style="padding:3px 5px;background:{background};color:{foreground};
+                  font-size:12px;line-height:16px;{emphasis}white-space:nowrap;">
+                DEFCON {level}
+              </td>
+              <td valign="middle" style="padding:3px 7px;color:{DASHBOARD_COLOURS['text']};
+                  font-size:9px;line-height:16px;{emphasis}">
+                {_escape(descriptions[level])}{" (current level)" if active else ""}
               </td>
             </tr>
             """
         )
 
     return (
-        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
-        '<tr><td width="180" valign="middle" align="center" style="padding-right:8px;">'
-        f'<img src="cid:{DEFCON_LEGEND_CONTENT_ID}" '
-        'alt="Five labelled enterprise DEFCON pyramid layers" width="165" height="91" '
-        'style="display:block;width:165px;max-width:165px;height:91px;'
-        'border:0;outline:none;text-decoration:none;">'
-        '</td><td valign="middle">'
-        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0">'
-        + "".join(rows)
-        + "</table></td></tr></table>"
+        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
+        'style="border-collapse:collapse;">' + "".join(rows) + "</table>"
     )
 
 
@@ -2394,7 +2389,7 @@ def render_html_report(
                   border-radius:6px;">
       <tr>
         <td style="padding:6px 8px 3px;color:{DASHBOARD_COLOURS['purple']};
-                   font-size:10px;font-weight:700;text-align:left;">
+                   font-size:12px;font-weight:700;text-align:left;">
           Enterprise DEFCON Legend
         </td>
       </tr>

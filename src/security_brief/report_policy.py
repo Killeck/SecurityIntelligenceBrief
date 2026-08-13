@@ -40,8 +40,8 @@ CVE_PATTERN = re.compile(r"\bCVE-\d{4}-\d{4,}\b", flags=re.IGNORECASE)
 _RENDER_LOCK = threading.Lock()
 
 # Sources that can establish a clean vendor-specific negative result.
-# Cisco and CrowdStrike remain supporting-coverage only until dedicated
-# authoritative security-advisory channels are added.
+# CrowdStrike remains supporting-coverage only: no stable public product
+# security-advisory channel has been identified. Cisco PSIRT is authoritative.
 AUTHORITATIVE_VENDOR_SOURCES: dict[str, tuple[str, ...]] = {
     "CISA KEV": ("CISA KEV",),
     "Microsoft": ("Microsoft Security Response Center",),
@@ -55,10 +55,10 @@ AUTHORITATIVE_VENDOR_SOURCES: dict[str, tuple[str, ...]] = {
     "AWS": ("AWS Security Bulletins",),
     "Okta": ("Okta Security Advisories",),
     "HPE / Aruba": ("HPE Security Bulletin Library",),
+    "Cisco": ("Cisco Security Advisories",),
 }
 
 SUPPORTING_VENDOR_SOURCES: dict[str, tuple[str, ...]] = {
-    "Cisco": ("NVD priority-vendor CVEs", "Cisco Talos"),
     "CrowdStrike": ("NVD priority-vendor CVEs", "CrowdStrike Blog"),
 }
 

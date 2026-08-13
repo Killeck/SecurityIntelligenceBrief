@@ -46,6 +46,14 @@ def make_item(
 
 
 class ReportPolicyTests(unittest.TestCase):
+    def test_cisco_clean_negative_requires_psirt_success(self) -> None:
+        statuses = vendor_statuses(
+            [],
+            [{"source": "Cisco Security Advisories", "status": "OK", "items": 0}],
+        )
+        cisco = next(status for status in statuses if status.label == "Cisco")
+        self.assertEqual(cisco.status, "Checked — no material update")
+
     def test_critical_order_is_evidence_then_cvss_then_epss(self) -> None:
         values = [
             make_item("CVE-2026-10001", cvss=10.0, epss="80.0%"),
@@ -137,15 +145,15 @@ class ReportPolicyTests(unittest.TestCase):
                     "items": 0,
                 },
                 {
-                    "source": "Cisco Talos",
+                    "source": "CrowdStrike Blog",
                     "status": "OK",
                     "health_state": "QUIET",
                     "items": 0,
                 },
             ],
         )
-        cisco = next(value for value in statuses if value.label == "Cisco")
-        self.assertIn("authoritative status unknown", cisco.status)
+        crowdstrike = next(value for value in statuses if value.label == "CrowdStrike")
+        self.assertIn("authoritative status unknown", crowdstrike.status)
 
 
 if __name__ == "__main__":

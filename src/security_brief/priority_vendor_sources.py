@@ -39,6 +39,15 @@ from .utils import clean_text, ensure_utc, extract_cves
 
 AUTHORITATIVE_VENDOR_RSS_SOURCES: tuple[Source, ...] = (
     Source(
+        name="Cisco Security Advisories",
+        vendor="Cisco",
+        url="https://sec.cloudapps.cisco.com/security/center/psirtrss20/CiscoSecurityAdvisory.xml",
+        source_type="rss",
+        base_score=54,
+        section="Other Vendor Advisories",
+        freshness_days=7,
+    ),
+    Source(
         name="Fortinet PSIRT RSS",
         vendor="Fortinet",
         url="https://fortiguard.fortinet.com/rss/ir.xml",

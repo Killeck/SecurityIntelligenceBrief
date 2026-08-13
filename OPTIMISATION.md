@@ -3,152 +3,90 @@ Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
 -->
 
-# Optimisation Notes — Version 4.2
+# Architecture and Optimisation Notes — 5.6.4
 
 ## Objective
 
-Version 4.2 optimises the codebase for effective execution, maintenance and
-safe future expansion without changing the briefing's established content or
-decision logic.
+Keep one low-cost intelligence engine that can produce daily and weekly reports
+while isolating source failures, avoiding duplicated source definitions and
+keeping authoritative vulnerability data separate from research/news context.
 
-## Before
-
-Version 4.1 used one Python module of approximately 6,400 lines containing:
-
-- Source configuration
-- Scoring rules
-- Data models
-- RSS and HTML collection
-- HIBP collection
-- CISA KEV and NVD handling
-- Governance processing
-- Exposure analysis
-- Text and HTML rendering
-- SMTP delivery
-- Full orchestration
-
-The main function contained more than 400 lines of repeated source collection
-and error-reporting code. Independent network sources were processed serially.
-
-## After
-
-Version 4.2 uses a modular package with a seven-line compatibility entry point.
+## Current module boundaries
 
 ```text
-src/send_security_advisory.py
+send_security_advisory.py
         ↓
 security_brief.app
-        ├── collectors
-        ├── analysis
-        ├── governance
-        ├── rendering
-        ├── delivery
-        ├── sources
-        ├── rules
+        ├── priority_vendor_sources   # vendor-owned bulletins + HPE adapter
+        ├── collectors                # generic RSS/HTML, KEV, NVD, HIBP
+        ├── sources                   # broad configured intelligence sources
+        ├── analysis                  # scoring, selection and correlation
+        ├── governance                # forward-looking milestones
+        ├── rendering                 # text + HTML report
+        ├── branding                  # inline branding assets
+        ├── delivery                  # Gmail API OAuth delivery
+        ├── http_client               # thread-local sessions/retries
         ├── models
+        ├── rules
         ├── config
-        ├── utils
-        └── http_client
+        └── utils
+
+send_weekly_vulnerability_report.py
+        ↓
+security_brief.weekly_app
+        └── reuses security_brief.app.primary_tasks()
 ```
 
-## Execution improvements
+## Why the priority-vendor layer exists
 
-### Bounded parallel collection
+Several priority vendors provide security bulletins through dedicated official
+channels that are materially different from their research blogs. Treating a
+research blog as the vendor's vulnerability feed can produce a misleading
+`No material update` result when the actual PSIRT/security-bulletin portal has
+new CVEs.
 
-Independent primary and discovery sources are collected concurrently.
+Version 5.6.4 therefore gives vendor-owned bulletin feeds explicit ownership and
+keeps research channels as complementary sources.
 
-```text
-SOURCE_WORKERS=8
-```
+## NVD role
 
-The allowed range is one to sixteen. Eight is a conservative default that
-reduces serial waiting without generating excessive traffic toward publishers.
+NVD remains useful for:
 
-`executor.map` preserves configured source order in Source Coverage even though
-the requests execute concurrently.
+- CVSS enrichment
+- corroborating vendor CVEs
+- fallback coverage when a vendor feed is delayed or unavailable
 
-### Reusable HTTP connections
+It is not treated as a replacement for vendor PSIRT/security bulletins. The new
+priority NVD collector uses specific vendor attribution instead of broad cloud or
+other-vendor buckets.
 
-Each collection worker receives a thread-local `requests.Session` with:
+## Execution characteristics
 
-- Connection pooling
-- Bounded retries
-- Backoff
-- HTTP 429 handling
-- HTTP 500, 502, 503 and 504 handling
-- `Retry-After` support
+- Independent sources are collected concurrently.
+- `SOURCE_WORKERS` defaults to 8 and is bounded 1–16.
+- `executor.map` preserves source-health output order.
+- Each worker uses its own reusable `requests.Session`.
+- HTTP 429 and transient 5xx responses receive bounded retries/backoff.
+- Primary items are deduplicated before NVD enrichment.
+- Daily and weekly reporting share the same primary source task builder.
 
-A session is not shared between threads.
+## Delivery
 
-### Reduced repeated work
+Delivery uses the Gmail API with OAuth refresh-token credentials. SMTP/App
+Password delivery is no longer the current architecture.
 
-- Environment settings are resolved once during startup.
-- Integer and comma-separated environment settings are cached.
-- Primary records are deduplicated before NVD enrichment.
-- Static sources and rules are imported once rather than mixed into runtime
-  orchestration.
-- Common source success and failure handling is implemented once.
+## Documentation model
 
-## Maintainability improvements
+- `README.md`: current state
+- `CHANGELOG.md`: released history
+- `MAINTENANCE.md`: open work
+- `OPTIMISATION.md`: architecture/rationale
 
-- The main orchestration path is reduced to a focused `run_pipeline` function.
-- Source adapters are isolated from scoring and rendering.
-- Plain-text and HTML rendering use one shared report context.
-- Text and HTML output are generated by separate renderer functions.
-- Static source configuration is separate from classification rules.
-- Data models form explicit contracts between layers.
-- Gmail SMTP is isolated as the final pipeline side effect.
-- The existing command and GitHub workflows remain compatible.
+Completed maintenance work is not retained as a second release history inside
+`MAINTENANCE.md`.
 
-## Validation
+## Next optimisation areas
 
-Version 4.2 was validated through:
-
-- Python syntax compilation of all modules.
-- Static unresolved-global checks.
-- YAML parsing of both GitHub Actions workflows.
-- Offline unit tests.
-- Deterministic v4.1-to-v4.2 report regression comparison.
-- HTML and plain-text output comparison, with the version number as the only
-  expected difference.
-
-The regression tests cover:
-
-- Concurrent source failure isolation
-- Stable source-health ordering
-- HIBP public breach mapping
-- Exposure classification
-- Security Advisory Level
-- Enterprise DEFCON-style threat level
-- Relevant Cyber News
-- Dark-web exposure sections
-- Vendor, SOC and CISO sections
-
-## Compatibility
-
-Unchanged:
-
-- Required Gmail secrets
-- Optional NVD and HIBP secrets
-- Environment-variable names
-- Scheduled run time
-- Automatic 36/72-hour windows
-- Report scoring
-- Report sections
-- Source list
-- Email delivery
-- Command used by GitHub Actions
-
-Existing command:
-
-```text
-python src/send_security_advisory.py
-```
-
-## Remaining optimisation opportunities
-
-The largest remaining modules are intentionally data- or template-heavy:
-
-- `rules.py`
-- `sources.py`
-- `rendering.py`
+The active backlog is maintained only in `MAINTENANCE.md`. Important themes are
+source-health state, cross-run state, report correlation, source externalisation,
+SBOM/dependency hardening and historical reporting.

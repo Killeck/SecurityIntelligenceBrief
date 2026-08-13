@@ -3,7 +3,7 @@ Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
 -->
 
-# Architecture and Optimisation Notes — 5.6.6
+# Architecture and Optimisation Notes — 5.6.7
 
 ## Objective
 
@@ -28,7 +28,7 @@ security_brief.weekly_app
 
 ## Source-health model
 
-Collection records compatibility `status` plus `health_state` (`CONTENT`, `QUIET`, `FAILED`), `checked_at` and `newest_item` when an in-window record exposes a timestamp. The daily vendor policy maps expected authoritative source operations to vendor status. Failed/missing authoritative coverage cannot produce a clean `Checked — no material update`. Cross-run last-success history, stale-feed detection and selector-health checks remain open.
+Collection records carry compatibility `status` plus `health_state` (`CONTENT`, `QUIET`, `STALE`, `FAILED`), `checked_at` and newest-item timestamps. An optional JSON state file persists last-success/newest-seen values, allowing stale feeds to remain explicit across quiet runs. Failed/missing authoritative coverage cannot produce a clean `Checked — no material update`.
 
 ## Critical vulnerability ordering
 

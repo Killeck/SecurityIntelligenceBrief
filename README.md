@@ -292,9 +292,8 @@ To avoid duplicated or contradictory project records:
   available in returned HTML.
 - NVD is a corroborating/fallback source and may publish CVE enrichment later
   than the vendor advisory.
-- Collection distinguishes content, quiet and failed source operations, but
-  persistent stale-feed detection and cross-run source-health history remain
-  Maintenance Priority 1.
+- Collection retains optional cross-run state in `.state/source_health.json`
+  (or `SOURCE_HEALTH_STATE_FILE`) and reports stale sources explicitly.
 - No direct dark-web/onion collection.
 - No customer CMDB or asset-inventory integration.
 

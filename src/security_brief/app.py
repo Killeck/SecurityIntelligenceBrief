@@ -61,6 +61,7 @@ from .priority_vendor_sources import (
     fetch_priority_vendor_nvd,
 )
 from .report_policy import ensure_mandatory_vulnerabilities, render_report
+from .source_health import assess_and_persist
 from .utils import (
     csv_setting,
     integer_setting,
@@ -230,7 +231,7 @@ def collect_tasks(
             if outcome.error is None:
                 target.extend(outcome.values)
                 state.source_health.append(
-                    {
+                    assess_and_persist({
                         "source": task.name,
                         "status": "OK",
                         "health_state": (
@@ -240,7 +241,7 @@ def collect_tasks(
                         "detail": task.detail,
                         "checked_at": datetime.now(timezone.utc).isoformat(),
                         "newest_item": _newest_value_timestamp(outcome.values),
-                    }
+                    })
                 )
                 print(
                     f"{task.name}: {len(outcome.values)} {task.unit}"
@@ -252,7 +253,7 @@ def collect_tasks(
             warning = f"{task.name}: {detail}"
             state.warnings.append(warning)
             state.source_health.append(
-                {
+                assess_and_persist({
                     "source": task.name,
                     "status": "FAILED",
                     "health_state": "FAILED",
@@ -260,7 +261,7 @@ def collect_tasks(
                     "detail": detail,
                     "checked_at": datetime.now(timezone.utc).isoformat(),
                     "newest_item": "",
-                }
+                })
             )
             print(f"WARNING: {warning}", file=sys.stderr)
 

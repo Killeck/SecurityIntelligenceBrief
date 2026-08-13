@@ -19,16 +19,17 @@ Proprietary software. See LICENSE.
 
 Every functional or presentation release must increment `VERSION`, update the changelog and current-state documentation, remove completed backlog items, update tests, record actual validation, and use commit format `<VERSION> - <short comment>`.
 
+## Forward Release Direction
+
+Version 6.0 is reserved for code optimisation, maintainability and structural cleanup rather than major new report features.
+
 ## Priority 1 — Source-health truth, phase 2
 
 Version 5.6.5 establishes explicit `CONTENT`, `QUIET` and `FAILED` collection states, records check/newest-item timestamps, and makes KEV / priority-vendor status depend on the expected authoritative source path. Remaining work:
 
-- Detect stale feeds even when their newest entry falls outside the reporting window.
 - Detect selectors that return structurally valid pages but no longer match publisher content.
 - Introduce source-specific freshness thresholds.
 - Add `DEGRADED`, `STALE` and `PARTIAL` states directly at collection time.
-- Persist per-source last-success and newest-seen timestamps across runs.
-- Report meaningful source-health changes between runs.
 - Add dedicated authoritative Cisco security-advisory coverage.
 - Add a stronger authoritative CrowdStrike product/security-advisory path if a stable public source is available.
 - Keep source failure from being confused with a clean negative in every future report component.

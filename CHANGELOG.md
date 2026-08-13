@@ -14,6 +14,15 @@ history remains available in Git history.
 
 ---
 
+## 5.6.7 - 2026-08-13
+
+### Added
+
+- Added persistent optional per-source health state with last-success and newest-seen timestamps.
+- Added conservative stale-feed detection and cross-run health-change metadata.
+
+---
+
 ## 5.6.6 - 2026-08-13
 
 ### Fixed

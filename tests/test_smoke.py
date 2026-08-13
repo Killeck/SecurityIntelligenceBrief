@@ -960,10 +960,13 @@ class PipelineTests(unittest.TestCase):
         self.assertNotIn("▲", triangle)
         self.assertIn("(current level)", triangle)
         self.assertNotIn("cid:enterprise-defcon-legend", triangle)
-        self.assertEqual(triangle.count("DEFCON "), 5)
-        self.assertEqual(triangle.count("white-space:nowrap"), 5)
-        self.assertEqual(triangle.count("font-size:12px"), 5)
+        self.assertEqual(triangle.count('width="20%"'), 5)
+        self.assertEqual(triangle.count("DEFCON "), 10)
+        self.assertEqual(triangle.count("white-space:nowrap"), 10)
+        self.assertEqual(triangle.count("font-size:10px"), 10)
         self.assertEqual(triangle.count("font-size:9px"), 5)
+        for definition in DEFCON_LEVELS.values():
+            self.assertIn(f'bgcolor="{definition["colour"]}"', triangle)
         for repeated_label in (
             "Critical: immediate action",
             "High: urgent action",

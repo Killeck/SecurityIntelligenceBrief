@@ -14,6 +14,16 @@ history remains available in Git history.
 
 ---
 
+## 5.6.8 - 2026-08-13
+
+### Changed
+
+- Restored the full five-colour, equal-box DEFCON scale while retaining email-safe HTML and readable descriptions.
+- Weekly vulnerability display now orders zero-days, CVSS 10.0, unscored CVEs, then CVSS 9.9 through 4.0; lower CVSS entries are omitted.
+- Moved the Zero-days metric before Critical in the Weekly report's top summary row.
+
+---
+
 ## 5.6.7 - 2026-08-13
 
 ### Added

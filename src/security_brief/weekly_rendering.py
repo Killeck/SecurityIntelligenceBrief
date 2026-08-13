@@ -215,11 +215,11 @@ def render_weekly_vulnerability_report(
         f'<div style="font-size:19px;font-weight:700;color:{colour};">{_esc(value)}</div></div></td>'
         for label, value, colour in (
             ("Relevant", weekly["total"], colours["blue"]),
+            ("Zero-days", weekly["zero_day"], colours["high"]),
             ("Critical", weekly["critical"], colours["critical"]),
             ("High", weekly["high"], colours["high"]),
             ("Exploited", weekly["exploited"], colours["critical"]),
             ("CISA KEV", weekly["kev"], colours["purple"]),
-            ("Zero-days", weekly["zero_day"], colours["high"]),
             ("Highest EPSS", f"{weekly['highest_epss']:.1%}", colours["green"]),
         )
     )

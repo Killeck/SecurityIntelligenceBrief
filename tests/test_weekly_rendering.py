@@ -6,7 +6,10 @@ from __future__ import annotations
 import unittest
 from datetime import date, datetime, timezone
 
-from security_brief.vulnerability_reporting import VulnerabilityRecord
+from security_brief.vulnerability_reporting import (
+    VulnerabilityRecord,
+    weekly_display_records,
+)
 from security_brief.weekly_rendering import (
     iso_week_label,
     render_weekly_vulnerability_report,
@@ -38,6 +41,28 @@ def record(cve: str = "CVE-2026-12345") -> VulnerabilityRecord:
 
 
 class WeeklyPresentationTests(unittest.TestCase):
+    def test_display_policy_keeps_zero_days_first_and_filters_low_cvss(self) -> None:
+        zero_day = record("CVE-2026-00001")
+        zero_day.zero_day = True
+        zero_day.cvss = None
+        cvss_ten = record("CVE-2026-00002")
+        cvss_ten.cvss = 10.0
+        unscored = record("CVE-2026-00003")
+        unscored.cvss = None
+        critical = record("CVE-2026-00004")
+        critical.cvss = 9.8
+        medium = record("CVE-2026-00005")
+        medium.cvss = 6.2
+        low = record("CVE-2026-00006")
+        low.cvss = 3.9
+
+        displayed = weekly_display_records([medium, low, critical, unscored, cvss_ten, zero_day])
+
+        self.assertEqual(
+            [value.cve for value in displayed],
+            ["CVE-2026-00001", "CVE-2026-00002", "CVE-2026-00003", "CVE-2026-00004", "CVE-2026-00005"],
+        )
+
     def test_iso_week_is_shown(self) -> None:
         self.assertEqual(iso_week_label(date(2026, 8, 13)), "Week 33 / 2026")
 
@@ -55,6 +80,12 @@ class WeeklyPresentationTests(unittest.TestCase):
         self.assertNotIn(">92<", html)
         self.assertIn("Week 33 / 2026", html)
         self.assertIn("Week 33 / 2026", text)
+
+    def test_zero_days_metric_precedes_critical(self) -> None:
+        _, html = render_weekly_vulnerability_report(
+            [record()], [], [], [], date(2026, 8, 7), date(2026, 8, 13), []
+        )
+        self.assertLess(html.index(">Zero-days<"), html.index(">Critical<"))
 
     def test_headers_and_cells_use_explicit_alignment(self) -> None:
         _, html = render_weekly_vulnerability_report(

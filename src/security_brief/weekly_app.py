@@ -20,6 +20,7 @@ from .utils import integer_setting, required
 from .vulnerability_reporting import (
     VulnerabilityStore,
     build_vulnerability_records,
+    weekly_display_records,
 )
 from .weekly_rendering import (
     iso_week_label,
@@ -92,9 +93,8 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
     )
     items = deduplicate(state.primary_items)
     enrich_nvd(items, state.warnings)
-    records = build_vulnerability_records(
-        items,
-        now=utc_now,
+    records = weekly_display_records(
+        build_vulnerability_records(items, now=utc_now)
     )[: settings.max_records]
 
     with VulnerabilityStore(settings.database_path) as store:

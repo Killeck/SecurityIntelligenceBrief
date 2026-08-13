@@ -1125,23 +1125,34 @@ def _render_defcon_triangle(current_level: int) -> str:
         5: "Routine activity and normal monitoring.",
     }
 
-    rows: list[str] = []
+    scale_cells: list[str] = []
+    description_rows: list[str] = []
     for level in range(1, 6):
         definition = DEFCON_LEVELS[level]
         active = level == current_level
-        background = definition["colour"] if active else DASHBOARD_COLOURS["panel"]
-        foreground = definition["text_colour"] if active else DASHBOARD_COLOURS["text"]
+        background = definition["colour"]
+        foreground = definition["text_colour"]
         emphasis = "font-weight:700;" if active else "font-weight:400;"
-        rows.append(
+        current_marker = " · CURRENT" if active else ""
+        scale_cells.append(
+            f"""
+              <td width="20%" height="36" valign="middle" align="center"
+                  bgcolor="{background}" style="height:36px;padding:3px;background:{background};
+                  color:{foreground};font-size:10px;line-height:14px;{emphasis}
+                  border:2px solid {'#FFFFFF' if active else background};white-space:nowrap;">
+                DEFCON {level}<br>{_escape(definition['label'])}{current_marker}
+              </td>
+            """
+        )
+        description_rows.append(
             f"""
             <tr>
-              <td width="58" valign="middle" align="center"
-                  style="padding:3px 5px;background:{background};color:{foreground};
-                  font-size:12px;line-height:16px;{emphasis}white-space:nowrap;">
+              <td width="58" valign="top" style="padding:3px 6px 3px 0;color:{background};
+                  font-size:10px;line-height:14px;{emphasis}white-space:nowrap;">
                 DEFCON {level}
               </td>
-              <td valign="middle" style="padding:3px 7px;color:{DASHBOARD_COLOURS['text']};
-                  font-size:9px;line-height:16px;{emphasis}">
+              <td valign="top" style="padding:3px 0;color:{DASHBOARD_COLOURS['text']};
+                  font-size:9px;line-height:14px;{emphasis}">
                 {_escape(descriptions[level])}{" (current level)" if active else ""}
               </td>
             </tr>
@@ -1150,7 +1161,11 @@ def _render_defcon_triangle(current_level: int) -> str:
 
     return (
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
-        'style="border-collapse:collapse;">' + "".join(rows) + "</table>"
+        'style="border-collapse:collapse;table-layout:fixed;"><tr>'
+        + "".join(scale_cells)
+        + '</tr></table><table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
+        'style="border-collapse:collapse;margin-top:4px;">'
+        + "".join(description_rows) + "</table>"
     )
 
 

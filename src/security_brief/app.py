@@ -29,6 +29,7 @@ from .analysis import (
     select_executive_news,
     select_final_items,
 )
+from .archive import archive_report
 from .collectors import (
     enrich_nvd,
     fetch_executive_news_html,
@@ -162,6 +163,7 @@ class FetchTask(Generic[T]):
     fetch: Callable[[], list[T]]
     detail: str = ""
     unit: str = "item(s)"
+    freshness_days: int = 14
 
 
 @dataclass(frozen=True)
@@ -241,7 +243,7 @@ def collect_tasks(
                         "detail": task.detail,
                         "checked_at": datetime.now(timezone.utc).isoformat(),
                         "newest_item": _newest_value_timestamp(outcome.values),
-                    })
+                    }, freshness_days=task.freshness_days)
                 )
                 print(
                     f"{task.name}: {len(outcome.values)} {task.unit}"
@@ -261,7 +263,7 @@ def collect_tasks(
                     "detail": detail,
                     "checked_at": datetime.now(timezone.utc).isoformat(),
                     "newest_item": "",
-                })
+                }, freshness_days=task.freshness_days)
             )
             print(f"WARNING: {warning}", file=sys.stderr)
 
@@ -292,6 +294,7 @@ def primary_tasks(
                 cutoff,
             ),
             detail="Authoritative vendor security bulletin feed",
+            freshness_days=source.freshness_days,
         )
         for source in AUTHORITATIVE_VENDOR_RSS_SOURCES
     )
@@ -308,6 +311,7 @@ def primary_tasks(
         FetchTask(
             name=source.name,
             fetch=lambda source=source: fetch_rss(source, cutoff),
+            freshness_days=source.freshness_days,
         )
         for source in RSS_SOURCES
     )
@@ -316,6 +320,7 @@ def primary_tasks(
         FetchTask(
             name=source.name,
             fetch=lambda source=source: fetch_html(source, cutoff),
+            freshness_days=source.freshness_days,
         )
         for source in HTML_SOURCES
         if source.name not in REPLACED_GENERIC_HTML_SOURCES
@@ -505,6 +510,17 @@ def run_pipeline(settings: RuntimeSettings) -> None:
 
     advisory = advisory_status(items, exposure_signals)
     subject = EMAIL_SUBJECT
+    archive_directory = archive_report(
+        generated_at=utc_now,
+        html_body=html_body,
+        text_body=text_body,
+        summary={
+            "advisory": advisory["display"],
+            "items": len(items),
+            "exposure_signals": len(exposure_signals),
+            "warnings": len(state.warnings),
+        },
+    )
 
     send_email(
         settings.username,
@@ -528,6 +544,8 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         f"{len(regional_links)} regional link(s), "
         f"{len(state.warnings)} warning(s)."
     )
+    if archive_directory:
+        print(f"Private report archive updated: {archive_directory}")
 
 
 def main() -> int:

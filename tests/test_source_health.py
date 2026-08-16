@@ -22,3 +22,10 @@ class SourceHealthTests(unittest.TestCase):
             self.assertEqual(follow_up["health_state"], "STALE")
             self.assertFalse(follow_up["health_changed"])
         os.environ.pop("SOURCE_HEALTH_STATE_FILE", None)
+
+    def test_source_specific_freshness_threshold_is_honoured(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            os.environ["SOURCE_HEALTH_STATE_FILE"] = f"{directory}/health.json"
+            result = assess_and_persist({"source": "Fast feed", "status": "OK", "health_state": "CONTENT", "items": 1, "checked_at": datetime.now(timezone.utc).isoformat(), "newest_item": (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()}, freshness_days=1)
+            self.assertEqual(result["health_state"], "STALE")
+        os.environ.pop("SOURCE_HEALTH_STATE_FILE", None)

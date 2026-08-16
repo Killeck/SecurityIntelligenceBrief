@@ -21,7 +21,21 @@ Every functional or presentation release must increment `VERSION`, update the ch
 
 ## Forward Release Direction
 
-Version 6.0 is reserved for code optimisation, maintainability and structural cleanup rather than major new report features.
+### Version 6.0.0 — planned optimisation and defensibility release
+
+Version 6.0.0 is reserved for code optimisation, maintainability, structural cleanup and report defensibility rather than major new report features. Its planned scope includes stage-level runtime profiling, persistent NVD-enrichment caching, limits for HTML detail fetches, configuration-driven source definitions, rendering modularisation, persistent deduplication state, clear module boundaries with regression tests, and explicit corroboration / fact-confidence handling.
+
+### Version 6.0.1 — proposed experimental report-enrichment branch
+
+Version 6.0.1 is a proposed experimental branch for evaluating report-enrichment ideas after the 6.0.0 baseline. It is not a released version and no branch has yet been created. When started, use `feature/v6.0.1-report-enrichment`; do not update `VERSION` solely to create or evaluate this branch. Merge is gated on a quality review.
+
+Evaluate these five experimental enrichment items:
+
+- Make corroboration and confidence explicit for every material claim.
+- Add asset and technology relevance so prioritisation reflects the operating environment.
+- Add a concise SOC action line per top item, including detection idea, log source or next step.
+- Distinguish what is new, changed and repeated from previous reporting.
+- Represent uncertainty clearly, especially where exploitation or attribution is reported but not confirmed.
 
 ## Priority 1 — Source-health truth, phase 2
 

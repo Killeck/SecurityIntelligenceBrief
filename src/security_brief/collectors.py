@@ -662,6 +662,9 @@ def fetch_html(source: Source, cutoff: datetime) -> list[Item]:
         if len(candidates) >= source.max_candidates:
             break
 
+    if source.selectors and not candidates:
+        raise RuntimeError("Selector health check found no usable article candidates")
+
     items: list[Item] = []
 
     for title, summary, link, published in candidates:

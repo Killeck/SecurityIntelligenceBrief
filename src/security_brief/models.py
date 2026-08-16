@@ -34,6 +34,7 @@ class Source:
     max_candidates: int = 25
     locale: str = "en"
     topic_keywords: tuple[str, ...] = ()
+    freshness_days: int = 14
 
 @dataclass
 class Item:

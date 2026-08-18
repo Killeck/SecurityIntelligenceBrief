@@ -32,6 +32,7 @@ Official advisories / vendor bulletins / research / discovery
                normalise + deduplicate
                          ▼
               NVD CVSS + FIRST EPSS
+              persistent NVD cache
                          ▼
         deterministic scoring / correlation
                          │
@@ -50,7 +51,7 @@ or illicit marketplaces.
 
 ## Authoritative priority-vendor vulnerability coverage
 
-Version 5.7.0 keeps vendor-owned security-bulletin channels separate from research
+Version 6.0.0 keeps vendor-owned security-bulletin channels separate from research
 and news sources and adds authoritative Cisco PSIRT coverage.
 
 | Vendor / area | Authoritative collection path |
@@ -76,7 +77,7 @@ The NVD fallback attributes records to specific priority vendors rather than
 leaving AWS, Google and Okta inside a broad cloud bucket or Palo Alto/Cisco/Apple
 inside a generic `Other priority vendors` bucket.
 
-Version 5.7.0 keeps KEV & Priority Vendor Status health-aware and adds source-specific freshness, selector-health detection and persistent partial/stale-state handling. A clean negative
+Version 6.0.0 keeps KEV & Priority Vendor Status health-aware with source-specific freshness, selector-health detection and persistent partial/stale-state handling. A clean negative
 is shown only when the expected authoritative source was successfully checked.
 Failed or partial authoritative coverage is shown as unknown/degraded instead of
 `No material update`.
@@ -89,13 +90,16 @@ Failed or partial authoritative coverage is shown as unknown/degraded instead of
 - Continues when individual sources fail.
 - Keeps primary advisories separate from secondary discovery reporting.
 - Uses deterministic scoring; no LLM is required at runtime.
+- Suppresses unchanged advisories already delivered during the configured cross-run deduplication window.
+- Retains materially changed advisories when exploitation, severity, summary or recommended action changes.
+- Records stage-level runtime profiles for operational tuning.
 - Uses a conservative Enterprise DEFCON-style threat model.
 - Labels exposure intelligence by confidence.
 - Sends multipart HTML/plain-text email through the Gmail API.
 
 The current dashboard includes:
 
-- Outlook-safe HTML/table Enterprise DEFCON legend with the live level highlighted, and Overall Threat
+- one colour-coded Overall Threat status without a duplicate DEFCON scale or legend
 - supporting metric cards
 - Executive Summary / Top Developments
 - KEV & Priority Vendor Status
@@ -121,7 +125,10 @@ source configuration.
 The header and subject include ISO week number/year. The main table uses fixed
 Outlook-safe column widths. The raw internal 0–100 priority score is no longer
 shown; remediation bands remain user-facing. Every displayed full CVE identifier
-links directly to NVD.
+links directly to NVD. Version 6.0.0 adds a dedicated Vulnerability details
+column containing the advisory title, descriptive source summary and explicit
+affected scope. That descriptive text, confidence label and corroborating-source
+count are retained in lifecycle history.
 
 It provides:
 
@@ -174,10 +181,12 @@ independently establish a confirmed organisational incident.
 │   ├── operations/
 │   │   └── WEEKLY_VULNERABILITY_REPORT.md
 │   └── releases/
+│       ├── RELEASE_6.0.0.md
 │       ├── RELEASE_5.7.0.md
 │       └── manifests/
 │           └── RELEASE_MANIFEST.json
 ├── config/
+│   ├── sources.json
 │   └── upcoming_governance.json
 ├── src/
 │   ├── security_brief/
@@ -188,15 +197,21 @@ independently establish a confirmed organisational incident.
 │   │   ├── collectors.py
 │   │   ├── config.py
 │   │   ├── delivery.py
+│   │   ├── dedup_state.py
+│   │   ├── evidence.py
 │   │   ├── governance.py
 │   │   ├── http_client.py
 │   │   ├── models.py
 │   │   ├── priority_vendor_sources.py
+│   │   ├── nvd_cache.py
 │   │   ├── report_policy.py
 │   │   ├── rendering.py
+│   │   ├── rendering_components.py
 │   │   ├── rules.py
 │   │   ├── sources.py
 │   │   ├── source_health.py
+│   │   ├── source_config.py
+│   │   ├── runtime_profile.py
 │   │   ├── utils.py
 │   │   ├── vulnerability_reporting.py
 │   │   ├── weekly_app.py
@@ -250,11 +265,26 @@ and log only safe milestones: OAuth refresh and Gmail API acceptance.
 | `EXEC_NEWS_MIN_SCORE` | `24` | Discovery relevance threshold |
 | `UPCOMING_GOVERNANCE_DAYS` | `365` | Forward governance horizon |
 | `SOURCE_WORKERS` | `8` | Parallel source workers, 1–16 |
+| `HTML_DETAIL_FETCH_LIMIT` | `8` | Maximum detail pages fetched per HTML source |
+| `NVD_CACHE_FILE` | `.state/nvd_cache.json` | Persistent NVD enrichment cache |
+| `NVD_CACHE_TTL_HOURS` | `24` | NVD cache freshness period |
+| `DAILY_DEDUP_DAYS` | `7` | Suppression window for unchanged Daily items |
+| `DAILY_DEDUP_STATE_FILE` | `.state/daily_dedup.json` | Persistent Daily duplicate state |
+| `RUNTIME_PROFILE_FILE` | `.state/runtime_profile.json` | Latest stage-level timing profile |
+| `SOURCE_DEFINITIONS_FILE` | `config/sources.json` | Source-definition override file |
 | `NVD_API_KEY` | Empty | Optional NVD API key |
 | `HIBP_API_KEY` | Empty | Optional HIBP API key |
 
 Weekly-specific variables are documented in
 `WEEKLY_VULNERABILITY_REPORT.md`.
+
+## Source configuration overlays
+
+`config/sources.json` can update or disable a named built-in source without a
+Python change. Supported source fields include URL, selectors, inclusion and
+exclusion patterns, candidate limits, freshness, scoring, section, vendor and
+topic keywords. Set `"enabled": false` for a named source to disable it. Invalid
+field names fail closed during startup.
 
 ## Manual validation
 
@@ -270,7 +300,7 @@ Then run:
 Actions → Test Daily Security Brief
 ```
 
-For v5.7.0, verify the Actions log contains successful checks for:
+For v6.0.0, verify the Actions log contains successful checks for:
 
 ```text
 Fortinet PSIRT RSS
@@ -285,7 +315,7 @@ NVD priority-vendor CVEs
 ```
 
 A failed authoritative source must be investigated in GitHub Actions rather
-than assuming the vendor had no security updates. Version 5.7.0 exposes failed
+than assuming the vendor had no security updates. Version 6.0.0 exposes failed
 or partial authoritative coverage as unknown/degraded in the vendor-status view.
 
 ## Documentation roles
@@ -307,6 +337,9 @@ To avoid duplicated or contradictory project records:
   than the vendor advisory.
 - Collection retains optional cross-run state in `.state/source_health.json`
   (or `SOURCE_HEALTH_STATE_FILE`) and reports stale sources explicitly.
+- GitHub Actions restores and saves `.state` for NVD caching, Daily duplicate
+  suppression, source health and runtime profiles; local state remains ignored
+  by Git.
 - No direct dark-web/onion collection.
 - No customer CMDB or asset-inventory integration.
 

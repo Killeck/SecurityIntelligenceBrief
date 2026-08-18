@@ -39,6 +39,7 @@ from .models import (
     NewsLink,
     SectorImpact,
 )
+from .rendering_components import render_overall_threat_status
 from .utils import truncate
 
 
@@ -579,6 +580,7 @@ def render_text_report(
                     f"   Why: {item.why or _short_tldr(item, 180)}",
                     f"   Affected: {item.affected or 'Relevant deployments and exposed services.'}",
                     f"   Action: {item.action or 'Validate exposure and follow the vendor guidance.'}",
+                    f"   Evidence: {item.confidence} ({item.corroboration_count} source(s))",
                     f"   Source: {item.source}: {item.link}",
                 ]
             )
@@ -643,7 +645,7 @@ def render_text_report(
                 markers.append(f"CVSS {item.cvss_score:.1f} Critical")
             text.append(
                 f"- {', '.join(markers)}: {item.title} "
-                f"— {item.source}: {item.link}"
+                f"— {item.confidence}; {item.source}: {item.link}"
             )
     else:
         text.append("None identified in the reporting window.")
@@ -1186,7 +1188,9 @@ def _render_top_developments(items: list[Item], limit: int = 5) -> str:
                 <div style="margin-top:3px;color:{DASHBOARD_COLOURS['text']};font-size:12px;line-height:1.4;">
                   <strong>Why:</strong> {_escape(truncate(why, 190))}<br>
                   <strong>Affected:</strong> {_escape(truncate(affected, 165))}<br>
-                  <strong>Action:</strong> {_escape(truncate(action, 175))}
+                  <strong>Action:</strong> {_escape(truncate(action, 175))}<br>
+                  <strong>Evidence:</strong> {_escape(item.confidence)}
+                  ({item.corroboration_count} source(s))
                 </div>
                 <div style="margin-top:4px;font-size:11px;">
                   {_link("Source ›", item.link, source=item.source)}
@@ -1462,7 +1466,9 @@ def _render_vulnerability_table(items: list[Item], limit: int = 8) -> str:
               </td>
               <td style="padding:8px;border-top:1px solid {DASHBOARD_COLOURS['border']};
                          color:{DASHBOARD_COLOURS['muted']};font-size:12px;">
-                {_escape(_short_tldr(item))}
+                {_escape(_short_tldr(item))}<br>
+                <span style="font-size:10px;">Evidence: {_escape(item.confidence)}
+                ({item.corroboration_count} source(s))</span>
               </td>
             </tr>
             """
@@ -2341,32 +2347,13 @@ def render_html_report(
         DASHBOARD_COLOURS["green"],
     )
 
-    status_legend_html = f"""
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
-           style="table-layout:fixed;margin:0 0 6px 0;">
-      <tr>
-        <td width="100%" valign="bottom" style="padding:4px;">
-          <a href="#executive-summary" aria-label="Jump to Overall Threat detail"
-             style="display:block;width:100%;box-sizing:border-box;
-                    background:{defcon_definition['colour']};
-                    border:1px solid {DASHBOARD_COLOURS['border']};
-                    border-radius:7px;text-decoration:none;color:inherit;">
-            <span style="display:block;padding:9px 10px 3px;
-                         color:{defcon_definition['text_colour']};
-                         font-size:11px;font-weight:700;">
-              Overall Threat
-            </span>
-            <span style="display:block;padding:2px 8px 10px;
-                         color:{defcon_definition['text_colour']};
-                         font-size:16px;font-weight:700;text-align:center;
-                         white-space:nowrap;">
-              {_escape(str(enterprise_status['level']))} — {_escape(defcon_definition['label'])}
-            </span>
-          </a>
-        </td>
-      </tr>
-    </table>
-    """
+    status_legend_html = render_overall_threat_status(
+        level=int(enterprise_status["level"]),
+        label=str(defcon_definition["label"]),
+        colour=str(defcon_definition["colour"]),
+        text_colour=str(defcon_definition["text_colour"]),
+        border_colour=DASHBOARD_COLOURS["border"],
+    )
 
     vulnerability_panel = _panel(
         "1. Critical Vulnerabilities / Zero-Days",

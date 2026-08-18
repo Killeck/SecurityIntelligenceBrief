@@ -16,6 +16,7 @@ from .app import PipelineState, collect_tasks, primary_tasks
 from .collectors import enrich_nvd
 from .config import OSLO_TIMEZONE, PROJECT_ROOT
 from .delivery import send_email
+from .runtime_profile import RuntimeProfiler
 from .utils import integer_setting, required
 from .vulnerability_reporting import (
     VulnerabilityStore,
@@ -84,51 +85,58 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
     utc_now = datetime.now(timezone.utc)
     cutoff = utc_now - timedelta(days=settings.lookback_days)
     state = PipelineState()
+    profiler = RuntimeProfiler("weekly")
 
-    collect_tasks(
-        primary_tasks(cutoff, settings.lookback_days + 7),
-        state.primary_items,
-        state,
-        workers=settings.source_workers,
-    )
-    items = deduplicate(state.primary_items)
-    enrich_nvd(items, state.warnings)
-    records = weekly_display_records(
-        build_vulnerability_records(items, now=utc_now)
-    )[: settings.max_records]
+    with profiler.stage("collection"):
+        collect_tasks(
+            primary_tasks(cutoff, settings.lookback_days + 7),
+            state.primary_items,
+            state,
+            workers=settings.source_workers,
+        )
+    with profiler.stage("enrichment"):
+        items = deduplicate(state.primary_items)
+        enrich_nvd(items, state.warnings)
+        records = weekly_display_records(
+            build_vulnerability_records(items, now=utc_now)
+        )[: settings.max_records]
 
-    with VulnerabilityStore(settings.database_path) as store:
-        changes = store.record(records, utc_now)
-        mtd_records = store.month_to_date(local_now.date())
-        monthly_counts = store.monthly_counts(local_now.date())
+    with profiler.stage("lifecycle"):
+        with VulnerabilityStore(settings.database_path) as store:
+            changes = store.record(records, utc_now)
+            mtd_records = store.month_to_date(local_now.date())
+            monthly_counts = store.monthly_counts(local_now.date())
 
     week_end = local_now.date()
     week_start = week_end - timedelta(days=settings.lookback_days - 1)
     week_label = iso_week_label(week_end)
 
-    text_body, html_body = render_weekly_vulnerability_report(
-        records,
-        changes,
-        mtd_records,
-        monthly_counts,
-        week_start,
-        week_end,
-        state.source_health,
-    )
+    with profiler.stage("rendering"):
+        text_body, html_body = render_weekly_vulnerability_report(
+            records,
+            changes,
+            mtd_records,
+            monthly_counts,
+            week_start,
+            week_end,
+            state.source_health,
+        )
     subject = (
         f"Weekly Vulnerability Report — {week_label} — "
         f"{week_end.isoformat()}"
     )
-    send_email(
-        settings.username,
-        settings.client_id,
-        settings.client_secret,
-        settings.refresh_token,
-        settings.recipient,
-        subject,
-        text_body,
-        html_body,
-    )
+    with profiler.stage("delivery"):
+        send_email(
+            settings.username,
+            settings.client_id,
+            settings.client_secret,
+            settings.refresh_token,
+            settings.recipient,
+            subject,
+            text_body,
+            html_body,
+        )
+    profile = profiler.persist()
     print(
         f"Weekly vulnerability report sent: {week_label}, "
         f"{len(records)} CVE(s), "
@@ -136,6 +144,7 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
         f"{len(mtd_records)} MTD CVE(s), "
         f"{len(state.warnings)} warning(s)."
     )
+    print(f"Total profiled runtime: {profile['total_seconds']:.3f}s")
 
 
 def main() -> int:

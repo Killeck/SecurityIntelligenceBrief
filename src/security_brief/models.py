@@ -64,6 +64,9 @@ class Item:
     affected: str = ""
     action: str = ""
     why: str = ""
+    confidence: str = "Single-source report"
+    corroboration_count: int = 1
+    corroborating_sources: tuple[str, ...] = ()
 
 @dataclass
 class NewsLink:

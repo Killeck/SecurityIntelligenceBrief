@@ -14,6 +14,35 @@ history remains available in Git history.
 
 ---
 
+## 6.0.0 - 2026-08-18
+
+### Major update
+
+- Advanced the product baseline from 5.7.0 to 6.0.0.
+- Simplified the Daily Security Brief threat header by removing the five-box DEFCON scale and duplicate legend presentation while retaining one colour-coded Overall Threat status.
+- Expanded the Weekly Vulnerability Report with a dedicated Vulnerability details column explaining the advisory, vulnerability behaviour and affected scope for every displayed CVE.
+- Preserved advisory summaries in weekly lifecycle history, including automatic migration of existing SQLite history databases.
+- Added stage-level runtime profiling for collection, enrichment, lifecycle, rendering and delivery.
+- Added persistent NVD enrichment caching with a configurable TTL and GitHub Actions state restoration.
+- Added configurable per-source HTML detail-fetch limits to bound network expansion.
+- Added `config/sources.json` overlays for source URLs, selectors, limits, scoring, freshness and enable/disable state.
+- Added persistent cross-run Daily duplicate suppression that retains materially changed advisories.
+- Added explicit confidence and corroborating-source counts for material Daily and Weekly vulnerability claims.
+
+### Changed
+
+- Rebalanced the weekly CVE table widths to give explanatory text more room while retaining explicit Outlook-safe alignment.
+- Kept direct NVD deep links and vendor-advisory links alongside the expanded vulnerability explanation.
+- Removed the obsolete daily DEFCON-scale renderer and its no-longer-relevant regression test.
+- Extracted the Overall Threat component and maintenance services into focused modules with boundary tests.
+- Updated current-state, operational, architecture and release documentation for the 6.0.0 baseline.
+
+### Validation
+
+- Local offline regression suite: **73/73 tests passed**.
+- GitHub Python 3.12 regression suite: **passed** on the v6.0.0 branch before release-metadata normalisation.
+- Final repository CI and live Gmail delivery remain production gates after the complete 6.0.0 release commit is pushed.
+
 ## 5.7.0 - 2026-08-18
 
 ### Added

@@ -69,6 +69,14 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --requirement requirements.txt
 
+      - name: Restore persistent pipeline state
+        uses: actions/cache/restore@v6
+        with:
+          path: .state
+          key: daily-state-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            daily-state-${{ runner.os }}-
+
       - name: Run offline regression tests
         env:
           PYTHONPATH: src
@@ -99,6 +107,8 @@ jobs:
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
           NVD_MAX_CVES: "75"
+          NVD_CACHE_FILE: .state/nvd_cache.json
+          NVD_CACHE_TTL_HOURS: "24"
 
           # Optional dark-web and exposure monitoring.
           HIBP_API_KEY: ${{ secrets.HIBP_API_KEY }}
@@ -113,5 +123,17 @@ jobs:
           EXEC_NEWS_MIN_SCORE: "24"
           UPCOMING_GOVERNANCE_DAYS: "365"
           SOURCE_WORKERS: "8"
+          HTML_DETAIL_FETCH_LIMIT: "8"
+          DAILY_DEDUP_DAYS: "7"
+          DAILY_DEDUP_STATE_FILE: .state/daily_dedup.json
+          RUNTIME_PROFILE_FILE: .state/daily_runtime_profile.json
+          SOURCE_DEFINITIONS_FILE: config/sources.json
 
         run: python src/send_security_advisory.py
+
+      - name: Save persistent pipeline state
+        if: success() && hashFiles('.state/**') != ''
+        uses: actions/cache/save@v6
+        with:
+          path: .state
+          key: daily-state-${{ runner.os }}-${{ github.run_id }}

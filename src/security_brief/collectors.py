@@ -38,6 +38,7 @@ from .config import (
 )
 from .rules import ACTIONS, NVD_RECENT_COVERAGE, SENSITIVE_DATA_CLASSES, WHY
 from .models import ExposureSignal, Item, NewsLink, Source
+from .nvd_cache import NvdCache
 from .utils import (
     absolute_url,
     clean_text,
@@ -666,10 +667,18 @@ def fetch_html(source: Source, cutoff: datetime) -> list[Item]:
         raise RuntimeError("Selector health check found no usable article candidates")
 
     items: list[Item] = []
+    detail_fetch_limit = integer_setting(
+        "HTML_DETAIL_FETCH_LIMIT",
+        default=8,
+        minimum=0,
+        maximum=50,
+    )
+    detail_fetches = 0
 
     for title, summary, link, published in candidates:
-        if published is None or not summary:
+        if (published is None or not summary) and detail_fetches < detail_fetch_limit:
             try:
+                detail_fetches += 1
                 detail_date, detail_summary = extract_page_metadata(link)
                 published = published or detail_date
                 summary = summary or detail_summary
@@ -1771,17 +1780,28 @@ def enrich_nvd(
         headers["apiKey"] = api_key
 
     pause = 0.75 if api_key else 6.2
+    cache = NvdCache()
+    cache_hits = 0
 
     for index, cve in enumerate(cves):
+        fetched_from_network = False
         try:
-            response = http_get(
-                NVD_CVE_API,
-                params={"cveId": cve},
-                headers=headers,
-                timeout=45,
-            )
-            response.raise_for_status()
-            payload = response.json()
+            payload = cache.get(cve)
+            if payload is None:
+                fetched_from_network = True
+                response = http_get(
+                    NVD_CVE_API,
+                    params={"cveId": cve},
+                    headers=headers,
+                    timeout=45,
+                )
+                response.raise_for_status()
+                payload = response.json()
+                if not isinstance(payload, dict):
+                    raise RuntimeError("NVD returned a non-object payload")
+                cache.put(cve, payload)
+            else:
+                cache_hits += 1
             vulnerabilities = payload.get("vulnerabilities", [])
 
             if not vulnerabilities:
@@ -1811,8 +1831,12 @@ def enrich_nvd(
                 f"NVD {cve}: {type(error).__name__}: {error}"
             )
 
-        if index < len(cves) - 1:
+        if index < len(cves) - 1 and fetched_from_network:
             time.sleep(pause)
+
+    cache.persist()
+    if cache_hits:
+        print(f"NVD enrichment cache hits: {cache_hits}/{len(cves)}")
 
     # Preserve the existing app.py contract: NVD and EPSS enrichment are both
     # completed by the single enrich_nvd call already used by the pipeline.

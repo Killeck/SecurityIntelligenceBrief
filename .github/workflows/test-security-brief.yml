@@ -69,6 +69,7 @@ jobs:
           GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+          NVD_CACHE_FILE: .state/test_nvd_cache.json
 
           HIBP_API_KEY: ${{ secrets.HIBP_API_KEY }}
           MONITORED_DOMAINS: ${{ secrets.MONITORED_DOMAINS }}
@@ -82,5 +83,10 @@ jobs:
           EXEC_NEWS_MIN_SCORE: "20"
           UPCOMING_GOVERNANCE_DAYS: "365"
           SOURCE_WORKERS: "8"
+          HTML_DETAIL_FETCH_LIMIT: "8"
+          DAILY_DEDUP_DAYS: "1"
+          DAILY_DEDUP_STATE_FILE: .state/test_daily_dedup.json
+          RUNTIME_PROFILE_FILE: .state/test_runtime_profile.json
+          SOURCE_DEFINITIONS_FILE: config/sources.json
 
         run: python src/send_security_advisory.py

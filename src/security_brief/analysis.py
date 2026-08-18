@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Iterable
 
 from .config import DEFCON_LEVELS, ZERO_DAY_TERMS
+from .evidence import annotate_evidence
 from .rules import (
     ACTIONS,
     CATEGORY_RULES,
@@ -1394,9 +1395,11 @@ def select_final_items(
 def deduplicate(items: Iterable[Item]) -> list[Item]:
     """Deduplicate primary items by CVE set or canonicalised source link."""
 
+    materialised = list(items)
+    annotate_evidence(materialised)
     unique: dict[str, Item] = {}
 
-    for item in items:
+    for item in materialised:
         key = item.link.lower().rstrip("/")
 
         if item.cves:

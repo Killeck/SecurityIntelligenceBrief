@@ -63,6 +63,10 @@ def _type_and_scope(record: VulnerabilityRecord) -> str:
     if summary and summary.casefold() != title.casefold():
         details.append(f"{summary}.")
     details.append(f"Affected scope: {scope or 'Not stated' }.")
+    details.append(
+        f"Evidence: {record.confidence} "
+        f"({record.corroboration_count} source(s))."
+    )
     return " ".join(details)
 
 

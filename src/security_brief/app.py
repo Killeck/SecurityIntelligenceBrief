@@ -30,6 +30,7 @@ from .analysis import (
     select_final_items,
 )
 from .archive import archive_report
+from .dedup_state import suppress_recent_duplicates
 from .collectors import (
     enrich_nvd,
     fetch_executive_news_html,
@@ -62,6 +63,12 @@ from .priority_vendor_sources import (
     fetch_priority_vendor_nvd,
 )
 from .report_policy import ensure_mandatory_vulnerabilities, render_report
+from .runtime_profile import RuntimeProfiler
+from .source_config import (
+    configure_mapping_sources,
+    configure_sources,
+    load_source_overrides,
+)
 from .source_health import assess_and_persist
 from .utils import (
     csv_setting,
@@ -91,6 +98,7 @@ class RuntimeSettings:
     exposure_max: int
     executive_news_max: int
     source_workers: int
+    dedup_days: int
     monitored_brands: tuple[str, ...]
     monitored_domains: tuple[str, ...]
     hibp_api_key: str
@@ -137,6 +145,12 @@ class RuntimeSettings:
                 default=8,
                 minimum=1,
                 maximum=16,
+            ),
+            dedup_days=integer_setting(
+                "DAILY_DEDUP_DAYS",
+                default=7,
+                minimum=1,
+                maximum=90,
             ),
             monitored_brands=csv_setting("MONITORED_BRANDS"),
             monitored_domains=csv_setting("MONITORED_DOMAINS"),
@@ -286,6 +300,8 @@ def primary_tasks(
         ),
     ]
 
+    overrides = load_source_overrides()
+
     tasks.extend(
         FetchTask(
             name=source.name,
@@ -296,7 +312,7 @@ def primary_tasks(
             detail="Authoritative vendor security bulletin feed",
             freshness_days=source.freshness_days,
         )
-        for source in AUTHORITATIVE_VENDOR_RSS_SOURCES
+        for source in configure_sources(AUTHORITATIVE_VENDOR_RSS_SOURCES, overrides)
     )
 
     tasks.append(
@@ -313,7 +329,7 @@ def primary_tasks(
             fetch=lambda source=source: fetch_rss(source, cutoff),
             freshness_days=source.freshness_days,
         )
-        for source in RSS_SOURCES
+        for source in configure_sources(RSS_SOURCES, overrides)
     )
 
     tasks.extend(
@@ -322,7 +338,7 @@ def primary_tasks(
             fetch=lambda source=source: fetch_html(source, cutoff),
             freshness_days=source.freshness_days,
         )
-        for source in HTML_SOURCES
+        for source in configure_sources(HTML_SOURCES, overrides)
         if source.name not in REPLACED_GENERIC_HTML_SOURCES
     )
     return tasks
@@ -367,6 +383,7 @@ def discovery_tasks(
 ) -> list[FetchTask[NewsLink]]:
     """Build secondary discovery-source operations."""
 
+    overrides = load_source_overrides()
     tasks = [
         FetchTask(
             name=source["name"],
@@ -377,7 +394,7 @@ def discovery_tasks(
             detail="Executive news discovery",
             unit="relevant news link(s)",
         )
-        for source in EXECUTIVE_NEWS_RSS
+        for source in configure_mapping_sources(EXECUTIVE_NEWS_RSS, overrides)
     ]
     tasks.extend(
         FetchTask(
@@ -389,7 +406,7 @@ def discovery_tasks(
             detail="Executive news discovery",
             unit="relevant news link(s)",
         )
-        for source in EXECUTIVE_NEWS_HTML
+        for source in configure_mapping_sources(EXECUTIVE_NEWS_HTML, overrides)
     )
     return tasks
 
@@ -401,6 +418,7 @@ def run_pipeline(settings: RuntimeSettings) -> None:
     utc_now = datetime.now(timezone.utc)
     cutoff = utc_now - timedelta(hours=settings.lookback_hours)
     state = PipelineState()
+    profiler = RuntimeProfiler("daily")
 
     print(
         f"Reporting window: {settings.lookback_hours} hours "
@@ -410,36 +428,44 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         f"Parallel source workers: {settings.source_workers}"
     )
 
-    collect_tasks(
-        primary_tasks(cutoff, settings.kev_days),
-        state.primary_items,
-        state,
-        workers=settings.source_workers,
-    )
-    collect_tasks(
-        exposure_tasks(settings, cutoff),
-        state.exposure_candidates,
-        state,
-        workers=min(settings.source_workers, 2),
-    )
-    collect_tasks(
-        discovery_tasks(cutoff),
-        state.news_candidates,
-        state,
-        workers=settings.source_workers,
-    )
+    with profiler.stage("collection"):
+        collect_tasks(
+            primary_tasks(cutoff, settings.kev_days),
+            state.primary_items,
+            state,
+            workers=settings.source_workers,
+        )
+        collect_tasks(
+            exposure_tasks(settings, cutoff),
+            state.exposure_candidates,
+            state,
+            workers=min(settings.source_workers, 2),
+        )
+        collect_tasks(
+            discovery_tasks(cutoff),
+            state.news_candidates,
+            state,
+            workers=settings.source_workers,
+        )
 
     # Deduplicate before NVD enrichment so duplicate CVEs do not consume API
     # capacity. CVSS enrichment then participates in final prioritisation.
-    all_items = deduplicate(state.primary_items)
-    enrich_nvd(all_items, state.warnings)
+    with profiler.stage("enrichment"):
+        all_items = deduplicate(state.primary_items)
+        enrich_nvd(all_items, state.warnings)
     all_items.sort(
         key=lambda item: (item.score, item.published),
         reverse=True,
     )
     items = select_final_items(all_items, settings.max_items)
     items = ensure_mandatory_vulnerabilities(items, all_items)
-
+    items, suppressed_duplicates = suppress_recent_duplicates(
+        items,
+        now=utc_now,
+        retention_days=settings.dedup_days,
+    )
+    if suppressed_duplicates:
+        print(f"Persistent duplicates suppressed: {suppressed_duplicates}")
     executive_news = select_executive_news(
         state.news_candidates,
         items,
@@ -491,22 +517,23 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         )
     )
 
-    text_body, html_body = render_report(
-        items,
-        state.warnings,
-        settings.lookback_hours,
-        upcoming_events,
-        settings.upcoming_days,
-        state.source_health,
-        executive_news,
-        sector_impacts,
-        detection_opportunities,
-        regional_links,
-        exposure_signals,
-        settings.monitored_brands,
-        settings.monitored_domains,
-        status_items=all_items,
-    )
+    with profiler.stage("rendering"):
+        text_body, html_body = render_report(
+            items,
+            state.warnings,
+            settings.lookback_hours,
+            upcoming_events,
+            settings.upcoming_days,
+            state.source_health,
+            executive_news,
+            sector_impacts,
+            detection_opportunities,
+            regional_links,
+            exposure_signals,
+            settings.monitored_brands,
+            settings.monitored_domains,
+            status_items=all_items,
+        )
 
     advisory = advisory_status(items, exposure_signals)
     subject = EMAIL_SUBJECT
@@ -522,16 +549,19 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         },
     )
 
-    send_email(
-        settings.username,
-        settings.client_id,
-        settings.client_secret,
-        settings.refresh_token,
-        settings.recipient,
-        subject,
-        text_body,
-        html_body,
-    )
+    with profiler.stage("delivery"):
+        send_email(
+            settings.username,
+            settings.client_id,
+            settings.client_secret,
+            settings.refresh_token,
+            settings.recipient,
+            subject,
+            text_body,
+            html_body,
+        )
+
+    profile = profiler.persist()
 
     print(
         f"Briefing sent: {advisory['display']}, "
@@ -544,6 +574,7 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         f"{len(regional_links)} regional link(s), "
         f"{len(state.warnings)} warning(s)."
     )
+    print(f"Total profiled runtime: {profile['total_seconds']:.3f}s")
     if archive_directory:
         print(f"Private report archive updated: {archive_directory}")
 

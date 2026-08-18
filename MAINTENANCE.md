@@ -21,10 +21,6 @@ Every functional or presentation release must increment `VERSION`, update the ch
 
 ## Forward Release Direction
 
-### Version 6.0.0 — planned optimisation and defensibility release
-
-Version 6.0.0 is reserved for code optimisation, maintainability, structural cleanup and report defensibility rather than major new report features. Its planned scope includes stage-level runtime profiling, persistent NVD-enrichment caching, limits for HTML detail fetches, configuration-driven source definitions, rendering modularisation, persistent deduplication state, clear module boundaries with regression tests, and explicit corroboration / fact-confidence handling.
-
 ### Version 6.0.1 — proposed experimental report-enrichment branch
 
 Version 6.0.1 is a proposed experimental branch for evaluating report-enrichment ideas after the 6.0.0 baseline. It is not a released version and no branch has yet been created. When started, use `feature/v6.0.1-report-enrichment`; do not update `VERSION` solely to create or evaluate this branch. Merge is gated on a quality review.
@@ -39,7 +35,7 @@ Evaluate these five experimental enrichment items:
 
 ## Priority 1 — Source-health truth, phase 2
 
-Version 5.7.0 adds selector-health detection, source-specific freshness thresholds, persistent `STALE` / `PARTIAL` handling and authoritative Cisco Security Advisories. Remaining work:
+The current source-health baseline includes selector-health detection, source-specific freshness thresholds, persistent `STALE` / `PARTIAL` handling and authoritative Cisco Security Advisories. Remaining work:
 
 - Add a stronger authoritative CrowdStrike product/security-advisory path if a stable public source is available.
 - Keep source failure from being confused with a clean negative in every future report component.
@@ -60,15 +56,13 @@ Version 5.7.0 adds selector-health detection, source-specific freshness threshol
 
 - Pin Python dependencies with hashes.
 - Generate a machine-readable CycloneDX or SPDX SBOM.
-- Add persistent state and cross-run deduplication to the daily report.
-- Prevent repeated advisories across overlapping windows and retain meaningful updates.
 - Track first-seen and last-seen timestamps.
 
 ## Priority 4 — Maintainability
 
-- Externalise frequently changed source definitions, URLs, selectors, keywords, vendor priorities, sector mappings and source limits.
 - Reduce source-specific logic inside generic modules.
 - Fold the 5.6.5 report-policy compatibility layer into the main renderer during its next structural refactor.
+- Continue extracting self-contained presentation components from the Daily renderer where this materially improves testability.
 
 ## Priority 5 — Historical capability
 

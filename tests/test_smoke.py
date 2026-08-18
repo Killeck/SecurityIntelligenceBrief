@@ -31,7 +31,6 @@ from security_brief.collectors import (
 )
 from security_brief.models import ExposureSignal, Item, NewsLink
 from security_brief.rendering import (
-    _render_defcon_triangle,
     _metric_card,
     _render_threat_rows,
     _render_vulnerability_table,
@@ -43,7 +42,7 @@ from security_brief.governance import (
     governance_horizon,
     load_configured_governance_events,
 )
-from security_brief.config import DEFCON_LEVELS, EMAIL_SUBJECT
+from security_brief.config import EMAIL_SUBJECT
 from security_brief.sources import (
     EXECUTIVE_NEWS_HTML,
     EXECUTIVE_NEWS_RSS,
@@ -886,23 +885,13 @@ class PipelineTests(unittest.TestCase):
         ):
             self.assertIn(expected, text_body + html_body)
 
-        self.assertIn('width="20%" valign="bottom"', html_body)
-        self.assertIn('width="400"', html_body)
-        self.assertIn("max-width:400px", html_body)
+        self.assertIn('width="100%" valign="bottom"', html_body)
         self.assertRegex(
             html_body,
             r">\s*[1-5] — (Critical|High|Elevated|Guarded|Low)\s*<",
         )
         self.assertNotIn("! DEFCON", html_body)
-        self.assertLess(
-            html_body.index("Reporting window:"),
-            html_body.index("Enterprise DEFCON Legend"),
-        )
-        self.assertLess(
-            html_body.index("Enterprise DEFCON Legend"),
-            html_body.index("Active Exploitation"),
-        )
-
+        self.assertNotIn("Enterprise DEFCON Legend", html_body)
         document = BeautifulSoup(html_body, "html.parser")
         metadata_text = document.find(
             string=lambda value: value and "Reporting window:" in value,
@@ -911,13 +900,6 @@ class PipelineTests(unittest.TestCase):
         metadata_cell = metadata_text.find_parent("td")
         self.assertEqual(metadata_cell.get("align"), "right")
         self.assertEqual(metadata_cell.get("valign"), "top")
-
-        legend_title = document.find(
-            string=lambda value: value
-            and value.strip() == "Enterprise DEFCON Legend",
-        )
-        self.assertIsNotNone(legend_title)
-        self.assertEqual(legend_title.find_parent("table").get("width"), "400")
 
         overall_label = document.find(
             "span",
@@ -930,7 +912,7 @@ class PipelineTests(unittest.TestCase):
                 cell.get("width")
                 for cell in status_row.find_all("td", recursive=False)
             ],
-            ["20%", "80%"],
+            ["100%"],
         )
 
         active_label = document.find(
@@ -947,43 +929,6 @@ class PipelineTests(unittest.TestCase):
             ["20%"] * 5,
         )
 
-
-    def test_defcon_scale_uses_distinct_colours_without_repeated_labels(self) -> None:
-        self.assertEqual(DEFCON_LEVELS[1]["colour"], "#B71C1C")
-        self.assertEqual(DEFCON_LEVELS[2]["colour"], "#F57C00")
-        self.assertNotEqual(
-            DEFCON_LEVELS[1]["colour"],
-            DEFCON_LEVELS[2]["colour"],
-        )
-
-        triangle = _render_defcon_triangle(3)
-        self.assertNotIn("▲", triangle)
-        self.assertIn("(current level)", triangle)
-        self.assertNotIn("cid:enterprise-defcon-legend", triangle)
-        self.assertEqual(triangle.count('width="20%"'), 5)
-        self.assertEqual(triangle.count("DEFCON "), 10)
-        self.assertEqual(triangle.count("white-space:nowrap"), 10)
-        self.assertEqual(triangle.count("font-size:10px"), 10)
-        self.assertEqual(triangle.count("font-size:9px"), 5)
-        for definition in DEFCON_LEVELS.values():
-            self.assertIn(f'bgcolor="{definition["colour"]}"', triangle)
-        for repeated_label in (
-            "Critical: immediate action",
-            "High: urgent action",
-            "Elevated: credible increased risk",
-            "Guarded: meaningful developments",
-            "Low: routine background threat activity",
-        ):
-            self.assertNotIn(repeated_label, triangle)
-
-        for description in (
-            "Immediate action for exceptional verified threat.",
-            "Urgent action for relevant active exploitation.",
-            "Increased risk requiring enhanced attention.",
-            "Meaningful developments; no direct exposure.",
-            "Routine activity and normal monitoring.",
-        ):
-            self.assertIn(description, triangle)
 
     def test_standard_metric_uses_one_fifth_width(self) -> None:
         standard_metric = _metric_card(

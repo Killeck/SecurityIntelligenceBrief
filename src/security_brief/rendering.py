@@ -39,6 +39,7 @@ from .models import (
     NewsLink,
     SectorImpact,
 )
+from .rendering_components import render_overall_threat_status
 from .utils import truncate
 
 
@@ -579,6 +580,7 @@ def render_text_report(
                     f"   Why: {item.why or _short_tldr(item, 180)}",
                     f"   Affected: {item.affected or 'Relevant deployments and exposed services.'}",
                     f"   Action: {item.action or 'Validate exposure and follow the vendor guidance.'}",
+                    f"   Evidence: {item.confidence} ({item.corroboration_count} source(s))",
                     f"   Source: {item.source}: {item.link}",
                 ]
             )
@@ -643,7 +645,7 @@ def render_text_report(
                 markers.append(f"CVSS {item.cvss_score:.1f} Critical")
             text.append(
                 f"- {', '.join(markers)}: {item.title} "
-                f"— {item.source}: {item.link}"
+                f"— {item.confidence}; {item.source}: {item.link}"
             )
     else:
         text.append("None identified in the reporting window.")
@@ -1115,64 +1117,6 @@ def _metric_card(
     """
 
 
-def _render_defcon_triangle(current_level: int) -> str:
-    """Render an Outlook-safe HTML DEFCON legend with the live level highlighted."""
-
-    if current_level not in DEFCON_LEVELS:
-        raise ValueError(f"Unsupported DEFCON level: {current_level}")
-
-    descriptions = {
-        1: "Immediate action for exceptional verified threat.",
-        2: "Urgent action for relevant active exploitation.",
-        3: "Increased risk requiring enhanced attention.",
-        4: "Meaningful developments; no direct exposure.",
-        5: "Routine activity and normal monitoring.",
-    }
-
-    scale_cells: list[str] = []
-    description_rows: list[str] = []
-    for level in range(1, 6):
-        definition = DEFCON_LEVELS[level]
-        active = level == current_level
-        background = definition["colour"]
-        foreground = definition["text_colour"]
-        emphasis = "font-weight:700;" if active else "font-weight:400;"
-        current_marker = " · CURRENT" if active else ""
-        scale_cells.append(
-            f"""
-              <td width="20%" height="36" valign="middle" align="center"
-                  bgcolor="{background}" style="height:36px;padding:3px;background:{background};
-                  color:{foreground};font-size:10px;line-height:14px;{emphasis}
-                  border:2px solid {'#FFFFFF' if active else background};white-space:nowrap;">
-                DEFCON {level}<br>{_escape(definition['label'])}{current_marker}
-              </td>
-            """
-        )
-        description_rows.append(
-            f"""
-            <tr>
-              <td width="58" valign="top" style="padding:3px 6px 3px 0;color:{background};
-                  font-size:10px;line-height:14px;{emphasis}white-space:nowrap;">
-                DEFCON {level}
-              </td>
-              <td valign="top" style="padding:3px 0;color:{DASHBOARD_COLOURS['text']};
-                  font-size:9px;line-height:14px;{emphasis}">
-                {_escape(descriptions[level])}{" (current level)" if active else ""}
-              </td>
-            </tr>
-            """
-        )
-
-    return (
-        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
-        'style="border-collapse:collapse;table-layout:fixed;"><tr>'
-        + "".join(scale_cells)
-        + '</tr></table><table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
-        'style="border-collapse:collapse;margin-top:4px;">'
-        + "".join(description_rows) + "</table>"
-    )
-
-
 def _bold_prefix_html(text: str) -> str:
     """Escape text and bold the first meaningful label before a colon."""
 
@@ -1244,7 +1188,9 @@ def _render_top_developments(items: list[Item], limit: int = 5) -> str:
                 <div style="margin-top:3px;color:{DASHBOARD_COLOURS['text']};font-size:12px;line-height:1.4;">
                   <strong>Why:</strong> {_escape(truncate(why, 190))}<br>
                   <strong>Affected:</strong> {_escape(truncate(affected, 165))}<br>
-                  <strong>Action:</strong> {_escape(truncate(action, 175))}
+                  <strong>Action:</strong> {_escape(truncate(action, 175))}<br>
+                  <strong>Evidence:</strong> {_escape(item.confidence)}
+                  ({item.corroboration_count} source(s))
                 </div>
                 <div style="margin-top:4px;font-size:11px;">
                   {_link("Source ›", item.link, source=item.source)}
@@ -1520,7 +1466,9 @@ def _render_vulnerability_table(items: list[Item], limit: int = 8) -> str:
               </td>
               <td style="padding:8px;border-top:1px solid {DASHBOARD_COLOURS['border']};
                          color:{DASHBOARD_COLOURS['muted']};font-size:12px;">
-                {_escape(_short_tldr(item))}
+                {_escape(_short_tldr(item))}<br>
+                <span style="font-size:10px;">Evidence: {_escape(item.confidence)}
+                ({item.corroboration_count} source(s))</span>
               </td>
             </tr>
             """
@@ -2399,56 +2347,13 @@ def render_html_report(
         DASHBOARD_COLOURS["green"],
     )
 
-    defcon_panel = f"""
-    <table role="presentation" width="400" cellspacing="0" cellpadding="0"
-           bgcolor="{DASHBOARD_COLOURS['panel']}"
-           style="width:100%;max-width:400px;margin-left:auto;
-                  background:{DASHBOARD_COLOURS['panel']};
-                  border:1px solid {DASHBOARD_COLOURS['border']};
-                  border-radius:6px;">
-      <tr>
-        <td style="padding:6px 8px 3px;color:{DASHBOARD_COLOURS['purple']};
-                   font-size:12px;font-weight:700;text-align:left;">
-          Enterprise DEFCON Legend
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:2px 8px 7px;">
-          {_render_defcon_triangle(int(enterprise_status["level"]))}
-        </td>
-      </tr>
-    </table>
-    """
-
-    status_legend_html = f"""
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
-           style="table-layout:fixed;margin:0 0 6px 0;">
-      <tr>
-        <td width="20%" valign="bottom" style="padding:4px;">
-          <a href="#executive-summary" aria-label="Jump to Overall Threat detail"
-             style="display:block;width:100%;box-sizing:border-box;
-                    background:{defcon_definition['colour']};
-                    border:1px solid {DASHBOARD_COLOURS['border']};
-                    border-radius:7px;text-decoration:none;color:inherit;">
-            <span style="display:block;padding:9px 10px 3px;
-                         color:{defcon_definition['text_colour']};
-                         font-size:11px;font-weight:700;">
-              Overall Threat
-            </span>
-            <span style="display:block;padding:2px 8px 10px;
-                         color:{defcon_definition['text_colour']};
-                         font-size:16px;font-weight:700;text-align:center;
-                         white-space:nowrap;">
-              {_escape(str(enterprise_status['level']))} — {_escape(defcon_definition['label'])}
-            </span>
-          </a>
-        </td>
-        <td width="80%" align="right" valign="bottom" style="padding:4px;">
-          {defcon_panel}
-        </td>
-      </tr>
-    </table>
-    """
+    status_legend_html = render_overall_threat_status(
+        level=int(enterprise_status["level"]),
+        label=str(defcon_definition["label"]),
+        colour=str(defcon_definition["colour"]),
+        text_colour=str(defcon_definition["text_colour"]),
+        border_colour=DASHBOARD_COLOURS["border"],
+    )
 
     vulnerability_panel = _panel(
         "1. Critical Vulnerabilities / Zero-Days",

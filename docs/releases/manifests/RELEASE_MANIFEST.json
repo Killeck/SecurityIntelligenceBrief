@@ -1,125 +1,45 @@
 {
-  "base_version": "5.6.8",
+  "base_version": "5.7.0",
   "files": [
-    {
-      "bytes": 6,
-      "path": "VERSION",
-      "sha256": "794a495980132b2741146c50652467ad5e5bf4b0e8f1695b2af12572c35d6008"
-    },
-    {
-      "bytes": 13528,
-      "path": "CHANGELOG.md",
-      "sha256": "76fd18e1091d0e1f307750ecbf99aad7ce8b37fb65dbd97e9cbe992335452e88"
-    },
-    {
-      "bytes": 12244,
-      "path": "README.md",
-      "sha256": "009ea7155ac0dd25a6bdde635ff0ed9e535fc0724c9d214659cf7c7497545e05"
-    },
-    {
-      "bytes": 4599,
-      "path": "MAINTENANCE.md",
-      "sha256": "115c897820133a6aa6173c39c8e89a4a1bb9808535431fda41fd7a4a19ee8d52"
-    },
-    {
-      "bytes": 2268,
-      "path": "docs/architecture/OPTIMISATION.md",
-      "sha256": "ab7f1463455a1641a235d1e23ab88e675730d7a39f7728c8de8798ac35634c0a"
-    },
-    {
-      "bytes": 3271,
-      "path": "docs/operations/WEEKLY_VULNERABILITY_REPORT.md",
-      "sha256": "7724d3558996578943ba34bed89b6eee1ab7ae2d1ad97c76ffd2938fb2925bdf"
-    },
-    {
-      "bytes": 1842,
-      "path": "docs/releases/RELEASE_5.7.0.md",
-      "sha256": "f932e2cfc2b1438404d814a03814598bb0c26e22c622943f0a0da6c0f4e3f078"
-    },
-    {
-      "bytes": 1063,
-      "path": ".github/workflows/repository-ci.yml",
-      "sha256": "d85f8359687e2d1750b2379d51d1fe84cf8bd3271836352c28f9a3698cf0d773"
-    },
-    {
-      "bytes": 3777,
-      "path": ".github/workflows/daily-security-brief.yml",
-      "sha256": "4aae54640259fdf4301efa6ace483fc689c450ca1cf4a472b7555097740e6109"
-    },
-    {
-      "bytes": 2604,
-      "path": ".github/workflows/test-security-brief.yml",
-      "sha256": "b893b830b2414de7303ec2029835efd588d0edb0376fdbf2ff2c3aaae6437462"
-    },
-    {
-      "bytes": 3431,
-      "path": ".github/workflows/weekly-vulnerability-report.yml",
-      "sha256": "cfd2f5b4ab28775c761bfe6ed05bcfc9e6056ffea28f00edbab83fbcb70fe343"
-    },
-    {
-      "bytes": 16768,
-      "path": "src/security_brief/app.py",
-      "sha256": "0b9158fd6f99b25c5ace0e12e75f229523390f5fbf0b3aa29fbaf0877b027938"
-    },
-    {
-      "bytes": 1206,
-      "path": "src/security_brief/archive.py",
-      "sha256": "6fe4a699cd14c9fd12e03f21565b1786bf20ee9b5ebdc7908f2fbc15ac046193"
-    },
-    {
-      "bytes": 57128,
-      "path": "src/security_brief/collectors.py",
-      "sha256": "9865ae66f2137becd4fd00458c795bea48071075f43c01f954a81c42a6916c08"
-    },
-    {
-      "bytes": 3609,
-      "path": "src/security_brief/models.py",
-      "sha256": "cd95e997cf1259aced555237bd39fc8cb1fa9e74337ac1aad473c8be3ef402d3"
-    },
-    {
-      "bytes": 17339,
-      "path": "src/security_brief/priority_vendor_sources.py",
-      "sha256": "edc762cc78278bdd7565f626bb959a4f2308df8e7effc7adcb521b37e3d5913f"
-    },
-    {
-      "bytes": 93385,
-      "path": "src/security_brief/rendering.py",
-      "sha256": "a7a4710e391dc5ce74ed6c11ab8f3467761247f14a8281a355ce028ba51a860c"
-    },
-    {
-      "bytes": 22174,
-      "path": "src/security_brief/report_policy.py",
-      "sha256": "762015cf6ef4803bb23777eefb0bd2fbb58c3ad5fa719a0831a468f0afe8e489"
-    },
-    {
-      "bytes": 2323,
-      "path": "src/security_brief/source_health.py",
-      "sha256": "ea496d7884dd8afc53547777133a00548f14c68c720dcdb73f1179a2951f3d4c"
-    },
-    {
-      "bytes": 898,
-      "path": "tests/test_archive.py",
-      "sha256": "cdce4595b904b01b96ecd66d397556a1526d92d0da14a680c0a54b8f70940beb"
-    },
-    {
-      "bytes": 5288,
-      "path": "tests/test_report_policy.py",
-      "sha256": "bd9be23428fc89f58ff5b9ebb8a5fdd19fd63a51a6b70d0f38d65a2970beed84"
-    },
-    {
-      "bytes": 1854,
-      "path": "tests/test_source_health.py",
-      "sha256": "3124e1d36dfaebf7c52ffa8fdb78f10c518cb01a339802e1ec7de54e4252da09"
-    }
+    {"bytes": 6, "path": "VERSION", "sha256": "54ef76332b31df830699e9d4138396885ab72bae260a034a81ff02bf32d8e90a"},
+    {"bytes": 15590, "path": "CHANGELOG.md", "sha256": "d5b67765fde1f28c9cd36ebaa9ffd841cfcdbf45263db5d5393bb8b55509432e"},
+    {"bytes": 14217, "path": "README.md", "sha256": "2eacb9c48ef37a058634e116795014a1cf197885a6d9f50a971b7f5b354123da"},
+    {"bytes": 3913, "path": "MAINTENANCE.md", "sha256": "550e2f449c26f84e47fa8bdd727bd727fe44d455350e088bf7290dc484b00578"},
+    {"bytes": 4682, "path": ".gitignore", "sha256": "7886f81eda3a0f41c74b6f890c071004f29e55c4c32509f89ccc8c3e8af2557e"},
+    {"bytes": 20, "path": "config/sources.json", "sha256": "3cc7dd69d9a0b5a2f9eebd220909d43688a98338d628607707ca2e3acca2a742"},
+    {"bytes": 3813, "path": "docs/architecture/OPTIMISATION.md", "sha256": "356dd5f95836808ea520d0a26420ecbe6cb9099a3d395a290db64e4a748e759a"},
+    {"bytes": 3801, "path": "docs/operations/WEEKLY_VULNERABILITY_REPORT.md", "sha256": "8ad4c6703843cebf7d3a45263041d0310afc58a5a9fe39d39dac6d322172aa1c"},
+    {"bytes": 2640, "path": "docs/releases/RELEASE_6.0.0.md", "sha256": "7a2c72e805d55f8dbb694cb7f380f704d15e2e7a944aa86eb4aec4b42491323d"},
+    {"bytes": 4607, "path": ".github/workflows/daily-security-brief.yml", "sha256": "b8f5271d4fa0edc20a7c9f0f2d478fe255c34e2aee5c84a3b7635871a9f99283"},
+    {"bytes": 2911, "path": ".github/workflows/test-security-brief.yml", "sha256": "8be1a8d188b62c52b40ed5806b752675b99591315b0074761f2119d1dc0fcf0e"},
+    {"bytes": 3731, "path": ".github/workflows/weekly-vulnerability-report.yml", "sha256": "d3ed028613eef2023e5d45f056b674801b394a91681395e85a86411e8a2b2edb"},
+    {"bytes": 44459, "path": "src/security_brief/analysis.py", "sha256": "8526aff01f6dc478d134bab4b824e3da16d13f40cd26f429833904c0f29de38b"},
+    {"bytes": 18152, "path": "src/security_brief/app.py", "sha256": "11004d10ec7f0a14ee85f633f5eb029f4d162ad6781093891d0ecf97b8c8f2e0"},
+    {"bytes": 57977, "path": "src/security_brief/collectors.py", "sha256": "e305bf83552e1a7fd4e9a0dc90a02552cc98c905173b233aed369316aa2b28bb"},
+    {"bytes": 2767, "path": "src/security_brief/dedup_state.py", "sha256": "402825340eca0b23d5b4933332c15f099c800575038a404cfbc86fa2e3120a7e"},
+    {"bytes": 1630, "path": "src/security_brief/evidence.py", "sha256": "3ff182658b093e4031c78ed464196c9c5639407ce8a71dbcde2114b3bf719411"},
+    {"bytes": 3735, "path": "src/security_brief/models.py", "sha256": "2d4bb4d6229f36037dc4326bc457a69c521db56069f04d6a410aa16e9e1baa14"},
+    {"bytes": 2681, "path": "src/security_brief/nvd_cache.py", "sha256": "e49b96cdebe53482c8472863938ea4849d768f7a6fc07a609f0c62dbcc2f7abf"},
+    {"bytes": 89521, "path": "src/security_brief/rendering.py", "sha256": "9099bb2cedb02740f67ae05bff4927298e68b30e5ea500bc934be8f28f2cd8f1"},
+    {"bytes": 1513, "path": "src/security_brief/rendering_components.py", "sha256": "1a0ec525772a7775fe573799561d9b35d8f25781e140c770d2e0ec712e608d19"},
+    {"bytes": 1802, "path": "src/security_brief/runtime_profile.py", "sha256": "00b6650bcfb6cab62d9e874f759c6cd711ae11e5ef896851134e58acdc289ab4"},
+    {"bytes": 3148, "path": "src/security_brief/source_config.py", "sha256": "4971d7b5eb1e2126b58b302e9d85196f7a9d525938fffa8bde8265b5673f280d"},
+    {"bytes": 30246, "path": "src/security_brief/vulnerability_reporting.py", "sha256": "75cdb7e04454b2f01df1c21fb37a4cf75427b5bb8ec1dd1fb80c148ca1969b7b"},
+    {"bytes": 4962, "path": "src/security_brief/weekly_app.py", "sha256": "c427a79381093cd18de0ec60b9cc3c6f928592a1577a32ab6d9eaf00ce6d0d96"},
+    {"bytes": 19750, "path": "src/security_brief/weekly_rendering.py", "sha256": "7840869ec591738f6ca5b79eb93c36fda0f55c63631d024fd269b894f644cd03"},
+    {"bytes": 34733, "path": "tests/test_smoke.py", "sha256": "c303e097166c29fc6bb9216a22ebf2983d60f1926b8e674db7643e1728800319"},
+    {"bytes": 5379, "path": "tests/test_v6_maintenance.py", "sha256": "904772d9dec0a9048bff852c5dc30770aa4f01295aa99e596e79542f9539884a"},
+    {"bytes": 9591, "path": "tests/test_vulnerability_reporting.py", "sha256": "d7d57c899ac94eff8a72020d74353f3b6a75868603aa0059db5733798ab1528d"},
+    {"bytes": 5174, "path": "tests/test_weekly_rendering.py", "sha256": "6771542dbe4df67547457e793c08d27e64ec77c21b9de5f4efc36f1de08aab34"}
   ],
   "release_date": "2026-08-18",
   "status": "production-release-candidate",
   "validation": {
-    "baseline_offline_tests": "67/67 pass",
-    "github_repository_ci": "pending branch/pull-request execution",
-    "live_gmail_api_delivery": "pending manual workflow validation",
+    "github_repository_ci": "pending completed-release-commit execution",
+    "live_gmail_api_delivery": "pending manual daily and weekly workflow validation",
     "python_compileall": "pass",
-    "release_candidate_offline_tests": "67/67 pass"
+    "release_candidate_offline_tests": "73/73 pass",
+    "workflow_yaml_parse": "pass"
   },
-  "version": "5.7.0"
+  "version": "6.0.0"
 }

@@ -37,6 +37,7 @@ def record(cve: str = "CVE-2026-12345") -> VulnerabilityRecord:
         remediation_band="Patch immediately",
         action="Patch immediately.",
         affected="Affected versions.",
+        summary="An unauthenticated remote attacker can execute code on the appliance.",
     )
 
 
@@ -97,8 +98,14 @@ class WeeklyPresentationTests(unittest.TestCase):
             date(2026, 8, 13),
             [],
         )
-        for width in ("17%", "20%", "8%", "9%", "10%", "28%"):
+        for width in ("14%", "32%", "11%", "7%", "8%"):
             self.assertIn(f'width="{width}"', html)
+        self.assertIn("Vulnerability details", html)
+        self.assertIn(
+            "An unauthenticated remote attacker can execute code on the appliance.",
+            html,
+        )
+        self.assertIn("Affected scope: Affected versions.", html)
         self.assertIn("table-layout:fixed", html)
         self.assertIn('align="center"', html)
         self.assertIn('align="left"', html)

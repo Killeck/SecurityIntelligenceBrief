@@ -14,6 +14,38 @@ history remains available in Git history.
 
 ---
 
+## 5.7.0 - 2026-08-18
+
+### Added
+
+- Added authoritative Cisco Security Advisories / PSIRT coverage to the priority-vendor vulnerability layer.
+- Added source-specific freshness thresholds for authoritative and general intelligence sources.
+- Added selector-health failure detection when configured HTML selectors return no usable article candidates.
+- Added optional private report archiving through `REPORT_ARCHIVE_DIR`, storing HTML, plain-text and JSON report snapshots without retaining reports by default.
+- Added persistent `STALE` and `PARTIAL` source-health handling in addition to existing content, quiet and failure states.
+- Added an independent GitHub Actions CI workflow for regression validation on release branches, pull requests and `main`.
+
+### Changed
+
+- Renamed `5. Standards / Compliance / Governance` to `5. GRC & Standards`.
+- Reworked Source Coverage into a two-column health-aware presentation ordered by health state and source name.
+- Added the `Operational Intelligence & Impact` divider before customer, SOC and threat-intelligence content.
+- Cisco clean-negative status now requires successful collection from the authoritative Cisco Security Advisories source.
+- Source-health assessment now honours per-source freshness expectations rather than one global freshness period.
+- Release documentation paths were normalised under `docs/architecture`, `docs/operations` and `docs/releases`.
+
+### Reliability
+
+- A structurally valid publisher page with broken configured selectors is no longer silently interpreted as a clean source with no qualifying content.
+- A source recovering from a previous failed or stale state can be represented conservatively as `PARTIAL` rather than immediately implying full source confidence.
+- Private report archiving remains explicitly opt-in and fails closed without interrupting report delivery.
+
+### Validation
+
+- Baseline repository regression suite: 67/67 tests passed under the 5.7.0 merged code before release normalisation.
+- Production-release regression and compile validation are rerun as part of the 5.7.0 release-normalisation process.
+- Live Gmail API delivery remains separately validated through the manual Test Daily Security Brief workflow before production certification.
+
 ## 5.6.8 - 2026-08-13
 
 ### Changed

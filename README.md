@@ -50,8 +50,8 @@ or illicit marketplaces.
 
 ## Authoritative priority-vendor vulnerability coverage
 
-Version 5.6.5 retains vendor-owned security-bulletin channels from research
-and news sources.
+Version 5.7.0 keeps vendor-owned security-bulletin channels separate from research
+and news sources and adds authoritative Cisco PSIRT coverage.
 
 | Vendor / area | Authoritative collection path |
 |---|---|
@@ -65,6 +65,7 @@ and news sources.
 | HPE / Aruba | HPE Security Bulletin Library structured adapter |
 | Okta | Okta Security Advisories RSS |
 | Apple | Apple Security Releases |
+| Cisco | Cisco Security Advisories |
 | NVD | Priority-vendor CVE corroboration/fallback with specific vendor attribution |
 
 Research sources such as Palo Alto Unit 42, FortiGuard Labs, Google Security
@@ -75,7 +76,7 @@ The NVD fallback attributes records to specific priority vendors rather than
 leaving AWS, Google and Okta inside a broad cloud bucket or Palo Alto/Cisco/Apple
 inside a generic `Other priority vendors` bucket.
 
-Version 5.6.5 makes KEV & Priority Vendor Status health-aware. A clean negative
+Version 5.7.0 keeps KEV & Priority Vendor Status health-aware and adds source-specific freshness, selector-health detection and persistent partial/stale-state handling. A clean negative
 is shown only when the expected authoritative source was successfully checked.
 Failed or partial authoritative coverage is shown as unknown/degraded instead of
 `No material update`.
@@ -102,7 +103,7 @@ The current dashboard includes:
 - Active Exploitation / Threat Actor Activity
 - Dark Web / Exposure
 - Vendor Updates
-- Standards / Compliance / Governance
+- GRC & Standards
 - Recommended Actions Today
 - Customer & Sector Impact
 - SOC & Detection Engineering
@@ -133,7 +134,7 @@ It provides:
 - month-to-date vulnerability overview
 - SQLite history stored through the GitHub Actions cache
 
-See [`WEEKLY_VULNERABILITY_REPORT.md`](WEEKLY_VULNERABILITY_REPORT.md).
+See [`docs/operations/WEEKLY_VULNERABILITY_REPORT.md`](docs/operations/WEEKLY_VULNERABILITY_REPORT.md).
 
 ## Source trust model
 
@@ -167,12 +168,22 @@ independently establish a confirmed organisational incident.
 │   ├── test-security-brief.yml
 │   └── weekly-vulnerability-report.yml
 ├── assets/
+├── docs/
+│   ├── architecture/
+│   │   └── OPTIMISATION.md
+│   ├── operations/
+│   │   └── WEEKLY_VULNERABILITY_REPORT.md
+│   └── releases/
+│       ├── RELEASE_5.7.0.md
+│       └── manifests/
+│           └── RELEASE_MANIFEST.json
 ├── config/
 │   └── upcoming_governance.json
 ├── src/
 │   ├── security_brief/
 │   │   ├── analysis.py
 │   │   ├── app.py
+│   │   ├── archive.py
 │   │   ├── branding.py
 │   │   ├── collectors.py
 │   │   ├── config.py
@@ -185,6 +196,7 @@ independently establish a confirmed organisational incident.
 │   │   ├── rendering.py
 │   │   ├── rules.py
 │   │   ├── sources.py
+│   │   ├── source_health.py
 │   │   ├── utils.py
 │   │   ├── vulnerability_reporting.py
 │   │   ├── weekly_app.py
@@ -192,16 +204,16 @@ independently establish a confirmed organisational incident.
 │   ├── send_security_advisory.py
 │   └── send_weekly_vulnerability_report.py
 ├── tests/
+│   ├── test_archive.py
 │   ├── test_priority_vendor_sources.py
 │   ├── test_report_policy.py
 │   ├── test_smoke.py
+│   ├── test_source_health.py
 │   ├── test_vulnerability_reporting.py
 │   └── test_weekly_rendering.py
 ├── CHANGELOG.md
 ├── MAINTENANCE.md
-├── OPTIMISATION.md
 ├── README.md
-├── WEEKLY_VULNERABILITY_REPORT.md
 ├── VERSION
 └── requirements.txt
 ```
@@ -258,7 +270,7 @@ Then run:
 Actions → Test Daily Security Brief
 ```
 
-For v5.6.5, verify the Actions log contains successful checks for:
+For v5.7.0, verify the Actions log contains successful checks for:
 
 ```text
 Fortinet PSIRT RSS
@@ -268,11 +280,12 @@ Google Chrome Releases
 Palo Alto Networks Security Advisories
 Okta Security Advisories
 HPE Security Bulletin Library
+Cisco Security Advisories
 NVD priority-vendor CVEs
 ```
 
 A failed authoritative source must be investigated in GitHub Actions rather
-than assuming the vendor had no security updates. Version 5.6.5 exposes failed
+than assuming the vendor had no security updates. Version 5.7.0 exposes failed
 or partial authoritative coverage as unknown/degraded in the vendor-status view.
 
 ## Documentation roles

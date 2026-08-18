@@ -1,0 +1,50 @@
+# Copyright © 2026 John-Helge Gantz. All rights reserved.
+# Proprietary software. See LICENSE.
+
+name: Repository CI
+
+on:
+  push:
+    branches:
+      - main
+      - "agent/**"
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repository-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  regression:
+    name: Python 3.12 regression suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --requirement requirements.txt
+
+      - name: Compile Python sources
+        run: python -m compileall -q src tests
+
+      - name: Run offline regression tests
+        env:
+          PYTHONPATH: src
+        run: python -m unittest discover -s tests -v

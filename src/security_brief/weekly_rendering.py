@@ -53,6 +53,13 @@ def _cve_plain(cve: str) -> str:
     return f"{normalised} <{cve_url(normalised)}>"
 
 
+def _type_and_scope(record: VulnerabilityRecord) -> str:
+    """Summarise what the CVE is and the affected product scope."""
+
+    scope = record.affected or record.product or record.category or "Scope not stated"
+    return f"{record.title}. Affected: {scope}"
+
+
 def _linkify_cves_html(text: str, colour: str) -> str:
     parts: list[str] = []
     position = 0
@@ -149,7 +156,7 @@ def render_weekly_vulnerability_report(
 
     for record in records[:25]:
         lines.append(
-            f"{_cve_plain(record.cve)} | {record.vendor} | "
+            f"{_cve_plain(record.cve)} | {_type_and_scope(record)} | {record.vendor} | "
             f"CVSS {record.cvss if record.cvss is not None else 'N/A'} | "
             f"EPSS {record.epss:.1%} | "
             f"KEV {'Yes' if record.kev else 'No'} | "
@@ -225,13 +232,14 @@ def render_weekly_vulnerability_report(
     )
 
     columns = (
-        ("CVE", "17%", "left"),
-        ("Vendor", "20%", "left"),
-        ("CVSS", "8%", "center"),
-        ("EPSS", "9%", "center"),
-        ("KEV", "8%", "center"),
-        ("Exploited", "10%", "center"),
-        ("Action", "28%", "left"),
+        ("CVE", "14%", "left"),
+        ("Type & scope", "28%", "left"),
+        ("Vendor", "12%", "left"),
+        ("CVSS", "7%", "center"),
+        ("EPSS", "7%", "center"),
+        ("KEV", "7%", "center"),
+        ("Exploited", "8%", "center"),
+        ("Action", "17%", "left"),
     )
     header_cells = "".join(
         f'<th width="{width}" align="{alignment}" '
@@ -257,17 +265,18 @@ def render_weekly_vulnerability_report(
         border = f"border-top:1px solid {colours['border']};"
         vulnerability_rows_parts.append(
             "<tr>"
-            f'<td width="17%" align="left" valign="top" style="width:17%;padding:8px;{border}text-align:left;">{_cve_html(record.cve, colours["link"])}</td>'
-            f'<td width="20%" align="left" valign="top" style="width:20%;padding:8px;{border}text-align:left;color:{colours["text"]};">{_esc(record.vendor)}</td>'
-            f'<td width="8%" align="center" valign="top" style="width:8%;padding:8px;{border}text-align:center;white-space:nowrap;">{_esc(f"{record.cvss:.1f}" if record.cvss is not None else "N/A")}</td>'
-            f'<td width="9%" align="center" valign="top" style="width:9%;padding:8px;{border}text-align:center;white-space:nowrap;">{record.epss:.1%}</td>'
-            f'<td width="8%" align="center" valign="top" style="width:8%;padding:8px;{border}text-align:center;white-space:nowrap;">{"Yes" if record.kev else "No"}</td>'
-            f'<td width="10%" align="center" valign="top" style="width:10%;padding:8px;{border}text-align:center;white-space:nowrap;">{"Yes" if record.exploited else "No"}</td>'
-            f'<td width="28%" align="left" valign="top" style="width:28%;padding:8px;{border}text-align:left;line-height:1.35;">{action}</td>'
+            f'<td width="14%" align="left" valign="top" style="width:14%;padding:8px;{border}text-align:left;">{_cve_html(record.cve, colours["link"])}</td>'
+            f'<td width="28%" align="left" valign="top" style="width:28%;padding:8px;{border}text-align:left;color:{colours["text"]};line-height:1.35;">{_esc(_type_and_scope(record))}</td>'
+            f'<td width="12%" align="left" valign="top" style="width:12%;padding:8px;{border}text-align:left;color:{colours["text"]};">{_esc(record.vendor)}</td>'
+            f'<td width="7%" align="center" valign="top" style="width:7%;padding:8px;{border}text-align:center;white-space:nowrap;">{_esc(f"{record.cvss:.1f}" if record.cvss is not None else "N/A")}</td>'
+            f'<td width="7%" align="center" valign="top" style="width:7%;padding:8px;{border}text-align:center;white-space:nowrap;">{record.epss:.1%}</td>'
+            f'<td width="7%" align="center" valign="top" style="width:7%;padding:8px;{border}text-align:center;white-space:nowrap;">{"Yes" if record.kev else "No"}</td>'
+            f'<td width="8%" align="center" valign="top" style="width:8%;padding:8px;{border}text-align:center;white-space:nowrap;">{"Yes" if record.exploited else "No"}</td>'
+            f'<td width="17%" align="left" valign="top" style="width:17%;padding:8px;{border}text-align:left;line-height:1.35;">{action}</td>'
             "</tr>"
         )
     vulnerability_rows = "".join(vulnerability_rows_parts) or (
-        f'<tr><td colspan="7" align="left" style="padding:8px;color:{colours["muted"]};">No qualifying CVEs.</td></tr>'
+        f'<tr><td colspan="8" align="left" style="padding:8px;color:{colours["muted"]};">No qualifying CVEs.</td></tr>'
     )
     vulnerability_table = (
         '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '

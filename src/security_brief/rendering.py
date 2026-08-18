@@ -2399,32 +2399,11 @@ def render_html_report(
         DASHBOARD_COLOURS["green"],
     )
 
-    defcon_panel = f"""
-    <table role="presentation" width="400" cellspacing="0" cellpadding="0"
-           bgcolor="{DASHBOARD_COLOURS['panel']}"
-           style="width:100%;max-width:400px;margin-left:auto;
-                  background:{DASHBOARD_COLOURS['panel']};
-                  border:1px solid {DASHBOARD_COLOURS['border']};
-                  border-radius:6px;">
-      <tr>
-        <td style="padding:6px 8px 3px;color:{DASHBOARD_COLOURS['purple']};
-                   font-size:12px;font-weight:700;text-align:left;">
-          Enterprise DEFCON Legend
-        </td>
-      </tr>
-      <tr>
-        <td style="padding:2px 8px 7px;">
-          {_render_defcon_triangle(int(enterprise_status["level"]))}
-        </td>
-      </tr>
-    </table>
-    """
-
     status_legend_html = f"""
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0"
            style="table-layout:fixed;margin:0 0 6px 0;">
       <tr>
-        <td width="20%" valign="bottom" style="padding:4px;">
+        <td width="100%" valign="bottom" style="padding:4px;">
           <a href="#executive-summary" aria-label="Jump to Overall Threat detail"
              style="display:block;width:100%;box-sizing:border-box;
                     background:{defcon_definition['colour']};
@@ -2442,9 +2421,6 @@ def render_html_report(
               {_escape(str(enterprise_status['level']))} — {_escape(defcon_definition['label'])}
             </span>
           </a>
-        </td>
-        <td width="80%" align="right" valign="bottom" style="padding:4px;">
-          {defcon_panel}
         </td>
       </tr>
     </table>

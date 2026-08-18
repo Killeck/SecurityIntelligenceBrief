@@ -31,7 +31,6 @@ from security_brief.collectors import (
 )
 from security_brief.models import ExposureSignal, Item, NewsLink
 from security_brief.rendering import (
-    _render_defcon_triangle,
     _metric_card,
     _render_threat_rows,
     _render_vulnerability_table,
@@ -43,7 +42,7 @@ from security_brief.governance import (
     governance_horizon,
     load_configured_governance_events,
 )
-from security_brief.config import DEFCON_LEVELS, EMAIL_SUBJECT
+from security_brief.config import EMAIL_SUBJECT
 from security_brief.sources import (
     EXECUTIVE_NEWS_HTML,
     EXECUTIVE_NEWS_RSS,
@@ -930,43 +929,6 @@ class PipelineTests(unittest.TestCase):
             ["20%"] * 5,
         )
 
-
-    def test_defcon_scale_uses_distinct_colours_without_repeated_labels(self) -> None:
-        self.assertEqual(DEFCON_LEVELS[1]["colour"], "#B71C1C")
-        self.assertEqual(DEFCON_LEVELS[2]["colour"], "#F57C00")
-        self.assertNotEqual(
-            DEFCON_LEVELS[1]["colour"],
-            DEFCON_LEVELS[2]["colour"],
-        )
-
-        triangle = _render_defcon_triangle(3)
-        self.assertNotIn("▲", triangle)
-        self.assertIn("(current level)", triangle)
-        self.assertNotIn("cid:enterprise-defcon-legend", triangle)
-        self.assertEqual(triangle.count('width="20%"'), 5)
-        self.assertEqual(triangle.count("DEFCON "), 10)
-        self.assertEqual(triangle.count("white-space:nowrap"), 10)
-        self.assertEqual(triangle.count("font-size:10px"), 10)
-        self.assertEqual(triangle.count("font-size:9px"), 5)
-        for definition in DEFCON_LEVELS.values():
-            self.assertIn(f'bgcolor="{definition["colour"]}"', triangle)
-        for repeated_label in (
-            "Critical: immediate action",
-            "High: urgent action",
-            "Elevated: credible increased risk",
-            "Guarded: meaningful developments",
-            "Low: routine background threat activity",
-        ):
-            self.assertNotIn(repeated_label, triangle)
-
-        for description in (
-            "Immediate action for exceptional verified threat.",
-            "Urgent action for relevant active exploitation.",
-            "Increased risk requiring enhanced attention.",
-            "Meaningful developments; no direct exposure.",
-            "Routine activity and normal monitoring.",
-        ):
-            self.assertIn(description, triangle)
 
     def test_standard_metric_uses_one_fifth_width(self) -> None:
         standard_metric = _metric_card(

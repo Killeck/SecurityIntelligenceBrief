@@ -1115,64 +1115,6 @@ def _metric_card(
     """
 
 
-def _render_defcon_triangle(current_level: int) -> str:
-    """Render an Outlook-safe HTML DEFCON legend with the live level highlighted."""
-
-    if current_level not in DEFCON_LEVELS:
-        raise ValueError(f"Unsupported DEFCON level: {current_level}")
-
-    descriptions = {
-        1: "Immediate action for exceptional verified threat.",
-        2: "Urgent action for relevant active exploitation.",
-        3: "Increased risk requiring enhanced attention.",
-        4: "Meaningful developments; no direct exposure.",
-        5: "Routine activity and normal monitoring.",
-    }
-
-    scale_cells: list[str] = []
-    description_rows: list[str] = []
-    for level in range(1, 6):
-        definition = DEFCON_LEVELS[level]
-        active = level == current_level
-        background = definition["colour"]
-        foreground = definition["text_colour"]
-        emphasis = "font-weight:700;" if active else "font-weight:400;"
-        current_marker = " · CURRENT" if active else ""
-        scale_cells.append(
-            f"""
-              <td width="20%" height="36" valign="middle" align="center"
-                  bgcolor="{background}" style="height:36px;padding:3px;background:{background};
-                  color:{foreground};font-size:10px;line-height:14px;{emphasis}
-                  border:2px solid {'#FFFFFF' if active else background};white-space:nowrap;">
-                DEFCON {level}<br>{_escape(definition['label'])}{current_marker}
-              </td>
-            """
-        )
-        description_rows.append(
-            f"""
-            <tr>
-              <td width="58" valign="top" style="padding:3px 6px 3px 0;color:{background};
-                  font-size:10px;line-height:14px;{emphasis}white-space:nowrap;">
-                DEFCON {level}
-              </td>
-              <td valign="top" style="padding:3px 0;color:{DASHBOARD_COLOURS['text']};
-                  font-size:9px;line-height:14px;{emphasis}">
-                {_escape(descriptions[level])}{" (current level)" if active else ""}
-              </td>
-            </tr>
-            """
-        )
-
-    return (
-        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
-        'style="border-collapse:collapse;table-layout:fixed;"><tr>'
-        + "".join(scale_cells)
-        + '</tr></table><table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
-        'style="border-collapse:collapse;margin-top:4px;">'
-        + "".join(description_rows) + "</table>"
-    )
-
-
 def _bold_prefix_html(text: str) -> str:
     """Escape text and bold the first meaningful label before a colon."""
 

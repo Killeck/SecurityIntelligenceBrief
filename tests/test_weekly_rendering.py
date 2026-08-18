@@ -97,8 +97,9 @@ class WeeklyPresentationTests(unittest.TestCase):
             date(2026, 8, 13),
             [],
         )
-        for width in ("17%", "20%", "8%", "9%", "10%", "28%"):
+        for width in ("14%", "28%", "12%", "7%", "8%", "17%"):
             self.assertIn(f'width="{width}"', html)
+        self.assertIn("Type &amp; scope", html)
         self.assertIn("table-layout:fixed", html)
         self.assertIn('align="center"', html)
         self.assertIn('align="left"', html)

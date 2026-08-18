@@ -886,23 +886,13 @@ class PipelineTests(unittest.TestCase):
         ):
             self.assertIn(expected, text_body + html_body)
 
-        self.assertIn('width="20%" valign="bottom"', html_body)
-        self.assertIn('width="400"', html_body)
-        self.assertIn("max-width:400px", html_body)
+        self.assertIn('width="100%" valign="bottom"', html_body)
         self.assertRegex(
             html_body,
             r">\s*[1-5] — (Critical|High|Elevated|Guarded|Low)\s*<",
         )
         self.assertNotIn("! DEFCON", html_body)
-        self.assertLess(
-            html_body.index("Reporting window:"),
-            html_body.index("Enterprise DEFCON Legend"),
-        )
-        self.assertLess(
-            html_body.index("Enterprise DEFCON Legend"),
-            html_body.index("Active Exploitation"),
-        )
-
+        self.assertNotIn("Enterprise DEFCON Legend", html_body)
         document = BeautifulSoup(html_body, "html.parser")
         metadata_text = document.find(
             string=lambda value: value and "Reporting window:" in value,
@@ -911,13 +901,6 @@ class PipelineTests(unittest.TestCase):
         metadata_cell = metadata_text.find_parent("td")
         self.assertEqual(metadata_cell.get("align"), "right")
         self.assertEqual(metadata_cell.get("valign"), "top")
-
-        legend_title = document.find(
-            string=lambda value: value
-            and value.strip() == "Enterprise DEFCON Legend",
-        )
-        self.assertIsNotNone(legend_title)
-        self.assertEqual(legend_title.find_parent("table").get("width"), "400")
 
         overall_label = document.find(
             "span",
@@ -930,7 +913,7 @@ class PipelineTests(unittest.TestCase):
                 cell.get("width")
                 for cell in status_row.find_all("td", recursive=False)
             ],
-            ["20%", "80%"],
+            ["100%"],
         )
 
         active_label = document.find(

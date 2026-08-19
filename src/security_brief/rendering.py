@@ -39,7 +39,10 @@ from .models import (
     NewsLink,
     SectorImpact,
 )
-from .rendering_components import render_overall_threat_status
+from .rendering_components import (
+    render_defcon_text_guide,
+    render_overall_threat_status,
+)
 from .utils import truncate
 
 
@@ -2354,6 +2357,12 @@ def render_html_report(
         text_colour=str(defcon_definition["text_colour"]),
         border_colour=DASHBOARD_COLOURS["border"],
     )
+    defcon_text_html = render_defcon_text_guide(
+        current_level=int(enterprise_status["level"]),
+        definitions=DEFCON_LEVELS,
+        text_colour=DASHBOARD_COLOURS["text"],
+        muted_colour=DASHBOARD_COLOURS["muted"],
+    )
 
     vulnerability_panel = _panel(
         "1. Critical Vulnerabilities / Zero-Days",
@@ -2528,7 +2537,7 @@ def render_html_report(
                   </td>
                 </tr>
 
-                <tr><td>{status_legend_html}</td></tr>
+                <tr><td>{status_legend_html}{defcon_text_html}</td></tr>
                 <tr><td>{metrics_html}</td></tr>
                 <tr><td>{executive_panel}</td></tr>
                 <tr><td>{vendor_status_panel}</td></tr>

@@ -442,7 +442,7 @@ SENSITIVE_DATA_CLASSES = {
 
 SECTOR_IMPACT_RULES = (
     (
-        "Oil, Gas and Energy",
+        "Energy",
         (
             "oil and gas",
             "oil & gas",
@@ -568,7 +568,7 @@ SECTOR_IMPACT_RULES = (
         22,
     ),
     (
-        "Transport and Maritime",
+        "Transportation",
         (
             "transport",
             "rail",
@@ -587,8 +587,12 @@ SECTOR_IMPACT_RULES = (
         26,
     ),
     (
-        "Property, Housing and Construction",
+        "BoligByggerlag",
         (
+            "boligbyggelag",
+            "housing cooperative",
+            "housing association",
+            "cooperative housing",
             "property",
             "real estate",
             "housing",
@@ -601,6 +605,24 @@ SECTOR_IMPACT_RULES = (
             "and supplier access."
         ),
         22,
+    ),
+    (
+        "Oppdrett",
+        (
+            "oppdrett",
+            "aquaculture",
+            "fish farm",
+            "fish farming",
+            "salmon farming",
+            "seafood production",
+            "marine farming",
+            "feeding system",
+        ),
+        (
+            "Assess production availability, feeding and environmental control "
+            "systems, remote supplier access and seafood supply-chain impact."
+        ),
+        25,
     ),
     (
         "Managed Services, Telecom and Hosting",

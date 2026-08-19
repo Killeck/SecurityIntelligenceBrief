@@ -24,12 +24,15 @@ Version 6.0.0 is a major report-clarity update. It reduces duplicated threat-sta
 - Added persistent Daily duplicate suppression while retaining material updates.
 - Added explicit authoritative/corroborated/single-source confidence and source counts.
 - Extracted the Overall Threat component and operational state services behind focused module boundaries.
+- Rebalanced Weekly section 1 to concise Nature, Impact area and Evidence text and enriched section 3 lifecycle changes with vulnerability context.
+- Restored a text-only DEFCON 1–5 guide in the Daily report without coloured level boxes.
+- Added BoligByggerlag, Energy, Oppdrett and Transportation customer-impact mappings.
 - Retained direct NVD CVE links, vendor-advisory links, CVSS, EPSS, KEV, exploitation state and remediation bands.
 - Updated release, current-state, operational and architecture documentation for 6.0.0.
 
 ## Validation
 
-- Local regression suite: **73/73 tests passed** before final release-metadata normalisation.
+- Local regression suite: **75/75 tests passed** after final report-balance validation.
 - GitHub Python 3.12 regression suite: **passed** on the v6.0.0 branch.
 - Final repository CI must pass on the completed release commit and pull request.
 - Gmail production credentials remain outside the repository.

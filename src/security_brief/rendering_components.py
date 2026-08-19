@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import html
+from typing import Mapping
 
 
 def render_overall_threat_status(
@@ -41,4 +42,28 @@ def render_overall_threat_status(
         </td>
       </tr>
     </table>
+    """
+
+
+def render_defcon_text_guide(
+    *,
+    current_level: int,
+    definitions: Mapping[int, Mapping[str, str]],
+    text_colour: str,
+    muted_colour: str,
+) -> str:
+    """Render a plain-text DEFCON guide without level boxes or backgrounds."""
+
+    current = definitions[current_level]
+    scale = " · ".join(
+        f"DEFCON {level} {html.escape(definitions[level]['label'])}"
+        for level in sorted(definitions)
+    )
+    return f"""
+    <div style="margin:0 4px 10px;padding:3px 0;color:{text_colour};
+                font-size:11px;line-height:1.45;">
+      <strong>Enterprise DEFCON:</strong>
+      Current DEFCON {current_level} — {html.escape(current['label'])}<br>
+      <span style="color:{muted_colour};">{scale}</span>
+    </div>
     """

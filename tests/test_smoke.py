@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import unittest
+from dataclasses import replace
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -787,6 +788,35 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(governance_horizon(today + timedelta(days=180), today), "3 to 6 months")
         self.assertEqual(governance_horizon(today + timedelta(days=365), today), "6 to 12 months")
 
+    def test_requested_customer_segments_are_mapped(self) -> None:
+        stories = [
+            replace(
+                self.item,
+                title="Boligbyggelag shared-service identity incident",
+                summary="A housing cooperative supplier reports tenant portal exposure.",
+            ),
+            replace(
+                self.item,
+                title="Energy utility remote-access vulnerability",
+                summary="The issue affects electricity and operational technology networks.",
+            ),
+            replace(
+                self.item,
+                title="Oppdrett feeding-system compromise",
+                summary="Aquaculture production and fish-farming controls are affected.",
+            ),
+            replace(
+                self.item,
+                title="Transportation logistics disruption",
+                summary="Rail, port and logistics operations may be affected.",
+            ),
+        ]
+        impacts = build_sector_impacts(stories, [], max_items=10)
+        self.assertTrue(
+            {"BoligByggerlag", "Energy", "Oppdrett", "Transportation"}
+            <= {impact.sector for impact in impacts}
+        )
+
     def test_dashboard_uses_action_rows_vendor_centre_and_bold_prefixes(self) -> None:
         sector_impacts = build_sector_impacts([self.item], [self.news])
         text_body, html_body = render_report(
@@ -892,6 +922,9 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertNotIn("! DEFCON", html_body)
         self.assertNotIn("Enterprise DEFCON Legend", html_body)
+        self.assertIn("Enterprise DEFCON:", html_body)
+        self.assertIn("DEFCON 1 Critical", html_body)
+        self.assertIn("DEFCON 5 Low", html_body)
         document = BeautifulSoup(html_body, "html.parser")
         metadata_text = document.find(
             string=lambda value: value and "Reporting window:" in value,
@@ -913,6 +946,17 @@ class PipelineTests(unittest.TestCase):
                 for cell in status_row.find_all("td", recursive=False)
             ],
             ["100%"],
+        )
+        defcon_guide = document.find(
+            "strong",
+            string=lambda value: value and value.strip() == "Enterprise DEFCON:",
+        )
+        self.assertIsNotNone(defcon_guide)
+        defcon_container = defcon_guide.find_parent("div")
+        self.assertNotIn("background", defcon_container.get("style", ""))
+        self.assertNotEqual(
+            defcon_container.find_parent("table"),
+            status_row.find_parent("table"),
         )
 
         active_label = document.find(

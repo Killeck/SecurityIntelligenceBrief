@@ -98,14 +98,15 @@ class WeeklyPresentationTests(unittest.TestCase):
             date(2026, 8, 13),
             [],
         )
-        for width in ("14%", "32%", "11%", "7%", "8%"):
+        for width in ("13%", "34%", "10%", "7%", "8%", "14%"):
             self.assertIn(f'width="{width}"', html)
         self.assertIn("Vulnerability details", html)
+        self.assertIn("Nature:", html)
         self.assertIn(
             "An unauthenticated remote attacker can execute code on the appliance.",
             html,
         )
-        self.assertIn("Affected scope: Affected versions.", html)
+        self.assertIn("Impact area: Affected versions.", html)
         self.assertIn("table-layout:fixed", html)
         self.assertIn('align="center"', html)
         self.assertIn('align="left"', html)
@@ -123,6 +124,8 @@ class WeeklyPresentationTests(unittest.TestCase):
         )
         target = f"https://nvd.nist.gov/vuln/detail/{cve}"
         self.assertGreaterEqual(html.count(f'href="{target}"'), 3)
+        self.assertIn("Nature:", html)
+        self.assertIn("Impact area: Affected versions.", html)
 
     def test_source_health_exposes_quiet_and_failed_states(self) -> None:
         _, html = render_weekly_vulnerability_report(

@@ -16,7 +16,11 @@ from security_brief.analysis import deduplicate
 from security_brief.dedup_state import suppress_recent_duplicates
 from security_brief.models import Item, Source
 from security_brief.nvd_cache import NvdCache
-from security_brief.rendering_components import render_overall_threat_status
+from security_brief.rendering_components import (
+    render_defcon_text_guide,
+    render_overall_threat_status,
+)
+from security_brief.config import DEFCON_LEVELS
 from security_brief.runtime_profile import RuntimeProfiler
 from security_brief.source_config import configure_sources, load_source_overrides
 
@@ -122,6 +126,19 @@ class VersionSixMaintenanceTests(unittest.TestCase):
         self.assertIn("3 — Elevated", rendered)
         self.assertNotIn("DEFCON 1", rendered)
         self.assertEqual(rendered.count('width="100%"'), 2)
+
+    def test_defcon_guide_is_text_only(self) -> None:
+        rendered = render_defcon_text_guide(
+            current_level=3,
+            definitions=DEFCON_LEVELS,
+            text_colour="#EEF3F8",
+            muted_colour="#9CB6BA",
+        )
+        self.assertIn("Current DEFCON 3 — Elevated", rendered)
+        self.assertIn("DEFCON 1 Critical", rendered)
+        self.assertIn("DEFCON 5 Low", rendered)
+        self.assertNotIn("<table", rendered)
+        self.assertNotIn("background:", rendered)
 
 
 if __name__ == "__main__":

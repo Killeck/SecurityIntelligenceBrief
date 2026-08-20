@@ -99,7 +99,7 @@ Failed or partial authoritative coverage is shown as unknown/degraded instead of
 
 The current dashboard includes:
 
-- one colour-coded Overall Threat status without a duplicate DEFCON scale or legend
+- one colour-coded Overall Threat status plus a text-only DEFCON 1–5 guide without coloured level boxes
 - supporting metric cards
 - Executive Summary / Top Developments
 - KEV & Priority Vendor Status
@@ -114,6 +114,12 @@ The current dashboard includes:
 - Threat Intelligence
 - Security Advisory & CISO Watch Next — 24/72h
 - Source Coverage
+
+Customer-impact mapping includes dedicated segments for **BoligByggerlag**,
+**Energy**, **Oppdrett** and **Transportation**, alongside the existing finance,
+healthcare, public-sector, retail, hospitality, research and managed-services
+segments. A segment is shown when collected intelligence matches its technology,
+operational or supply-chain exposure terms.
 
 ## Weekly vulnerability report
 

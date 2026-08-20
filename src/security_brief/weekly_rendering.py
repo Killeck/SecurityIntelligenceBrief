@@ -7,7 +7,8 @@ The underlying vulnerability lifecycle and scoring model remains in
 ``vulnerability_reporting.py``. This module keeps raw internal priority scores
 out of the user-facing report, aligns Outlook table columns explicitly, adds the
 ISO week number, and ensures every displayed full CVE identifier links directly
-to its NVD record.
+to its NVD record. Version 6.0.0 gives section 1 concise vulnerability nature,
+impact-area and evidence context and adds nature/impact context to section 3.
 """
 
 from __future__ import annotations
@@ -53,21 +54,44 @@ def _cve_plain(cve: str) -> str:
     return f"{normalised} <{cve_url(normalised)}>"
 
 
-def _type_and_scope(record: VulnerabilityRecord) -> str:
-    """Explain what the vulnerability is and identify its affected scope."""
+def _clip(value: str, limit: int) -> str:
+    """Return compact single-line prose without cutting through a word."""
 
-    title = record.title.strip().rstrip(".")
-    summary = record.summary.strip().rstrip(".")
-    scope = (record.affected or record.product or record.category).strip().rstrip(".")
-    details = [f"{title}." if title else "Vulnerability details unavailable."]
-    if summary and summary.casefold() != title.casefold():
-        details.append(f"{summary}.")
-    details.append(f"Affected scope: {scope or 'Not stated' }.")
-    details.append(
-        f"Evidence: {record.confidence} "
-        f"({record.corroboration_count} source(s))."
+    cleaned = " ".join(value.split()).strip().rstrip(".")
+    if len(cleaned) <= limit:
+        return cleaned
+    shortened = cleaned[: limit - 1].rsplit(" ", 1)[0].rstrip(" ,;:-")
+    return f"{shortened}…"
+
+
+def _type_and_scope(record: VulnerabilityRecord) -> str:
+    """Give a compact explanation of vulnerability nature and impact area."""
+
+    title = _clip(record.title, 90)
+    summary = _clip(record.summary, 170)
+    scope = _clip(record.affected or record.product or record.category, 90)
+    nature = summary or title or "Technical nature not stated by the source"
+    if title and title.casefold() not in nature.casefold():
+        nature = f"{title}: {nature}"
+    return (
+        f"Nature: {nature}. Impact area: {scope or 'Not stated'}. "
+        f"Evidence: {record.confidence}, {record.corroboration_count} source(s)."
     )
-    return " ".join(details)
+
+
+def _change_with_context(
+    change: str,
+    records_by_cve: dict[str, VulnerabilityRecord],
+) -> str:
+    """Add concise vulnerability nature and impact context to a lifecycle change."""
+
+    match = CVE_PATTERN.search(change)
+    record = records_by_cve.get(match.group(0).upper()) if match else None
+    if record is None:
+        return change
+    nature = _clip(record.summary or record.title or record.category, 135)
+    impact = _clip(record.affected or record.product or record.category, 80)
+    return f"{change} — Nature: {nature}. Impact area: {impact}."
 
 
 def _linkify_cves_html(text: str, colour: str) -> str:
@@ -174,9 +198,15 @@ def render_weekly_vulnerability_report(
             f"{record.remediation_band} | Advisory: {record.link}"
         )
 
+    records_by_cve = {record.cve.upper(): record for record in records}
+    contextual_changes = [
+        _change_with_context(change, records_by_cve)
+        for change in changes[:20]
+    ]
+
     lines.extend(["", "Exploitation & KEV changes"])
     if changes:
-        lines.extend(_linkify_cves_plain(change) for change in changes[:20])
+        lines.extend(_linkify_cves_plain(change) for change in contextual_changes)
     else:
         lines.append("No lifecycle state changes identified.")
 
@@ -242,9 +272,9 @@ def render_weekly_vulnerability_report(
     )
 
     columns = (
-        ("CVE", "14%", "left"),
-        ("Vulnerability details", "32%", "left"),
-        ("Vendor", "11%", "left"),
+        ("CVE", "13%", "left"),
+        ("Vulnerability details", "34%", "left"),
+        ("Vendor", "10%", "left"),
         ("CVSS", "7%", "center"),
         ("EPSS", "7%", "center"),
         ("KEV", "7%", "center"),
@@ -275,9 +305,9 @@ def render_weekly_vulnerability_report(
         border = f"border-top:1px solid {colours['border']};"
         vulnerability_rows_parts.append(
             "<tr>"
-            f'<td width="14%" align="left" valign="top" style="width:14%;padding:8px;{border}text-align:left;">{_cve_html(record.cve, colours["link"])}</td>'
-            f'<td width="32%" align="left" valign="top" style="width:32%;padding:8px;{border}text-align:left;color:{colours["text"]};line-height:1.45;">{_esc(_type_and_scope(record))}</td>'
-            f'<td width="11%" align="left" valign="top" style="width:11%;padding:8px;{border}text-align:left;color:{colours["text"]};">{_esc(record.vendor)}</td>'
+            f'<td width="13%" align="left" valign="top" style="width:13%;padding:8px;{border}text-align:left;">{_cve_html(record.cve, colours["link"])}</td>'
+            f'<td width="34%" align="left" valign="top" style="width:34%;padding:8px;{border}text-align:left;color:{colours["text"]};line-height:1.4;">{_esc(_type_and_scope(record))}</td>'
+            f'<td width="10%" align="left" valign="top" style="width:10%;padding:8px;{border}text-align:left;color:{colours["text"]};">{_esc(record.vendor)}</td>'
             f'<td width="7%" align="center" valign="top" style="width:7%;padding:8px;{border}text-align:center;white-space:nowrap;">{_esc(f"{record.cvss:.1f}" if record.cvss is not None else "N/A")}</td>'
             f'<td width="7%" align="center" valign="top" style="width:7%;padding:8px;{border}text-align:center;white-space:nowrap;">{record.epss:.1%}</td>'
             f'<td width="7%" align="center" valign="top" style="width:7%;padding:8px;{border}text-align:center;white-space:nowrap;">{"Yes" if record.kev else "No"}</td>'
@@ -318,7 +348,7 @@ def render_weekly_vulnerability_report(
         f'color:{colours["purple"]};">◆</td>'
         f'<td style="padding:4px;color:{colours["text"]};">'
         f'{_linkify_cves_html(change, colours["link"])}</td></tr>'
-        for change in changes[:20]
+        for change in contextual_changes
     ) or (
         f'<tr><td style="color:{colours["muted"]};">'
         "No lifecycle state changes identified.</td></tr>"

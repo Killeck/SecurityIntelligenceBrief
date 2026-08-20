@@ -28,6 +28,9 @@ history remains available in Git history.
 - Added `config/sources.json` overlays for source URLs, selectors, limits, scoring, freshness and enable/disable state.
 - Added persistent cross-run Daily duplicate suppression that retains materially changed advisories.
 - Added explicit confidence and corroborating-source counts for material Daily and Weekly vulnerability claims.
+- Rebalanced Weekly section 1 to concise Nature, Impact area and Evidence text while adding vulnerability context to section 3 lifecycle changes.
+- Restored a text-only Daily DEFCON guide listing levels 1–5 without coloured level boxes.
+- Added customer-impact mappings for BoligByggerlag, Energy, Oppdrett and Transportation.
 
 ### Changed
 
@@ -39,7 +42,7 @@ history remains available in Git history.
 
 ### Validation
 
-- Local offline regression suite: **73/73 tests passed**.
+- Local offline regression suite: **75/75 tests passed**.
 - GitHub Python 3.12 regression suite: **passed** on the v6.0.0 branch before release-metadata normalisation.
 - Final repository CI and live Gmail delivery remain production gates after the complete 6.0.0 release commit is pushed.
 

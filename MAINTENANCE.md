@@ -5,7 +5,8 @@ Proprietary software. See LICENSE.
 
 # Maintenance Backlog
 
-`MAINTENANCE.md` contains **open work only**. Completed work is removed from this file when released and recorded in `CHANGELOG.md`.
+`MAINTENANCE.md` contains **open work only**. Completed work is removed from this
+file when released and recorded in `CHANGELOG.md`.
 
 ## Documentation ownership
 
@@ -18,36 +19,40 @@ Proprietary software. See LICENSE.
 
 ## Release discipline
 
-Every functional or presentation release must increment `VERSION`, update the changelog and current-state documentation, remove completed backlog items, update tests, record actual validation, and use commit format `<VERSION> - <short comment>`.
+Every functional or presentation release must increment `VERSION`, update the
+changelog and current-state documentation, remove completed backlog items,
+update tests, record actual validation, and use commit format
+`<VERSION> - <short comment>`.
 
 ## Current baseline
 
-Version 6.1.0 established the source-architecture baseline:
+Version 6.1.2 extends the 6.1.0 source-architecture baseline and the 6.1.1
+maintenance-document alignment.
+
+Delivered capabilities include:
 
 - declarative priority-vendor coverage;
 - authoritative-versus-supporting evidence separation;
 - GitHub Advisory Database corroboration;
-- persistent source-health semantics including `CONTENT`, `QUIET`, `PARTIAL`, `STALE`, `DEGRADED` and `FAILED`;
+- persistent source-health semantics including `CONTENT`, `QUIET`, `PARTIAL`,
+  `STALE`, `DEGRADED` and `FAILED`;
 - explicit confidence and corroborating-source counts for material vulnerability claims;
-- persistent NVD caching, configurable source overlays, bounded detail collection and Daily duplicate suppression from 6.0.0.
+- persistent NVD caching, configurable source overlays, bounded detail collection
+  and Daily duplicate suppression from 6.0.0;
+- restored compact executive header with one active Overall Threat box and a
+  text-only DEFCON 1–5 legend on the same row.
 
-The backlog below therefore contains only work that remains incomplete after 6.0.0 and 6.1.0.
+The backlog below contains open work only.
 
 ## Priority 1 — Daily Brief intelligence quality
 
-### 1.1 DEFCON presentation
-
-- Restore the **text-only DEFCON 1–5 legend** on the same horizontal row as `Overall Threat`, aligned to the right.
-- Keep only one active colour-coded Overall Threat indicator.
-- Do not reintroduce a second set of coloured DEFCON status boxes.
-
-### 1.2 Critical Vulnerabilities / Zero-days TL;DR cleanup
+### 1.1 Critical Vulnerabilities / Zero-days TL;DR cleanup
 
 - Remove stray Markdown/source artefacts such as repeated `#` characters from TL;DR text.
 - Normalise TL;DR content before HTML rendering rather than masking artefacts with presentation-only CSS.
 - Keep each TL;DR concise and decision-useful: vulnerability mechanism, affected technology and material impact.
 
-### 1.3 Active Exploitation / Threat Actor Activity
+### 1.2 Active Exploitation / Threat Actor Activity
 
 - Replace the effectively empty short-window view with a **rolling 90-day activity view**.
 - Preserve normal 36/72-hour freshness for the rest of the Daily Brief.
@@ -58,14 +63,17 @@ The backlog below therefore contains only work that remains incomplete after 6.0
   - `days ago`;
   - confidence;
   - evidence / primary source.
-- Update `last_seen` only when new evidence demonstrates actual activity, targeting, exploitation, infrastructure activity, malware operation, incident attribution or equivalent material observation.
+- Update `last_seen` only when new evidence demonstrates actual activity,
+  targeting, exploitation, infrastructure activity, malware operation, incident
+  attribution or equivalent material observation.
 - Do not reset `last_seen` because an article merely mentions an actor.
 - Drop entries after 90 days without qualifying activity.
 - Persist state across Daily runs.
 
-### 1.4 CISO Watch Next / Security Advisory redesign
+### 1.3 CISO Watch Next / Security Advisory redesign
 
-- Rework the 24/72-hour sections into grouped, correlated developments rather than independent story repetition.
+- Rework the 24/72-hour sections into grouped, correlated developments rather
+  than independent story repetition.
 - Use a decision-oriented structure:
   - Development
   - Evidence
@@ -73,11 +81,14 @@ The backlog below therefore contains only work that remains incomplete after 6.0
   - Sector relevance
   - What to watch next
   - Recommended action
-- Correlate vendor advisory, CISA KEV, NVD and trusted research into one logical development when they describe the same issue.
+- Correlate vendor advisory, CISA KEV, NVD and trusted research into one logical
+  development when they describe the same issue.
 - Separate:
   - **Next 24h** — active exposure, verification and immediate action.
   - **Next 72h** — emerging developments, vendor updates, exploitation confirmation and monitoring.
-- Prefer thematic grouping where useful: vulnerabilities/exposure; identity/cloud; threat actors/ransomware; AI security/trust; governance/regulation; sector/business impact.
+- Prefer thematic grouping where useful: vulnerabilities/exposure; identity/cloud;
+  threat actors/ransomware; AI security/trust; governance/regulation;
+  sector/business impact.
 
 ## Priority 2 — AI Security & Trustworthiness
 
@@ -109,7 +120,10 @@ Track material developments affecting:
 - human oversight;
 - regulatory or provider changes with operational security consequence.
 
-Relevant ecosystems include Microsoft, OpenAI, Google, AWS, Anthropic and major open-source platforms, but generic model releases and marketing must be excluded unless they have a concrete security, trustworthiness, regulatory or operational consequence.
+Relevant ecosystems include Microsoft, OpenAI, Google, AWS, Anthropic and major
+open-source platforms, but generic model releases and marketing must be excluded
+unless they have a concrete security, trustworthiness, regulatory or operational
+consequence.
 
 ## Priority 3 — Vendor and source truth
 
@@ -124,13 +138,17 @@ Replace `No material update` as a generic outcome with explicit states:
 - `Source unavailable`.
 - `Status unknown`.
 
-A clean negative may be shown only when collection succeeded, expected content parsed, freshness is acceptable and coverage is complete.
+A clean negative may be shown only when collection succeeded, expected content
+parsed, freshness is acceptable and coverage is complete.
 
 ### 3.2 Fortinet / Palo Alto / priority-vendor verification
 
-- Verify whether current Fortinet, Palo Alto and other priority-vendor clean states represent genuine absence of qualifying advisories or a collection/mapping/health problem.
+- Verify whether current Fortinet, Palo Alto and other priority-vendor clean
+  states represent genuine absence of qualifying advisories or a
+  collection/mapping/health problem.
 - Add regression coverage for authoritative-source naming, vendor mapping and status rendering.
-- Maintain CrowdStrike as supporting-only until a stable public authoritative product/security-advisory path exists.
+- Maintain CrowdStrike as supporting-only until a stable public authoritative
+  product/security-advisory path exists.
 
 ### 3.3 Partial-source propagation
 
@@ -181,7 +199,8 @@ Retain dedicated Oil & Gas classification where sector-specific operational risk
 ## Priority 5 — Source architecture phase 2
 
 - Add GitHub Advisory Database pagination and explicit completeness/rate-limit handling.
-- Use advisory `updated_at` semantics when a materially changed advisory would otherwise be missed by its original publication date.
+- Use advisory `updated_at` semantics when a materially changed advisory would
+  otherwise be missed by its original publication date.
 - Enrich GHSA records with package/ecosystem, aliases and withdrawn state where useful.
 - Mark GHSA collection `PARTIAL` when the available result set is known to be truncated or incomplete.
 - Add a stronger authoritative CrowdStrike path if a stable public source becomes available.
@@ -198,10 +217,12 @@ Retain dedicated Oil & Gas classification where sector-specific operational risk
 
 ## Priority 7 — Reliability, security and CI integrity
 
-- Fix regression-test discovery so `tests/tests/test_priority_vendor_sources.py` is executed by the standard `python -m unittest discover -s tests -v` CI command.
+- Fix regression-test discovery so `tests/tests/test_priority_vendor_sources.py`
+  is executed by the standard `python -m unittest discover -s tests -v` CI command.
 - Pin Python dependencies with hashes.
 - Generate a machine-readable CycloneDX or SPDX SBOM.
-- Add general first-seen / last-seen timestamps where they improve lifecycle analysis beyond the dedicated threat-actor state.
+- Add general first-seen / last-seen timestamps where they improve lifecycle
+  analysis beyond the dedicated threat-actor state.
 - Review `main` branch protection and require Repository CI before merge.
 - Review repository visibility against the proprietary/confidential project posture.
 
@@ -224,15 +245,34 @@ Retain dedicated Oil & Gas classification where sector-specific operational risk
 - Correlate vendor advisories, NVD, KEV and primary research into one logical development.
 - Represent uncertainty explicitly where exploitation or attribution is reported but not confirmed.
 
-## 6.1.1 maintenance completion criteria
+### Candidate source evaluation — GuidePoint Security GRIT
 
-Version 6.1.1 is a maintenance-alignment release only. It is complete when:
+Evaluate public research from **GuidePoint Security's Research and Intelligence
+Team (GRIT)** as a Tier-B supporting threat-intelligence source.
 
-- this backlog contains only genuinely open work;
-- `docs/operations/CONTINUITY.md` reflects the 6.1.0 baseline and the 6.1.1 continuation point;
-- stale 6.0.0 / proposed 6.0.1 continuation language is removed;
-- no production Python behaviour is changed;
-- repository compilation and regression tests pass unchanged;
-- release documentation records the actual validation result.
+Evaluation scope:
 
-The functional items above become implementation scope for the next version after 6.1.1 is validated.
+- public GRIT quarterly and annual Ransomware and Cyber Threat Insights reports;
+- publicly available GRIT research/blog material covering ransomware, cybercrime,
+  threat actors, TTPs, supply-chain activity and AI-enabled threats;
+- availability of a stable public RSS/feed, index page or other automatable retrieval path;
+- publication timestamps and freshness suitable for Daily versus historical/quarterly reporting;
+- structured extraction of actor/campaign, targeting, TTP, sector, ransomware and last-observed activity;
+- usefulness as corroboration for the rolling 90-day Threat Actor Activity view
+  and AI Security & Trustworthiness reporting.
+
+Source policy:
+
+- Treat public GRIT material as **supporting research**, not an authoritative
+  vendor remediation or clean-negative source.
+- Prefer GRIT's own published research over third-party summaries.
+- Do not introduce a paid/licensed dependency solely for this source.
+- GRIT's customer-access near-real-time Threat Feed remains out of scope unless
+  a future release explicitly approves a commercial/licensed integration.
+
+## Next release direction
+
+After 6.1.2 passes Repository CI and visual Daily delivery validation, continue
+with the remaining Daily Brief intelligence-quality backlog. The next functional
+version should start with the TL;DR cleanup and rolling 90-day threat-actor state
+unless testing identifies a higher-priority defect.

@@ -54,19 +54,29 @@ def _cve_plain(cve: str) -> str:
 
 
 def _type_and_scope(record: VulnerabilityRecord) -> str:
-    """Explain what the vulnerability is and identify its affected scope."""
+    """Return a compact vulnerability description with scope and evidence.
+
+    Weekly reporting intentionally omits the full source summary here. The
+    detailed advisory remains linked separately, while this column preserves
+    the decision-relevant fields: what the issue is, affected scope, and the
+    confidence/corroboration level.
+    """
 
     title = record.title.strip().rstrip(".")
-    summary = record.summary.strip().rstrip(".")
-    scope = (record.affected or record.product or record.category).strip().rstrip(".")
-    details = [f"{title}." if title else "Vulnerability details unavailable."]
-    if summary and summary.casefold() != title.casefold():
-        details.append(f"{summary}.")
-    details.append(f"Affected scope: {scope or 'Not stated' }.")
-    details.append(
-        f"Evidence: {record.confidence} "
-        f"({record.corroboration_count} source(s))."
-    )
+    scope = (
+        record.affected
+        or record.product
+        or record.category
+    ).strip().rstrip(".")
+
+    details = [
+        f"{title}." if title else "Vulnerability details unavailable.",
+        f"Affected: {scope or 'Not stated'}.",
+        (
+            f"Evidence: {record.confidence} "
+            f"({record.corroboration_count} source(s))."
+        ),
+    ]
     return " ".join(details)
 
 

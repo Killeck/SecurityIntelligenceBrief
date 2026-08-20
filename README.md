@@ -51,8 +51,8 @@ or illicit marketplaces.
 
 ## Authoritative priority-vendor vulnerability coverage
 
-Version 6.0.0 keeps vendor-owned security-bulletin channels separate from research
-and news sources and adds authoritative Cisco PSIRT coverage.
+Version 6.1.x keeps vendor-owned security-bulletin channels separate from research
+and news sources.
 
 | Vendor / area | Authoritative collection path |
 |---|---|
@@ -72,16 +72,16 @@ and news sources and adds authoritative Cisco PSIRT coverage.
 
 Research sources such as Palo Alto Unit 42, FortiGuard Labs, Google Security
 Blog, Google Project Zero and AWS Security Blog remain useful context sources,
-but they no longer stand in for the vendor's vulnerability-advisory channel.
+but they do not stand in for the vendor's vulnerability-advisory channel.
 
 The NVD fallback attributes records to specific priority vendors rather than
 leaving AWS, Google and Okta inside a broad cloud bucket or Palo Alto/Cisco/Apple
 inside a generic `Other priority vendors` bucket.
 
-Version 6.0.0 keeps KEV & Priority Vendor Status health-aware with source-specific freshness, selector-health detection and persistent partial/stale-state handling. A clean negative
-is shown only when the expected authoritative source was successfully checked.
-Failed or partial authoritative coverage is shown as unknown/degraded instead of
-`No material update`.
+KEV & Priority Vendor Status is health-aware with source-specific freshness,
+selector-health detection and persistent partial/stale-state handling. A clean
+negative is shown only when the expected authoritative source was successfully
+checked. Failed or partial authoritative coverage is shown as unknown/degraded.
 
 ## Daily report behaviour
 
@@ -99,9 +99,19 @@ Failed or partial authoritative coverage is shown as unknown/degraded instead of
 - Adds GitHub Advisory Database records as open-source vulnerability corroboration, while retaining vendor, CISA and NVD evidence rules for authoritative claims.
 - Sends multipart HTML/plain-text email through the Gmail API.
 
+### Executive threat header — 6.1.2
+
+Version 6.1.2 restores the approved executive threat-header hierarchy:
+
+- one compact, colour-coded **Overall Threat** box on the left;
+- a **text-only DEFCON 1–5 explanatory legend** aligned to the right on the same row;
+- the current DEFCON level is marked in the legend;
+- no duplicate five-box active DEFCON scale is rendered;
+- the five operational metric cards remain on the full-width row immediately below.
+
 The current dashboard includes:
 
-- one colour-coded Overall Threat status without a duplicate DEFCON scale or legend
+- Overall Threat + text-only DEFCON 1–5 legend
 - supporting metric cards
 - Executive Summary / Top Developments
 - KEV & Priority Vendor Status
@@ -125,12 +135,12 @@ Fortinet, AWS, Google, Palo Alto, HPE/Aruba and Okta coverage without a second
 source configuration.
 
 The header and subject include ISO week number/year. The main table uses fixed
-Outlook-safe column widths. The raw internal 0–100 priority score is no longer
-shown; remediation bands remain user-facing. Every displayed full CVE identifier
-links directly to NVD. Version 6.0.0 adds a dedicated Vulnerability details
-column containing the advisory title, descriptive source summary and explicit
-affected scope. That descriptive text, confidence label and corroborating-source
-count are retained in lifecycle history.
+Outlook-safe column widths. The raw internal 0–100 priority score is not shown;
+remediation bands remain user-facing. Every displayed full CVE identifier links
+directly to NVD. The dedicated Vulnerability details column contains the
+advisory title, descriptive source summary and explicit affected scope.
+Descriptive text, confidence and corroborating-source count are retained in
+lifecycle history.
 
 It provides:
 
@@ -174,6 +184,7 @@ independently establish a confirmed organisational incident.
 .
 ├── .github/workflows/
 │   ├── daily-security-brief.yml
+│   ├── repository-ci.yml
 │   ├── test-security-brief.yml
 │   └── weekly-vulnerability-report.yml
 ├── assets/
@@ -181,13 +192,14 @@ independently establish a confirmed organisational incident.
 │   ├── architecture/
 │   │   └── OPTIMISATION.md
 │   ├── operations/
+│   │   ├── CONTINUITY.md
 │   │   └── WEEKLY_VULNERABILITY_REPORT.md
 │   └── releases/
+│       ├── RELEASE_6.1.2.md
+│       ├── RELEASE_6.1.1.md
 │       ├── RELEASE_6.1.0.md
-│       ├── RELEASE_6.0.0.md
-│       ├── RELEASE_5.7.0.md
 │       └── manifests/
-│           └── RELEASE_MANIFEST.json
+│           └── RELEASE_6.1.2.json
 ├── config/
 │   ├── sources.json
 │   └── upcoming_governance.json
@@ -225,10 +237,10 @@ independently establish a confirmed organisational incident.
 │   └── send_weekly_vulnerability_report.py
 ├── tests/
 │   ├── test_archive.py
-│   ├── test_priority_vendor_sources.py
 │   ├── test_report_policy.py
 │   ├── test_smoke.py
 │   ├── test_source_health.py
+│   ├── test_v6_maintenance.py
 │   ├── test_vulnerability_reporting.py
 │   └── test_weekly_rendering.py
 ├── CHANGELOG.md
@@ -305,23 +317,16 @@ Then run:
 Actions → Test Daily Security Brief
 ```
 
-For v6.0.0, verify the Actions log contains successful checks for:
+For 6.1.2, visually verify the received Daily report has:
 
-```text
-Fortinet PSIRT RSS
-AWS Security Bulletins
-Google Cloud Security Bulletins
-Google Chrome Releases
-Palo Alto Networks Security Advisories
-Okta Security Advisories
-HPE Security Bulletin Library
-Cisco Security Advisories
-NVD priority-vendor CVEs
-```
+1. compact Overall Threat box at the left;
+2. DEFCON 1–5 text legend at the right on the same row;
+3. exactly one current-level marker in the legend;
+4. the five metric cards on the row below;
+5. no duplicate five-box active DEFCON scale.
 
 A failed authoritative source must be investigated in GitHub Actions rather
-than assuming the vendor had no security updates. Version 6.0.0 exposes failed
-or partial authoritative coverage as unknown/degraded in the vendor-status view.
+than assuming the vendor had no security updates.
 
 ## Documentation roles
 

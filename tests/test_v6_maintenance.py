@@ -1,7 +1,11 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary and confidential. See LICENSE.
 
-"""Regression coverage for the 6.0.0 maintenance boundaries."""
+"""Regression coverage for the 6.0.0 maintenance boundaries.
+
+The component checks ensure Overall Threat remains singular and the restored
+Enterprise DEFCON guide remains text-only.
+"""
 
 from __future__ import annotations
 

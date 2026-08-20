@@ -1,6 +1,11 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary and confidential. See LICENSE.
 
+"""Version 6.0.0 presentation tests for the Weekly Vulnerability Report.
+
+The suite verifies concise nature and impact-area context in sections 1 and 3.
+"""
+
 from __future__ import annotations
 
 import unittest

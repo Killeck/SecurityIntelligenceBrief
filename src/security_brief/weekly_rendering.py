@@ -7,7 +7,8 @@ The underlying vulnerability lifecycle and scoring model remains in
 ``vulnerability_reporting.py``. This module keeps raw internal priority scores
 out of the user-facing report, aligns Outlook table columns explicitly, adds the
 ISO week number, and ensures every displayed full CVE identifier links directly
-to its NVD record.
+to its NVD record. Version 6.0.0 gives section 1 concise vulnerability nature,
+impact-area and evidence context and adds nature/impact context to section 3.
 """
 
 from __future__ import annotations

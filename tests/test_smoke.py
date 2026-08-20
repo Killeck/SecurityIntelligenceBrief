@@ -1,7 +1,11 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary and confidential. See LICENSE.
 
-"""Offline regression tests for the optimised briefing pipeline."""
+"""Offline regression tests for the optimised v6.0.0 briefing pipeline.
+
+Coverage includes the requested customer segments and the text-only Daily
+Enterprise DEFCON guide.
+"""
 
 from __future__ import annotations
 

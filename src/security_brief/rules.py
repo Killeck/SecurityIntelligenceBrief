@@ -1,7 +1,11 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary and confidential. See LICENSE.
 
-"""Deterministic relevance, classification and advisory rules."""
+"""Deterministic relevance, classification and advisory rules.
+
+Version 6.0.0 includes dedicated customer-impact mappings for BoligByggerlag,
+Energy, Oppdrett and Transportation.
+"""
 
 from __future__ import annotations
 

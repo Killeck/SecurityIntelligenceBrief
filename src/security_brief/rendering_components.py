@@ -1,7 +1,11 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary and confidential. See LICENSE.
 
-"""Self-contained Outlook-safe components used by report renderers."""
+"""Self-contained Outlook-safe components used by report renderers.
+
+Version 6.0.0 separates the colour-coded Overall Threat component from the
+plain-text Enterprise DEFCON guide so the Daily report avoids duplicate boxes.
+"""
 
 from __future__ import annotations
 

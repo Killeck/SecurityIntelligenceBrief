@@ -5,6 +5,8 @@
 
 Rendering is deliberately side-effect free. It receives already selected and
 classified records, which makes it testable without network or SMTP access.
+Version 6.0.0 retains the colour-coded Overall Threat status and adds the
+Enterprise DEFCON scale as text only, without a duplicate set of level boxes.
 """
 
 from __future__ import annotations

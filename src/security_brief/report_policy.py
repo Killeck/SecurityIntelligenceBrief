@@ -30,6 +30,7 @@ from typing import Any, Iterable
 from . import rendering as base
 from .models import Item
 from .utils import truncate
+from .vendor_coverage import CISA_KEV_COVERAGE, VENDOR_COVERAGE, VendorCoverage
 
 
 EPSS_PATTERN = re.compile(
@@ -38,42 +39,6 @@ EPSS_PATTERN = re.compile(
 )
 CVE_PATTERN = re.compile(r"\bCVE-\d{4}-\d{4,}\b", flags=re.IGNORECASE)
 _RENDER_LOCK = threading.Lock()
-
-# Sources that can establish a clean vendor-specific negative result.
-# CrowdStrike remains supporting-coverage only: no stable public product
-# security-advisory channel has been identified. Cisco PSIRT is authoritative.
-AUTHORITATIVE_VENDOR_SOURCES: dict[str, tuple[str, ...]] = {
-    "CISA KEV": ("CISA KEV",),
-    "Microsoft": ("Microsoft Security Response Center",),
-    "Fortinet": ("Fortinet PSIRT RSS",),
-    "Palo Alto": ("Palo Alto Networks Security Advisories",),
-    "Google": (
-        "Google Cloud Security Bulletins",
-        "Google Chrome Releases",
-    ),
-    "Apple": ("Apple Security Releases",),
-    "AWS": ("AWS Security Bulletins",),
-    "Okta": ("Okta Security Advisories",),
-    "HPE / Aruba": ("HPE Security Bulletin Library",),
-    "Cisco": ("Cisco Security Advisories",),
-}
-
-SUPPORTING_VENDOR_SOURCES: dict[str, tuple[str, ...]] = {
-    "CrowdStrike": ("NVD priority-vendor CVEs", "CrowdStrike Blog"),
-}
-
-VENDOR_TERMS: dict[str, tuple[str, ...]] = {
-    "Microsoft": ("microsoft",),
-    "Fortinet": ("fortinet", "fortios", "fortigate"),
-    "Palo Alto": ("palo alto", "pan-os", "globalprotect", "prisma", "cortex"),
-    "Cisco": ("cisco",),
-    "Google": ("google", "chrome", "chromium"),
-    "Apple": ("apple", "macos", "ios", "ipados", "safari"),
-    "AWS": ("aws", "amazon web services", "amazon linux"),
-    "Okta": ("okta",),
-    "CrowdStrike": ("crowdstrike", "falcon sensor"),
-    "HPE / Aruba": ("hpe", "hewlett packard enterprise", "aruba", "aos-cx"),
-}
 
 
 @dataclass(frozen=True)
@@ -178,7 +143,7 @@ def ensure_mandatory_vulnerabilities(
 
 def _normalised_health_state(entry: dict[str, Any]) -> str:
     explicit = str(entry.get("health_state", "")).upper().strip()
-    if explicit in {"CONTENT", "QUIET", "DEGRADED", "STALE", "FAILED"}:
+    if explicit in {"CONTENT", "QUIET", "DEGRADED", "STALE", "PARTIAL", "FAILED"}:
         return explicit
 
     if str(entry.get("status", "")).upper() != "OK":
@@ -208,7 +173,7 @@ def _health_for_sources(
 
     states = [_normalised_health_state(entry) for entry in matched]
     failed = sum(state == "FAILED" for state in states)
-    degraded = sum(state in {"DEGRADED", "STALE"} for state in states)
+    degraded = sum(state in {"DEGRADED", "STALE", "PARTIAL"} for state in states)
     healthy = sum(state in {"CONTENT", "QUIET"} for state in states)
 
     if failed == len(states) and not missing:
@@ -220,20 +185,19 @@ def _health_for_sources(
     return "UNKNOWN", matched
 
 
-def _matches_vendor(item: Item, label: str) -> bool:
-    terms = VENDOR_TERMS.get(label, (label.lower(),))
+def _matches_vendor(item: Item, coverage: VendorCoverage) -> bool:
     combined = (
         f" {item.vendor} {item.source} {item.section} "
         f"{item.title} {item.summary} "
     ).lower()
-    return any(term in combined for term in terms)
+    return any(term in combined for term in coverage.terms)
 
 
 def _material_vendor_items(
     items: Iterable[Item],
-    label: str,
+    coverage: VendorCoverage,
 ) -> list[Item]:
-    matched = [item for item in items if _matches_vendor(item, label)]
+    matched = [item for item in items if _matches_vendor(item, coverage)]
     material = [
         item
         for item in matched
@@ -270,7 +234,7 @@ def vendor_statuses(
         reverse=True,
     )
     kev_health, _ = _health_for_sources(
-        AUTHORITATIVE_VENDOR_SOURCES["CISA KEV"],
+        CISA_KEV_COVERAGE.authoritative_sources,
         source_health,
     )
     if kev_items:
@@ -300,25 +264,13 @@ def vendor_statuses(
         )
     )
 
-    for label in (
-        "Microsoft",
-        "Fortinet",
-        "Palo Alto",
-        "Cisco",
-        "Google",
-        "Apple",
-        "AWS",
-        "Okta",
-        "CrowdStrike",
-        "HPE / Aruba",
-    ):
-        material = _material_vendor_items(items, label)
-        matched = [item for item in items if _matches_vendor(item, label)]
+    for coverage in VENDOR_COVERAGE:
+        material = _material_vendor_items(items, coverage)
+        matched = [item for item in items if _matches_vendor(item, coverage)]
 
-        authoritative_sources = AUTHORITATIVE_VENDOR_SOURCES.get(label)
-        if authoritative_sources:
+        if coverage.has_public_authoritative_path:
             health, _ = _health_for_sources(
-                authoritative_sources,
+                coverage.authoritative_sources,
                 source_health,
             )
 
@@ -344,7 +296,7 @@ def vendor_statuses(
                 status = "Status unknown"
                 colour = base.DASHBOARD_COLOURS["medium"]
         else:
-            supporting = SUPPORTING_VENDOR_SOURCES.get(label, ())
+            supporting = coverage.supporting_sources
             health, _ = _health_for_sources(supporting, source_health)
             if material:
                 status = f"{len(material)} material update(s) · supporting coverage"
@@ -361,12 +313,15 @@ def vendor_statuses(
 
         statuses.append(
             VendorStatus(
-                label=label,
+                label=coverage.label,
                 status=status,
                 colour=colour,
                 count=len(material),
                 entries=tuple(material),
-                information_url=base._vendor_information_url(label, matched),
+                information_url=base._vendor_information_url(
+                    coverage.label,
+                    matched,
+                ),
             )
         )
 

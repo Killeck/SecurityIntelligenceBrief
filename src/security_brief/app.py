@@ -38,6 +38,7 @@ from .collectors import (
     fetch_hibp_breaches,
     fetch_hibp_domain_exposure,
     fetch_html,
+    fetch_github_advisories,
     fetch_kev,
     fetch_rss,
 )
@@ -62,6 +63,7 @@ from .priority_vendor_sources import (
     fetch_hpe_security_bulletins,
     fetch_priority_vendor_nvd,
 )
+from .open_source_sources import OPEN_VULNERABILITY_SOURCES
 from .report_policy import ensure_mandatory_vulnerabilities, render_report
 from .runtime_profile import RuntimeProfiler
 from .source_config import (
@@ -321,6 +323,16 @@ def primary_tasks(
             fetch=lambda: fetch_hpe_security_bulletins(cutoff),
             detail="Authoritative HPE/Aruba bulletin library",
         )
+    )
+
+    tasks.extend(
+        FetchTask(
+            name=source.name,
+            fetch=lambda source=source: fetch_github_advisories(source, cutoff),
+            detail="Open-source vulnerability corroboration",
+            freshness_days=source.freshness_days,
+        )
+        for source in configure_sources(OPEN_VULNERABILITY_SOURCES, overrides)
     )
 
     tasks.extend(

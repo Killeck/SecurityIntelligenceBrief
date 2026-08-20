@@ -68,6 +68,7 @@ and news sources and adds authoritative Cisco PSIRT coverage.
 | Apple | Apple Security Releases |
 | Cisco | Cisco Security Advisories |
 | NVD | Priority-vendor CVE corroboration/fallback with specific vendor attribution |
+| GitHub Advisory Database | Structured open-source vulnerability corroboration; not an authoritative remediation source |
 
 Research sources such as Palo Alto Unit 42, FortiGuard Labs, Google Security
 Blog, Google Project Zero and AWS Security Blog remain useful context sources,
@@ -95,6 +96,7 @@ Failed or partial authoritative coverage is shown as unknown/degraded instead of
 - Records stage-level runtime profiles for operational tuning.
 - Uses a conservative Enterprise DEFCON-style threat model.
 - Labels exposure intelligence by confidence.
+- Adds GitHub Advisory Database records as open-source vulnerability corroboration, while retaining vendor, CISA and NVD evidence rules for authoritative claims.
 - Sends multipart HTML/plain-text email through the Gmail API.
 
 The current dashboard includes:

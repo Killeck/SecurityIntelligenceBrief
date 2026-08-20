@@ -29,7 +29,7 @@ from security_brief.collectors import (
     canonicalise_article_url,
     executive_article_url_allowed,
 )
-from security_brief.models import ExposureSignal, Item, NewsLink
+from security_brief.models import ExposureSignal, Item, NewsLink, Source
 from security_brief.rendering import (
     _metric_card,
     _render_threat_rows,
@@ -240,22 +240,29 @@ class PipelineTests(unittest.TestCase):
         self.assertIn("Cyber Security News", discovery_names)
         self.assertNotIn("Reuters Cybersecurity", discovery_names)
 
-        rapid7 = next(
-            source for source in RSS_SOURCES
-            if source.name == "Rapid7 Vulnerability Research"
+        rapid7 = next(source for source in RSS_SOURCES if source.name == "Rapid7 Vulnerability Research")
+        shadowserver = next(source for source in HTML_SOURCES if source.name == "Shadowserver Foundation")
+        self.assertEqual(rapid7.url, "https://www.rapid7.com/blog/tag/research/rss/")
+        self.assertEqual(shadowserver.url, "https://www.shadowserver.org/news-insights/")
+
+    def test_github_advisories_are_open_source_corroboration(self) -> None:
+        source = Source(
+            "GitHub Advisory Database", "GitHub", "https://example.invalid", "github_advisories", 20, "Vulnerability Research"
         )
-        shadowserver = next(
-            source for source in HTML_SOURCES
-            if source.name == "Shadowserver Foundation"
-        )
-        self.assertEqual(
-            rapid7.url,
-            "https://www.rapid7.com/blog/tag/research/rss/",
-        )
-        self.assertEqual(
-            shadowserver.url,
-            "https://www.shadowserver.org/news-insights/",
-        )
+        payload = [{
+            "ghsa_id": "GHSA-test-test-test",
+            "cve_id": "CVE-2026-12345",
+            "summary": "Example package vulnerability",
+            "description": "A remote code execution vulnerability affects the package.",
+            "html_url": "https://github.com/advisories/GHSA-test-test-test",
+            "published_at": self.now.isoformat(),
+            "cvss": {"score": 9.8},
+        }]
+        with patch.object(collectors, "http_get", return_value=MockResponse(payload)):
+            items = collectors.fetch_github_advisories(source, self.now - timedelta(days=1))
+        self.assertEqual(len(items), 1)
+        self.assertEqual(items[0].cves, ["CVE-2026-12345"])
+        self.assertEqual(items[0].cvss_score, 9.8)
 
     def test_epss_enrichment_adjusts_priority_without_claiming_exploitation(self) -> None:
         self.item.exploited = False

@@ -19,6 +19,7 @@ from security_brief.nvd_cache import NvdCache
 from security_brief.rendering_components import render_overall_threat_status
 from security_brief.runtime_profile import RuntimeProfiler
 from security_brief.source_config import configure_sources, load_source_overrides
+from security_brief.vendor_coverage import VENDOR_COVERAGE, coverage_for
 
 
 def sample_item(**changes: object) -> Item:
@@ -122,6 +123,13 @@ class VersionSixMaintenanceTests(unittest.TestCase):
         self.assertIn("3 — Elevated", rendered)
         self.assertNotIn("DEFCON 1", rendered)
         self.assertEqual(rendered.count('width="100%"'), 2)
+
+    def test_vendor_coverage_keeps_crowdstrike_supporting_only(self) -> None:
+        crowdstrike = coverage_for("CrowdStrike")
+        self.assertIsNotNone(crowdstrike)
+        self.assertFalse(crowdstrike.has_public_authoritative_path)
+        self.assertIn("CrowdStrike Blog", crowdstrike.supporting_sources)
+        self.assertEqual(len(VENDOR_COVERAGE), 10)
 
 
 if __name__ == "__main__":

@@ -14,6 +14,25 @@ history remains available in Git history.
 
 ---
 
+## 6.1.0 - 2026-08-20
+
+### Added
+
+- Added the public GitHub Advisory Database as structured open-source vulnerability corroboration.
+- Added a dedicated vendor-coverage registry, separating vendor evidence policy from generic report policy.
+- Added explicit `PARTIAL` source-health handling for successful but incomplete source collection.
+
+### Changed
+
+- CrowdStrike public coverage is now formally supporting-only: its public blog and NVD correlation cannot establish a clean vendor negative while detailed product notices remain customer-portal material.
+- Began the source-architecture refactor for the 6.1.0 release line.
+
+### Validation
+
+- Local offline regression suite: **76/76 tests passed**.
+- Python compilation passed locally.
+- Repository CI and live Daily/Weekly delivery remain production gates.
+
 ## 6.0.0 - 2026-08-18
 
 ### Major update

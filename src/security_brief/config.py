@@ -56,6 +56,8 @@ CISA_KEV_CATALOGUE = (
 
 NVD_CVE_API = "https://services.nvd.nist.gov/rest/json/cves/2.0"
 
+GITHUB_ADVISORIES_API = "https://api.github.com/advisories"
+
 FIRST_EPSS_API = "https://api.first.org/data/v1/epss"
 
 MSRC_UPDATES_API = "https://api.msrc.microsoft.com/cvrf/v3.0/updates"

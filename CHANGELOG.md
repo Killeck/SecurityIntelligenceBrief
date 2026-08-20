@@ -14,6 +14,47 @@ history remains available in Git history.
 
 ---
 
+## 6.1.2 - 2026-08-20
+
+### Fixed
+
+- Restored the approved Daily executive threat-header layout with a compact
+  colour-coded Overall Threat box on the left and a text-only DEFCON 1–5 legend
+  on the right on the same row.
+- Restored all five explanatory DEFCON descriptions and marks the current level
+  once in the legend.
+- Preserved the five operational metric cards on the full-width row below.
+- Kept the legend explanatory only; the obsolete five-box active DEFCON scale is
+  not reintroduced.
+
+### Changed
+
+- Kept the implementation isolated in `rendering_components.py` so the large
+  Daily renderer and metric-card structure remain unchanged.
+- Updated regression coverage from the 6.0.0 "legend absent" expectation to the
+  approved 6.1.2 hierarchy.
+- Removed the completed DEFCON restoration from the open maintenance backlog.
+
+### Validation
+
+- Changed Python files syntax-compile successfully in the build package.
+- Isolated DEFCON component functional/layout test: **passed**.
+- Full Repository CI and manual Daily Gmail visual validation remain release gates.
+
+## 6.1.1 - 2026-08-20
+
+### Documentation / maintenance
+
+- Reconciled `MAINTENANCE.md` against capabilities already delivered in 6.0.0
+  and 6.1.0.
+- Updated `docs/operations/CONTINUITY.md` from the stale 6.0.0 continuation
+  point to the 6.1.x development line.
+- Recorded the Daily Brief intelligence-quality backlog covering DEFCON
+  presentation, TL;DR cleanup, rolling threat-actor history, AI Security &
+  Trustworthiness, vendor/source truth, sector relevance and CISO 24/72-hour
+  grouping.
+- No production Python behaviour was intentionally changed.
+
 ## 6.1.0 - 2026-08-20
 
 ### Added
@@ -167,8 +208,7 @@ history remains available in Git history.
 
 ### Added
 
-- Added `priority_vendor_sources.py` as the authoritative priority-vendor
-  vulnerability collection layer.
+- Added `priority_vendor_sources.py` as the authoritative priority-vendor vulnerability collection layer.
 - Added official security bulletin feeds for:
   - Fortinet PSIRT
   - AWS Security Bulletins
@@ -176,46 +216,30 @@ history remains available in Git history.
   - Google Chrome Releases
   - Palo Alto Networks Security Advisories
   - Okta Security Advisories
-- Added a structured HPE Security Bulletin Library adapter that retains release
-  date, CVE and per-CVE CVSS values from the official HPE result table.
-- Added vendor-specific NVD priority coverage for Microsoft, Fortinet, HPE/Aruba,
-  Palo Alto Networks, Cisco, AWS, Google/Chrome, Okta, Apple and CrowdStrike.
-- Added focused regression coverage for source registration, NVD vendor
-  attribution, HPE parsing and primary-task integration.
+- Added a structured HPE Security Bulletin Library adapter that retains release date, CVE and per-CVE CVSS values from the official HPE result table.
+- Added vendor-specific NVD priority coverage for Microsoft, Fortinet, HPE/Aruba, Palo Alto Networks, Cisco, AWS, Google/Chrome, Okta, Apple and CrowdStrike.
+- Added focused regression coverage for source registration, NVD vendor attribution, HPE parsing and primary-task integration.
 
 ### Changed
 
-- Replaced the generic Fortinet PSIRT HTML collector with Fortinet's official
-  PSIRT RSS feed.
+- Replaced the generic Fortinet PSIRT HTML collector with Fortinet's official PSIRT RSS feed.
 - Replaced the generic HPE bulletin collector with the structured HPE adapter.
-- Replaced the general Okta security-article collector in the primary advisory
-  path with Okta's official security-advisory feed.
-- Retained Unit 42, FortiGuard Labs, AWS Security Blog, Google Security Blog and
-  other research sources as complementary intelligence rather than authoritative
-  vulnerability status sources.
-- Replaced broad NVD labels such as `Microsoft / cloud identity` and
-  `Other priority vendors` with specific vendor attribution in the new
-  priority-vendor NVD path.
-- The Weekly Vulnerability Report inherits the same authoritative vendor sources
-  through the shared `primary_tasks()` pipeline.
+- Replaced the general Okta security-article collector in the primary advisory path with Okta's official security-advisory feed.
+- Retained Unit 42, FortiGuard Labs, AWS Security Blog, Google Security Blog and other research sources as complementary intelligence rather than authoritative vulnerability status sources.
+- Replaced broad NVD labels such as `Microsoft / cloud identity` and `Other priority vendors` with specific vendor attribution in the new priority-vendor NVD path.
+- The Weekly Vulnerability Report inherits the same authoritative vendor sources through the shared `primary_tasks()` pipeline.
 
 ### Documentation
 
-- Updated `README.md`, `WEEKLY_VULNERABILITY_REPORT.md` and `OPTIMISATION.md` for
-  the new source architecture and Gmail API delivery.
-- Cleaned documentation ownership: `CHANGELOG.md` now contains released work;
-  `MAINTENANCE.md` contains open work only.
-- Removed completed-release duplication from `MAINTENANCE.md` and restructured
-  the remaining backlog by priority.
+- Updated `README.md`, `WEEKLY_VULNERABILITY_REPORT.md` and `OPTIMISATION.md` for the new source architecture and Gmail API delivery.
+- Cleaned documentation ownership: `CHANGELOG.md` now contains released work; `MAINTENANCE.md` contains open work only.
+- Removed completed-release duplication from `MAINTENANCE.md` and restructured the remaining backlog by priority.
 
 ### Validation
 
 - Syntax-compiled all Python files supplied in the 5.6.4 release package.
-- Added offline regression tests designed to run with the repository's existing
-  test suite before email delivery.
-- Live source retrieval is intentionally validated by the GitHub Actions manual
-  test because the release-build environment has no direct repository network
-  execution path.
+- Added offline regression tests designed to run with the repository's existing test suite before email delivery.
+- Live source retrieval is intentionally validated by the GitHub Actions manual test because the release-build environment has no direct repository network execution path.
 
 ---
 
@@ -223,10 +247,8 @@ history remains available in Git history.
 
 ### Fixed
 
-- Fixed the displayed DEFCON pyramid height at 91 pixels and aligned its five
-  descriptions using matching fixed 18-pixel rows.
-- Prevented legend-description wrapping so each line remains aligned with its
-  corresponding pyramid layer.
+- Fixed the displayed DEFCON pyramid height at 91 pixels and aligned its five descriptions using matching fixed 18-pixel rows.
+- Prevented legend-description wrapping so each line remains aligned with its corresponding pyramid layer.
 
 ### Validation
 
@@ -254,18 +276,15 @@ history remains available in Git history.
 ### Changed
 
 - Rebuilt the executive header around the compact layered DEFCON pyramid.
-- Moved Overall Threat to the bottom-left of the legend row and simplified its
-  presentation to numeric level plus status.
+- Moved Overall Threat to the bottom-left of the legend row and simplified its presentation to numeric level plus status.
 
 ### Fixed
 
-- Isolated Overall Threat and the five supporting metrics into separate
-  email-safe tables to prevent Outlook column collapse.
+- Isolated Overall Threat and the five supporting metrics into separate email-safe tables to prevent Outlook column collapse.
 
 ### Validation
 
-- Passed 50 offline regression tests across the daily and weekly reporting
-  family.
+- Passed 50 offline regression tests across the daily and weekly reporting family.
 
 ---
 
@@ -274,8 +293,7 @@ history remains available in Git history.
 ### Added
 
 - Added the Weekly Vulnerability Report.
-- Added CVE-centred remediation prioritisation using CVSS, EPSS, KEV,
-  exploitation evidence, ransomware association, exposure relevance and age.
+- Added CVE-centred remediation prioritisation using CVSS, EPSS, KEV, exploitation evidence, ransomware association, exposure relevance and age.
 - Added SQLite lifecycle history and month-to-date vulnerability overview.
 - Added ranked KEV and priority-vendor status cards with deep-dive links.
 
@@ -295,8 +313,7 @@ history remains available in Git history.
 
 ### Changed
 
-- Synchronised the repository version following the preceding daily-brief
-  update.
+- Synchronised the repository version following the preceding daily-brief update.
 
 ---
 
@@ -339,8 +356,7 @@ history remains available in Git history.
 
 ### Fixed
 
-- Made MSRC collection tolerate `CurrentReleaseDate` without
-  `InitialReleaseDate` while retaining replay protection.
+- Made MSRC collection tolerate `CurrentReleaseDate` without `InitialReleaseDate` while retaining replay protection.
 
 ### Changed
 
@@ -353,8 +369,7 @@ history remains available in Git history.
 
 ### Fixed
 
-- Prevented research articles from becoming false active-exploitation or breach
-  signals.
+- Prevented research articles from becoming false active-exploitation or breach signals.
 - Recalibrated Overall Threat and limited revised historical MSRC replay.
 - Restored a simpler outbound envelope after corporate-mail filtering issues.
 
@@ -370,8 +385,7 @@ history remains available in Git history.
 
 ### Security
 
-- Withheld risky unverified-claim links from outbound email while retaining the
-  intelligence and confidence labels.
+- Withheld risky unverified-claim links from outbound email while retaining the intelligence and confidence labels.
 
 ---
 
@@ -379,8 +393,7 @@ history remains available in Git history.
 
 ### Added
 
-- Added MSRC Security Update Guide, CERT-EU, Google Threat Intelligence,
-  Rapid7, Shadowserver and FIRST EPSS enrichment.
+- Added MSRC Security Update Guide, CERT-EU, Google Threat Intelligence, Rapid7, Shadowserver and FIRST EPSS enrichment.
 - Added Ransomware.live as explicitly unverified secondary discovery data.
 
 ---

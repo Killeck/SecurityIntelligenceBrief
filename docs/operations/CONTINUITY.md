@@ -5,204 +5,132 @@ Proprietary software. See LICENSE.
 
 # SecurityIntelligenceBrief — Continuity Brief
 
-**Prepared:** 20 August 2026 (Europe/Oslo)
-**Authoritative repository:** <https://github.com/Killeck/SecurityIntelligenceBrief>
-**Baseline on `main`:** `d437565` — release `6.0.0` (18 August 2026)
+**Prepared:** 20 August 2026 (Europe/Oslo)  
+**Authoritative repository:** <https://github.com/Killeck/SecurityIntelligenceBrief>  
+**Baseline on `main`:** `66aa0e46c88e9db9b40c3d52ecbfe19d781d6450` — release `6.1.0` (20 August 2026)
 
 ## Purpose and evidence
 
-This document is the durable development handoff for the
-SecurityIntelligenceBrief work. The repository, its documentation, open pull
-request and GitHub Actions history are its evidence base. Update it whenever a
-material project decision would otherwise exist only in a chat.
+This document is the durable development handoff for SecurityIntelligenceBrief. The repository, release documentation, pull requests and GitHub Actions history are the evidence base. Update this document whenever a material project decision would otherwise exist only in a chat.
 
-## Product purpose and non-negotiable boundaries
+## Current release state
 
-SecurityIntelligenceBrief is a Python and GitHub Actions intelligence pipeline
-that emails two reports to security advisors, SOC functions, security
-architects and CISOs:
+Version 6.1.0 is the current code baseline. It introduced:
 
-- **Daily Security Brief:** time-sensitive developments, exposure and actions.
-- **Weekly Vulnerability Report:** CVE-led remediation priority, lifecycle
-  changes and month-to-date vulnerability reporting.
+- GitHub Advisory Database collection as open-source vulnerability corroboration;
+- declarative priority-vendor evidence coverage;
+- explicit `PARTIAL` handling for successful but incomplete collection;
+- a formal distinction between authoritative and supporting vendor evidence.
 
-It intentionally uses only public and authorised sources. It must **not** be
-extended to collect from onion services, criminal forums, ransomware leak sites,
-stolen-data repositories or illicit marketplaces. Runtime intelligence is
-deterministic; no LLM is required.
+The 6.0.0 baseline beneath it already introduced persistent NVD caching, source overlays, Daily duplicate suppression, bounded detail collection, stage profiling, explicit confidence and corroborating-source counts, expanded Weekly vulnerability details and modular maintenance/report components.
 
-## Architecture and boundaries
+## Product boundaries
 
-```text
-Authoritative advisories + vendor bulletins + research/news/discovery
-                              |
-                    bounded parallel collection
-                              |
-            normalisation, deduplication and source health
-                              |
-             NVD CVSS / FIRST EPSS + persistent NVD cache
-                              |
-           deterministic analysis, policy and correlation
-                    /                         \\
-        Daily Security Brief       Weekly Vulnerability Report
-                    \                         /
-                       Gmail API OAuth delivery
-```
+SecurityIntelligenceBrief is a Python/GitHub Actions intelligence pipeline producing:
 
-The primary orchestration is in `src/security_brief/app.py` (`primary_tasks()`
-is shared); `src/security_brief/weekly_app.py` builds the weekly report.
+- **Daily Security Brief** — time-sensitive developments, exposure and actions.
+- **Weekly Vulnerability Report** — CVE-led remediation priority, lifecycle changes and month-to-date vulnerability reporting.
 
-- Collection: `collectors.py`, `sources.py`, `priority_vendor_sources.py`.
-- State/configuration: `source_config.py`, `source_health.py`, `nvd_cache.py`,
-  `dedup_state.py`, `runtime_profile.py`.
-- Analysis/policy: `analysis.py`, `evidence.py`, `report_policy.py`, `rules.py`.
-- Presentation/delivery: `rendering.py`, `rendering_components.py`,
-  `weekly_rendering.py`, `delivery.py`.
-- Weekly prioritisation/history: `vulnerability_reporting.py` and SQLite.
+It uses public and authorised sources only. It must not collect directly from onion services, criminal forums, ransomware leak sites, stolen-data repositories or illicit marketplaces. Runtime intelligence is deterministic; no LLM is required.
 
-## Source, evidence and health policy
+## Source and evidence architecture
 
-Authoritative priority-vendor coverage includes CISA KEV; Microsoft MSRC;
-Fortinet PSIRT; AWS Security Bulletins; Google Cloud Security Bulletins; Chrome
-Releases; Palo Alto Networks Security Advisories; HPE/Aruba's structured
-bulletin adapter; Okta Security Advisories; Apple Security Releases; Cisco
-Security Advisories; and vendor-specific NVD corroboration/fallback. Research
-and news sources provide context rather than authoritative vulnerability facts.
+Primary source policy is separated from corroboration:
 
-- Tier A: government catalogues, vendor PSIRT/security bulletins and
-  standards/regulatory authorities.
-- Tier B: recognised primary research.
-- Tier C: trusted reporting, for discovery/corroboration only.
-- Tier D: discovery signals, visibly labelled and unable to establish a
-  confirmed organisational incident independently.
+- CISA KEV and vendor PSIRT/security bulletins provide authoritative vulnerability evidence.
+- NVD and GitHub Advisory Database provide structured corroboration/fallback according to evidence rules.
+- recognised primary research provides context and supporting evidence.
+- trusted reporting/discovery sources cannot independently establish authoritative vulnerability status.
 
-Health states are `CONTENT`, `QUIET`, `DEGRADED`, `STALE`, `PARTIAL` and
-`FAILED`. An unavailable, stale or partial authoritative source must never be
-shown as a clean “no material update”. Source-specific freshness and persistent
-cross-run health state are deliberate safeguards.
+Health states include `CONTENT`, `QUIET`, `PARTIAL`, `STALE`, `DEGRADED` and `FAILED`. Failed, stale, missing or confirmed-incomplete authoritative coverage must never be presented as a clean negative.
 
-## Report behaviour that must be retained
+CrowdStrike remains supporting-only until a stable public authoritative product/security-advisory path is available.
 
-### Daily report
+## Daily report behaviour to preserve
 
-- Scheduled 06:17 Europe/Oslo; Monday window is 72 hours, otherwise 36 hours.
+- Scheduled 06:17 Europe/Oslo; Monday reporting window 72 hours, otherwise 36 hours.
 - Continues through individual-source failure.
-- Separates primary advisories from secondary discovery reporting.
-- Cross-run duplicate suppression is seven days by default; material changes in
-  severity, exploitation, summary or action remain reportable.
-- Uses conservative enterprise DEFCON-style logic. The header has one
-  colour-coded Overall Threat status and a **text-only** DEFCON 1–5 guide; do
-  not reintroduce duplicate coloured DEFCON boxes/legends.
-- Displays explicit confidence and corroborating-source count for material
-  claims.
-- Customer-impact mappings include finance, healthcare, public sector, retail,
-  hospitality, research, managed services and dedicated **BoligByggerlag**,
-  **Energy**, **Oppdrett** and **Transportation** segments.
+- Seven-day duplicate suppression by default while retaining materially changed advisories.
+- Conservative enterprise DEFCON logic.
+- One active colour-coded Overall Threat status.
+- Explicit confidence and corroborating-source counts for material vulnerability claims.
+- Health-aware vendor truth.
+- Gmail API OAuth delivery.
 
-### Weekly report
+The following are **open**, not current-state behaviour, and are tracked in `MAINTENANCE.md`:
 
-- Scheduled Monday 07:23 Europe/Oslo; title/subject use ISO week and year.
-- Uses the shared primary collection pipeline, then ranks CVEs using an internal
-  0–100 score combining CVSS, exploitation, KEV, EPSS, exposure/vendor
-  relevance, ransomware association and age.
-- The internal priority number is not user-facing. Display CVSS, EPSS, KEV,
-  exploitation state and remediation band instead.
-- Order: zero-days, CVSS 10.0, unscored CVEs, then remaining findings by CVSS;
-  omit CVSS below 4.0. Critical/exploited records survive normal item caps.
-- Every full CVE identifier links directly to NVD; retain vendor-advisory links.
-- The Outlook-safe main table uses widths: CVE 13%, vulnerability details 34%,
-  vendor 10%, CVSS 7%, EPSS 7%, KEV 7%, exploited 8%, action 14%.
-- Details remain concise: `Nature`, `Impact area`, `Evidence`. Lifecycle
-  changes also carry short nature/impact context.
-- SQLite lifecycle history at `data/vulnerability_history.sqlite3` preserves
-  descriptive summary, confidence and corroboration count, and is restored via
-  Actions cache.
+- restore the text-only DEFCON 1–5 legend on the Overall Threat row;
+- clean TL;DR source/Markdown artefacts;
+- create a rolling 90-day Active Exploitation / Threat Actor Activity view;
+- add AI Security & Trustworthiness as a dedicated reporting point;
+- redesign CISO Watch Next / Security Advisory into grouped 24/72-hour developments;
+- improve Retail, Housing Estates/BoligByggerlag and Energy sector classification;
+- correct ambiguous vendor clean-negative presentation.
 
-## Operations and configuration
+## Weekly report behaviour to preserve
 
-GitHub Actions are the production runtime:
+- Scheduled Monday 07:23 Europe/Oslo.
+- Uses the shared primary collection pipeline.
+- Prioritises zero-days, exploitation, KEV, CVSS, EPSS, vendor/exposure relevance and age.
+- Internal priority score remains non-user-facing.
+- Every full CVE identifier links to NVD; vendor-advisory links remain available.
+- SQLite lifecycle history persists descriptive context, confidence and corroboration.
+- Outlook-safe table layout is retained.
 
-- `daily-security-brief.yml` and `weekly-vulnerability-report.yml` run tests
-  before sending and persist `.state`; daily state includes deduplication and
-  NVD cache, while weekly state also includes SQLite history.
-- `repository-ci.yml` compiles and runs the Python 3.12 regression suite for
-  `main`, `agent/**` and pull requests.
-- `test-security-brief.yml` is the manual Daily live-delivery workflow.
+## CI and validation
 
-Required secrets: `GMAIL_USERNAME`, `GMAIL_CLIENT_ID`,
-`GMAIL_CLIENT_SECRET`, `GMAIL_REFRESH_TOKEN`, `EMAIL_TO`. Optional secrets:
-`NVD_API_KEY`, `HIBP_API_KEY`, `MONITORED_DOMAINS`, `MONITORED_BRANDS`.
-Delivery is Gmail API OAuth only; old SMTP/app-password paths are not required.
-Workflows must log only safe OAuth-refresh/API-acceptance milestones.
+Repository CI uses Python 3.12 and runs compilation plus:
 
-`VERSION` is the single runtime version source. `config/sources.json` supports
-validated source overlays. `config/upcoming_governance.json` is the persistent
-forward-governance horizon; keep only verified primary-source dates.
+`PYTHONPATH=src python -m unittest discover -s tests -v`
 
-## Immediate continuation point — draft PR #5
+The 6.1.0 PR head passed Repository CI with 76 tests. A known test-discovery defect remains: `tests/tests/test_priority_vendor_sources.py` is not reached by the standard discovery command and must be corrected in the next functional release.
 
-**PR:** [#5 — 6.0.0 - rebalance reports and customer segments](https://github.com/Killeck/SecurityIntelligenceBrief/pull/5)
-**Branch:** `agent/v6-0-0-report-balance` → `main`
-**Status at assessment:** Draft, mergeable, no open issues, and both Repository
-CI checks passed on 20 August 2026. Manual Daily and Weekly runs on that branch
-also succeeded.
+Live Daily and Weekly Gmail delivery remain distinct from code regression validation.
 
-This PR is not yet part of `main`. It restores the Daily text-only Enterprise
-DEFCON guide; makes Weekly vulnerability prose more compact and lifecycle
-changes more contextual; adds BoligByggerlag, Energy, Oppdrett and
-Transportation customer-impact mappings; and updates the 6.0.0 release
-documentation and manifest. It reports 75/75 local regression tests passed.
+## Pull request #5
 
-Before merge, conduct the intended quality review and inspect live reports if
-presentation approval is needed. Mark the PR ready and merge only with explicit
-approval. Reconcile release status after production verification rather than
-claiming completion prematurely.
+PR #5 (`agent/v6-0-0-report-balance`) is an old draft based on the 6.0.0 line and must not be merged wholesale into 6.1.x.
 
-## Open backlog, in priority order
+Potentially useful functional changes—DEFCON explanatory presentation, customer-impact mappings and compact Weekly prose—should be selectively reimplemented or ported into the next functional version only after comparison with the current 6.1.0 code. Obsolete 6.0.0 release metadata must not be imported.
 
-1. **Source-health phase 2:** establish a stable public authoritative
-   CrowdStrike advisory source if available; preserve conservative semantics for
-   incomplete coverage.
-2. **GRC & Standards redesign:** direct deep links, expanded EU/Nordic
-   authority coverage, NIS2/DORA/EU AI Act/Cyber Resilience Act/national
-   implementation coverage, broader relevant ISO/IEC coverage, and a durable
-   governance horizon.
-3. **Reliability/security:** dependency hashes, CycloneDX or SPDX SBOM,
-   first-seen and last-seen timestamps.
-4. **Maintainability:** reduce source-specific generic-module logic, fold the
-   5.6.5 compatibility layer into the renderer during a structural refactor,
-   and extract testable Daily-rendering components where useful.
-5. **Historical capability:** expand the opt-in private archive into daily,
-   weekly and monthly comparison/trend analysis without paid infrastructure
-   unless justified.
-6. **Threat-intelligence enrichment:** additional trusted deep links, stronger
-   trust/corroboration rules and correlation of vendor, NVD, KEV and research
-   into one development.
+After relevant functionality is either ported or explicitly superseded, close PR #5.
 
-The proposed experimental `6.0.1` branch is `feature/v6.0.1-report-enrichment`.
-Do not change `VERSION` merely to create/evaluate it. Its five gated ideas are:
-per-claim corroboration/confidence; asset/technology relevance; a concise SOC
-action line per top item; clear new/changed/repeated state; and explicit
-uncertainty for unconfirmed exploitation/attribution.
+## 6.1.1 purpose
 
-## Engineering and release discipline
+Version 6.1.1 is a **documentation and maintenance-alignment release**.
 
-- Keep `README.md` as current behaviour, `CHANGELOG.md` as completed releases,
-  `MAINTENANCE.md` as open work, and operation/architecture notes under `docs/`.
-- Every functional/presentation release increments `VERSION`, updates the
-  changelog/current docs/tests, removes completed backlog items, records actual
-  validation, and uses commit form `<VERSION> - <short comment>`.
-- Test with `PYTHONPATH=src python -m unittest discover -s tests -v`; CI also
-  runs `python -m compileall -q src tests`.
-- Treat workflow checks and live Gmail delivery as distinct: passing tests do
-  not prove production email rendering/delivery.
-- Dependencies are presently bounded by major version but not hash-pinned;
-  this is known planned work, not an accidental omission.
+Its purpose is to:
 
-## Canonical reading order
+- reconcile `MAINTENANCE.md` with functionality already delivered by 6.0.0 and 6.1.0;
+- remove completed work from the open backlog;
+- replace stale proposed-6.0.1 continuation language with the current roadmap;
+- align this continuity brief to the 6.1.0 main baseline;
+- record the exact functional scope intended for the next release;
+- make no production Python behaviour changes.
 
-1. This handoff and `MAINTENANCE.md`.
-2. The current `README.md` and `docs/architecture/OPTIMISATION.md`.
-3. The open PR #5 and its workflow results.
-4. `app.py`, `weekly_app.py`, `report_policy.py`, `vulnerability_reporting.py`
-   and their focused tests before changing collection or report policy.
+## Next functional release scope
+
+After 6.1.1 validation, the next version should implement the highest-value Daily Brief intelligence-quality work:
+
+1. DEFCON text legend restoration.
+2. TL;DR formatting cleanup.
+3. Rolling 90-day threat-actor/activity state with last-seen and days-ago.
+4. AI Security & Trustworthiness section.
+5. Vendor/source truth corrections, including Fortinet/Palo Alto verification.
+6. Retail, Housing Estates/BoligByggerlag and Nordic Energy sector expansion.
+7. Holistic CISO Watch Next / Security Advisory 24/72-hour grouping.
+8. Priority-vendor regression-test discovery correction.
+9. Selective reconciliation and closure/supersession of PR #5.
+
+The exact version number should be assigned only when that functional implementation starts.
+
+## Engineering discipline
+
+- Never write functional release work directly to `main`; use a feature branch and PR.
+- `VERSION` is the runtime version source of truth.
+- `README.md` describes current behaviour.
+- `CHANGELOG.md` records completed releases.
+- `MAINTENANCE.md` contains open work only.
+- Run compilation and the complete discoverable test suite before merge.
+- Treat Repository CI and live Gmail delivery as separate validation gates.
+- Do not claim a production delivery gate passed without evidence from the corresponding workflow.

@@ -1,7 +1,7 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary and confidential. See LICENSE.
 
-"""Regression coverage for the 6.0.0 maintenance boundaries."""
+"""Regression coverage for the 6.x maintenance boundaries."""
 
 from __future__ import annotations
 
@@ -92,11 +92,17 @@ class VersionSixMaintenanceTests(unittest.TestCase):
             sources,
             {"One": {"base_score": 25}, "Two": {"enabled": False}},
         )
-        self.assertEqual([(value.name, value.base_score) for value in configured], [("One", 25)])
+        self.assertEqual(
+            [(value.name, value.base_score) for value in configured],
+            [("One", 25)],
+        )
 
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "sources.json"
-            path.write_text('{"sources":{"One":{"enabled":false}}}', encoding="utf-8")
+            path.write_text(
+                '{"sources":{"One":{"enabled":false}}}',
+                encoding="utf-8",
+            )
             self.assertFalse(load_source_overrides(path)["One"]["enabled"])
 
     def test_deduplication_exposes_corroboration_and_confidence(self) -> None:
@@ -111,7 +117,7 @@ class VersionSixMaintenanceTests(unittest.TestCase):
         )
         self.assertEqual(result[0].confidence, "Authoritative + corroborated")
 
-    def test_overall_threat_status_is_a_single_component(self) -> None:
+    def test_overall_threat_status_restores_text_only_defcon_legend(self) -> None:
         rendered = render_overall_threat_status(
             level=3,
             label="Elevated",
@@ -119,10 +125,44 @@ class VersionSixMaintenanceTests(unittest.TestCase):
             text_colour="#111111",
             border_colour="#0D4650",
         )
+
         self.assertIn("Overall Threat", rendered)
         self.assertIn("3 — Elevated", rendered)
-        self.assertNotIn("DEFCON 1", rendered)
-        self.assertEqual(rendered.count('width="100%"'), 2)
+
+        for level in range(1, 6):
+            self.assertIn(f"DEFCON {level}", rendered)
+
+        self.assertIn(
+            "Immediate action for exceptional verified threat.",
+            rendered,
+        )
+        self.assertIn(
+            "Urgent action for relevant active exploitation.",
+            rendered,
+        )
+        self.assertIn(
+            "Increased risk requiring enhanced attention. (current level)",
+            rendered,
+        )
+        self.assertIn(
+            "Meaningful developments; no direct exposure.",
+            rendered,
+        )
+        self.assertIn(
+            "Routine activity and normal monitoring.",
+            rendered,
+        )
+
+        # Approved hierarchy: compact Overall Threat left, legend right.
+        self.assertIn('width="20%" valign="bottom"', rendered)
+        self.assertIn('width="80%" align="right" valign="bottom"', rendered)
+        self.assertIn('width="400"', rendered)
+        self.assertIn("max-width:400px", rendered)
+
+        # The legend is explanatory text, not five additional active boxes.
+        self.assertNotIn("Enterprise DEFCON Legend", rendered)
+        self.assertEqual(rendered.count("Overall Threat"), 2)  # visible + aria
+        self.assertEqual(rendered.count(" (current level)"), 1)
 
     def test_vendor_coverage_keeps_crowdstrike_supporting_only(self) -> None:
         crowdstrike = coverage_for("CrowdStrike")

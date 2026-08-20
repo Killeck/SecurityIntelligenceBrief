@@ -3,11 +3,13 @@ Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
 -->
 
-# Architecture and Optimisation Notes — 6.1.0
+# Architecture and Optimisation Notes — 6.1.2
 
 ## Objective
 
-Keep one low-cost intelligence engine for daily and weekly reports while isolating source failures, separating authoritative vulnerability coverage from research/news context and keeping presentation policy testable.
+Keep one low-cost intelligence engine for daily and weekly reports while
+isolating source failures, separating authoritative vulnerability coverage from
+research/news context and keeping presentation policy testable.
 
 ## Module boundaries
 
@@ -30,29 +32,57 @@ security_brief.weekly_app
 
 ## Source-health model
 
-Collection records carry compatibility `status` plus `health_state` (`CONTENT`, `QUIET`, `PARTIAL`, `STALE`, `DEGRADED`, `FAILED`), `checked_at` and newest-item timestamps. An optional JSON state file persists last-success/newest-seen values, allowing stale feeds to remain explicit across quiet runs. Failed, missing or confirmed-incomplete authoritative coverage cannot produce a clean `Checked — no material update`.
+Collection records carry compatibility `status` plus `health_state`
+(`CONTENT`, `QUIET`, `PARTIAL`, `STALE`, `DEGRADED`, `FAILED`), `checked_at`
+and newest-item timestamps. Persistent state allows stale feeds to remain
+explicit across quiet runs. Failed, missing or confirmed-incomplete
+authoritative coverage cannot produce a clean negative.
 
 ## Critical vulnerability ordering
 
-The critical view orders current zero-days, then exploitation/KEV, then remaining entries by CVSS, with EPSS as equal-CVSS tie-breaker. Mandatory critical/exploited records survive normal item limits.
+The critical view orders current zero-days, then exploitation/KEV, then
+remaining entries by CVSS, with EPSS as the equal-CVSS tie-breaker. Mandatory
+critical/exploited records survive normal item limits.
 
 ## Weekly presentation
 
-The internal composite urgency score remains used for sorting/remediation but is no longer displayed. Explicit column widths and matching `align`/`text-align` attributes improve Outlook consistency. Complete CVE identifiers are deep-linked to NVD. The weekly lifecycle model now retains source summaries so each displayed CVE can explain the vulnerability behaviour and affected scope instead of presenting identifiers and scores alone.
+The internal composite urgency score remains used for sorting/remediation but is
+not displayed. Explicit column widths and matching alignment attributes improve
+Outlook consistency. Complete CVE identifiers are deep-linked to NVD. Lifecycle
+history retains source summaries, affected scope, confidence and corroboration.
 
 ## Runtime and network bounds
 
-Daily and weekly orchestration records named stage durations in a persistent JSON profile. NVD per-CVE enrichment uses a 24-hour persistent cache by default, and HTML sources cap detail-page expansion independently of their index candidate limits. These controls are environment-configurable and restored through GitHub Actions state caches.
+Daily and weekly orchestration records named stage durations in persistent JSON.
+NVD per-CVE enrichment uses a persistent cache, and HTML sources cap detail-page
+expansion independently of index candidate limits.
 
 ## Persistent deduplication and evidence
 
-The Daily pipeline stores fingerprints of delivered advisory content and suppresses unchanged repeats during a seven-day default window. Material changes to severity, exploitation, summary or action generate a new fingerprint and remain reportable. CVE/link consolidation also records unique corroborating sources and assigns an explicit authoritative, corroborated or single-source confidence label used by both report families.
+The Daily pipeline stores fingerprints of delivered advisory content and
+suppresses unchanged repeats during the configured window. Material changes to
+severity, exploitation, summary or action remain reportable. CVE/link
+consolidation records corroborating sources and explicit confidence.
 
 ## Configuration and rendering boundaries
 
-Named source definitions accept validated JSON overlays from `config/sources.json`, allowing URL, selector, scoring, freshness and enablement changes without editing collector code. The Overall Threat component is isolated from the main Daily renderer, while weekly presentation remains in its dedicated module. Focused maintenance tests cover these boundaries.
+Named source definitions accept validated JSON overlays from
+`config/sources.json`.
 
-Version 6.1.0 adds a separate open-source corroboration catalogue and a
+The Daily executive threat header is deliberately isolated in
+`rendering_components.py`. Version 6.1.2 uses that boundary to restore the
+approved layout without modifying the large Daily renderer:
+
+- 20% compact Overall Threat area at left;
+- 80% right-hand area containing a right-aligned, maximum-400px text-only
+  DEFCON 1–5 explanatory legend;
+- no five-box active DEFCON scale;
+- metric cards remain owned by `rendering.py` and render on the row below.
+
+The nested Overall Threat table is retained for Outlook safety and to preserve
+existing smoke-test boundaries.
+
+Version 6.1.0 also added a separate open-source corroboration catalogue and
 declarative vendor-coverage registry. GitHub Advisory Database entries provide
 structured OSS vulnerability context but cannot establish vendor remediation,
 confirmed exploitation or clean-negative status by themselves. CrowdStrike
@@ -61,9 +91,12 @@ remains supporting-only until a stable public product-advisory path exists.
 ## Delivery and documentation
 
 Delivery remains Gmail API OAuth, with workflow preflight for required secrets
-and safe logs for token refresh/Gmail acceptance. The Daily report uses one
-colour-coded Overall Threat status; the redundant five-level DEFCON scale and
-duplicate legend presentation are removed. `README.md` is current state,
-`CHANGELOG.md` released history, `MAINTENANCE.md` open work and this file
-architecture/rationale. Release notes and manifests reside under
-`docs/releases/`.
+and safe logs for token refresh/Gmail acceptance.
+
+The Daily report uses one active colour-coded Overall Threat status plus a
+text-only explanatory DEFCON legend. This is intentionally different from the
+obsolete five-colour active-box scale.
+
+`README.md` is current state, `CHANGELOG.md` released history,
+`MAINTENANCE.md` open work and this file architecture/rationale. Release notes
+and manifests reside under `docs/releases/`.

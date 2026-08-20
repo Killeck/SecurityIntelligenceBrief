@@ -1,0 +1,75 @@
+{
+  "version": "6.1.2",
+  "release_date": "2026-08-20",
+  "base_main_commit": "f87a22fd9476425f3142f3631e3049ec43abc315",
+  "release_type": "focused-presentation-fix",
+  "status": "validation-candidate",
+  "scope": {
+    "fixed": "Restore compact Overall Threat + right-aligned text-only DEFCON 1-5 legend.",
+    "unchanged": "Five metric tiles remain rendered by rendering.py on the row below.",
+    "not_in_scope": [
+      "TL;DR cleanup",
+      "90-day threat actor history",
+      "AI Security & Trustworthiness",
+      "vendor clean-negative redesign",
+      "sector taxonomy expansion",
+      "CISO 24/72 grouping"
+    ]
+  },
+  "validation": {
+    "changed_python_compile": "pass",
+    "isolated_defcon_component_functional_test": "pass",
+    "existing_smoke_nested_overall_threat_boundary": "pass",
+    "documentation_consistency": "pass",
+    "full_repository_ci": "pending after GitHub upload",
+    "manual_daily_gmail_delivery": "pending after GitHub upload",
+    "visual_email_review": "pending after GitHub upload"
+  },
+  "files": [
+    {
+      "path": "VERSION",
+      "bytes": 6,
+      "sha256": "f5da1e44bbd559283a4a4f8f1188fdfaef7ea2e8ec22fdfec81c4a72dc61736a"
+    },
+    {
+      "path": "README.md",
+      "bytes": 14841,
+      "sha256": "d8777a409ab3aad7083d2dc674193695688b668b3fdf5d446cc428d8e1785bcd"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 17984,
+      "sha256": "f4c2309a2b7cd7f06b537f43daa2580f9773c00d3de582896d70536eb8f4ad5d"
+    },
+    {
+      "path": "MAINTENANCE.md",
+      "bytes": 11696,
+      "sha256": "81bb7b66fbc51aaa995bc217361c69ee0478618eefdf52b1ffecea1e246d0bae"
+    },
+    {
+      "path": "src/security_brief/rendering_components.py",
+      "bytes": 4817,
+      "sha256": "ec2a57abf118ac1b29af3359a07cd254b5563397a6f51c1bb48e03c1985a6c81"
+    },
+    {
+      "path": "tests/test_v6_maintenance.py",
+      "bytes": 7082,
+      "sha256": "1be6508d834963dadaedfb5521613475bb2675ca5d30b16886d4913421c91681"
+    },
+    {
+      "path": "docs/architecture/OPTIMISATION.md",
+      "bytes": 4178,
+      "sha256": "578c2c74198714d4f0f3a51ec61c21764ecc1033f302f6494fc3a216ca1d9542"
+    },
+    {
+      "path": "docs/operations/CONTINUITY.md",
+      "bytes": 5543,
+      "sha256": "3de0e4eae42c4641ce91332c5f80462d127e01f789537d27cce53fae9d52c15d"
+    },
+    {
+      "path": "docs/releases/RELEASE_6.1.2.md",
+      "bytes": 2701,
+      "sha256": "58d57c575a68f2ec6925e34cd93f53ccf0b165577b0b886dc8f6057894009ce9"
+    }
+  ]
+}

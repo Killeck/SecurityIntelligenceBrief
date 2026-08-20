@@ -12,7 +12,9 @@
   "files": [
     {"bytes": 6, "path": "VERSION", "sha256": "0fd114b03452dc32b26bcb9f1094cb19bf4e3a477cd04cfe91f4a87e19fac5c1"},
     {"bytes": 16402, "path": "CHANGELOG.md", "sha256": "1aa67d5dc99470fb08f7769d8013f24495017f49828ee763d4a7718c6b62450f"},
-    {"bytes": 14502, "path": "README.md", "sha256": "3d9259da76033edf739f1e5708d1e39e1ff12eca30432e891ea032abbf618e9b"},
+    {"bytes": 14625, "path": "README.md", "sha256": "dca0961196bea4867e261fdbf0dc7c1623f8fa7e5f4c1d3f64ad5822f0bf471f"},
+    {"bytes": 3704, "path": "MAINTENANCE.md", "sha256": "65485dd6a5df613fa9700dbe614587170c936f45a43f63866bb031244c3379f5"},
+    {"bytes": 4291, "path": "docs/architecture/OPTIMISATION.md", "sha256": "bb017090d4491625238a9ba55e0705987fbc3b14a947ceef0907eb3a674fb0f0"},
     {"bytes": 1317, "path": "docs/releases/RELEASE_6.1.0.md", "sha256": "a14e0e6ce77a7a4259329ea33516f9090b1698ea55a40510f20661578564333b"},
     {"bytes": 18597, "path": "src/security_brief/app.py", "sha256": "e2be52828334cc77fd47e8049e2775c2b20ef04e3baeba8d99f4009b247c45f8"},
     {"bytes": 59835, "path": "src/security_brief/collectors.py", "sha256": "04d6e08a7fe19b7d83aeaf9b1cf344f6c929e88cd3323d3f61c3477334aad135"},

@@ -21,11 +21,9 @@ Every functional or presentation release must increment `VERSION`, update the ch
 
 ## Forward Release Direction
 
-### Version 6.0.1 — proposed experimental report-enrichment branch
-
-Version 6.0.1 is a proposed experimental branch for evaluating report-enrichment ideas after the 6.0.0 baseline. It is not a released version and no branch has yet been created. When started, use `feature/v6.0.1-report-enrichment`; do not update `VERSION` solely to create or evaluate this branch. Merge is gated on a quality review.
-
-Evaluate these five experimental enrichment items:
+The 6.1.0 source-architecture baseline introduces declarative vendor coverage,
+explicit partial-source health and GitHub Advisory Database corroboration. The
+next experimental enrichment branch should evaluate:
 
 - Make corroboration and confidence explicit for every material claim.
 - Add asset and technology relevance so prioritisation reflects the operating environment.
@@ -35,11 +33,11 @@ Evaluate these five experimental enrichment items:
 
 ## Priority 1 — Source-health truth, phase 2
 
-The current source-health baseline includes selector-health detection, source-specific freshness thresholds, persistent `STALE` / `PARTIAL` handling and authoritative Cisco Security Advisories. Remaining work:
+The current baseline includes selector-health detection, source-specific freshness thresholds, persistent `STALE` / `PARTIAL` handling, declarative vendor coverage and authoritative Cisco Security Advisories. Remaining work:
 
 - Add a stronger authoritative CrowdStrike product/security-advisory path if a stable public source is available.
-- Keep source failure from being confused with a clean negative in every future report component.
-- Continue refining collection-time `DEGRADED` semantics where a source returns only part of its expected authoritative dataset.
+- Apply `PARTIAL` collection metadata to adapters that can verify incomplete upstream datasets.
+- Add OSV asset-inventory enrichment once an approved package/SBOM inventory input is available.
 
 ## Priority 2 — GRC & Standards redesign
 
@@ -60,7 +58,7 @@ The current source-health baseline includes selector-health detection, source-sp
 
 ## Priority 4 — Maintainability
 
-- Reduce source-specific logic inside generic modules.
+- Continue moving source-specific collection definitions from generic modules into focused source catalogues.
 - Fold the 5.6.5 report-policy compatibility layer into the main renderer during its next structural refactor.
 - Continue extracting self-contained presentation components from the Daily renderer where this materially improves testability.
 

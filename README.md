@@ -183,6 +183,7 @@ independently establish a confirmed organisational incident.
 │   ├── operations/
 │   │   └── WEEKLY_VULNERABILITY_REPORT.md
 │   └── releases/
+│       ├── RELEASE_6.1.0.md
 │       ├── RELEASE_6.0.0.md
 │       ├── RELEASE_5.7.0.md
 │       └── manifests/
@@ -206,6 +207,7 @@ independently establish a confirmed organisational incident.
 │   │   ├── models.py
 │   │   ├── priority_vendor_sources.py
 │   │   ├── nvd_cache.py
+│   │   ├── open_source_sources.py
 │   │   ├── report_policy.py
 │   │   ├── rendering.py
 │   │   ├── rendering_components.py
@@ -216,6 +218,7 @@ independently establish a confirmed organisational incident.
 │   │   ├── runtime_profile.py
 │   │   ├── utils.py
 │   │   ├── vulnerability_reporting.py
+│   │   ├── vendor_coverage.py
 │   │   ├── weekly_app.py
 │   │   └── weekly_rendering.py
 │   ├── send_security_advisory.py

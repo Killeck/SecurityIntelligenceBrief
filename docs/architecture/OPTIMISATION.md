@@ -3,7 +3,7 @@ Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
 -->
 
-# Architecture and Optimisation Notes — 6.0.0
+# Architecture and Optimisation Notes — 6.1.0
 
 ## Objective
 
@@ -14,6 +14,7 @@ Keep one low-cost intelligence engine for daily and weekly reports while isolati
 ```text
 security_brief.app
  ├── priority_vendor_sources
+ ├── open_source_sources / vendor_coverage
  ├── collectors / sources
  ├── source_config / nvd_cache / dedup_state
  ├── analysis / governance
@@ -29,7 +30,7 @@ security_brief.weekly_app
 
 ## Source-health model
 
-Collection records carry compatibility `status` plus `health_state` (`CONTENT`, `QUIET`, `STALE`, `FAILED`), `checked_at` and newest-item timestamps. An optional JSON state file persists last-success/newest-seen values, allowing stale feeds to remain explicit across quiet runs. Failed/missing authoritative coverage cannot produce a clean `Checked — no material update`.
+Collection records carry compatibility `status` plus `health_state` (`CONTENT`, `QUIET`, `PARTIAL`, `STALE`, `DEGRADED`, `FAILED`), `checked_at` and newest-item timestamps. An optional JSON state file persists last-success/newest-seen values, allowing stale feeds to remain explicit across quiet runs. Failed, missing or confirmed-incomplete authoritative coverage cannot produce a clean `Checked — no material update`.
 
 ## Critical vulnerability ordering
 
@@ -50,6 +51,12 @@ The Daily pipeline stores fingerprints of delivered advisory content and suppres
 ## Configuration and rendering boundaries
 
 Named source definitions accept validated JSON overlays from `config/sources.json`, allowing URL, selector, scoring, freshness and enablement changes without editing collector code. The Overall Threat component is isolated from the main Daily renderer, while weekly presentation remains in its dedicated module. Focused maintenance tests cover these boundaries.
+
+Version 6.1.0 adds a separate open-source corroboration catalogue and a
+declarative vendor-coverage registry. GitHub Advisory Database entries provide
+structured OSS vulnerability context but cannot establish vendor remediation,
+confirmed exploitation or clean-negative status by themselves. CrowdStrike
+remains supporting-only until a stable public product-advisory path exists.
 
 ## Delivery and documentation
 

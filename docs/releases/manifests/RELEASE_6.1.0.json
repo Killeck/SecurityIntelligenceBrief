@@ -1,0 +1,30 @@
+{
+  "version": "6.1.0",
+  "base_version": "6.0.0",
+  "release_date": "2026-08-20",
+  "status": "production-release-candidate",
+  "validation": {
+    "python_compileall": "pass",
+    "release_candidate_offline_tests": "76/76 pass",
+    "github_repository_ci": "pending pull-request execution",
+    "live_gmail_api_delivery": "pending manual daily and weekly workflow validation"
+  },
+  "files": [
+    {"bytes": 6, "path": "VERSION", "sha256": "0fd114b03452dc32b26bcb9f1094cb19bf4e3a477cd04cfe91f4a87e19fac5c1"},
+    {"bytes": 16402, "path": "CHANGELOG.md", "sha256": "1aa67d5dc99470fb08f7769d8013f24495017f49828ee763d4a7718c6b62450f"},
+    {"bytes": 14625, "path": "README.md", "sha256": "dca0961196bea4867e261fdbf0dc7c1623f8fa7e5f4c1d3f64ad5822f0bf471f"},
+    {"bytes": 3704, "path": "MAINTENANCE.md", "sha256": "65485dd6a5df613fa9700dbe614587170c936f45a43f63866bb031244c3379f5"},
+    {"bytes": 4291, "path": "docs/architecture/OPTIMISATION.md", "sha256": "bb017090d4491625238a9ba55e0705987fbc3b14a947ceef0907eb3a674fb0f0"},
+    {"bytes": 1317, "path": "docs/releases/RELEASE_6.1.0.md", "sha256": "a14e0e6ce77a7a4259329ea33516f9090b1698ea55a40510f20661578564333b"},
+    {"bytes": 18597, "path": "src/security_brief/app.py", "sha256": "e2be52828334cc77fd47e8049e2775c2b20ef04e3baeba8d99f4009b247c45f8"},
+    {"bytes": 59835, "path": "src/security_brief/collectors.py", "sha256": "04d6e08a7fe19b7d83aeaf9b1cf344f6c929e88cd3323d3f61c3477334aad135"},
+    {"bytes": 3622, "path": "src/security_brief/config.py", "sha256": "6a1aac1a35478647f5987f585558a15394c7ce437a1ba298e889b97483f95e2a"},
+    {"bytes": 581, "path": "src/security_brief/open_source_sources.py", "sha256": "8e849f6636554ac9468e86c498835b9d113e6618ee6c6d3bc581f47294b041e7"},
+    {"bytes": 20612, "path": "src/security_brief/report_policy.py", "sha256": "7141938a3e37b6a44c00d3aec3a330667c1bc13401cc53a0843ee7e41933be0d"},
+    {"bytes": 2638, "path": "src/security_brief/source_health.py", "sha256": "a91eed6e5fe737b4ca7ad2832047c9657ce3074463fa046e0d11ed3790ad2e5c"},
+    {"bytes": 2601, "path": "src/security_brief/vendor_coverage.py", "sha256": "65141138b051a56110753994a83af0df2a04cf3864fd3405ef72db3a43f5a799"},
+    {"bytes": 35599, "path": "tests/test_smoke.py", "sha256": "3a0c5b24353351be2aae643d763496e4d837a0f1ccf4fe53db8f88e80f35b352"},
+    {"bytes": 2538, "path": "tests/test_source_health.py", "sha256": "9731bc5d0de2eee22089313c076d02d84e416a52bc25d16948c273be733ba827"},
+    {"bytes": 5816, "path": "tests/test_v6_maintenance.py", "sha256": "47497a11b32079c2ae8a7994155a2f546d9d958aba2cbb9c51a2452fb0f82d60"}
+  ]
+}

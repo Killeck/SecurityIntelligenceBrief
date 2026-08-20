@@ -29,3 +29,18 @@ class SourceHealthTests(unittest.TestCase):
             result = assess_and_persist({"source": "Fast feed", "status": "OK", "health_state": "CONTENT", "items": 1, "checked_at": datetime.now(timezone.utc).isoformat(), "newest_item": (datetime.now(timezone.utc) - timedelta(days=2)).isoformat()}, freshness_days=1)
             self.assertEqual(result["health_state"], "STALE")
         os.environ.pop("SOURCE_HEALTH_STATE_FILE", None)
+
+    def test_confirmed_partial_collection_is_not_reported_as_quiet(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            os.environ["SOURCE_HEALTH_STATE_FILE"] = f"{directory}/health.json"
+            result = assess_and_persist({
+                "source": "Structured source",
+                "status": "OK",
+                "health_state": "QUIET",
+                "partial": True,
+                "items": 0,
+                "checked_at": datetime.now(timezone.utc).isoformat(),
+                "newest_item": "",
+            })
+            self.assertEqual(result["health_state"], "PARTIAL")
+        os.environ.pop("SOURCE_HEALTH_STATE_FILE", None)

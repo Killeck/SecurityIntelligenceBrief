@@ -77,6 +77,54 @@ def _api_datetime(value: object) -> datetime | None:
         return None
 
 
+def fetch_github_advisories(source: Source, cutoff: datetime) -> list[Item]:
+    """Collect recent public GitHub advisories as corroborating OSS evidence.
+
+    GitHub's advisory database is not a vendor remediation authority.  Its
+    records therefore enter the research section and are later corroborated with
+    NVD, KEV or vendor evidence before becoming high-confidence reporting.
+    """
+
+    response = http_get(
+        source.url,
+        headers={"Accept": "application/vnd.github+json", "User-Agent": USER_AGENT},
+        params={"per_page": 100, "direction": "desc", "sort": "updated"},
+        timeout=45,
+    )
+    response.raise_for_status()
+    payload = response.json()
+    if not isinstance(payload, list):
+        raise RuntimeError("GitHub advisories response is not a list")
+
+    items: list[Item] = []
+    for advisory in payload:
+        if not isinstance(advisory, dict):
+            continue
+        published = _api_datetime(advisory.get("published_at") or advisory.get("updated_at"))
+        if published is None:
+            continue
+        cve = clean_text(advisory.get("cve_id"))
+        title = clean_text(advisory.get("summary")) or clean_text(advisory.get("ghsa_id"))
+        description = clean_text(advisory.get("description"))
+        item = build_item(
+            source=source,
+            title=f"{cve}: {title}" if cve else title,
+            summary=description,
+            link=clean_text(advisory.get("html_url") or advisory.get("url")),
+            published=published,
+            cutoff=cutoff,
+        )
+        if item:
+            cvss = advisory.get("cvss")
+            if isinstance(cvss, dict):
+                try:
+                    item.cvss_score = float(cvss.get("score"))
+                except (TypeError, ValueError):
+                    pass
+            items.append(item)
+    return items
+
+
 def _nested_text(value: object) -> str:
     """Extract a human-readable value from common CVRF JSON structures."""
 

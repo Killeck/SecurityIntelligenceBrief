@@ -68,6 +68,7 @@ and news sources and adds authoritative Cisco PSIRT coverage.
 | Apple | Apple Security Releases |
 | Cisco | Cisco Security Advisories |
 | NVD | Priority-vendor CVE corroboration/fallback with specific vendor attribution |
+| GitHub Advisory Database | Structured open-source vulnerability corroboration; not an authoritative remediation source |
 
 Research sources such as Palo Alto Unit 42, FortiGuard Labs, Google Security
 Blog, Google Project Zero and AWS Security Blog remain useful context sources,
@@ -95,6 +96,7 @@ Failed or partial authoritative coverage is shown as unknown/degraded instead of
 - Records stage-level runtime profiles for operational tuning.
 - Uses a conservative Enterprise DEFCON-style threat model.
 - Labels exposure intelligence by confidence.
+- Adds GitHub Advisory Database records as open-source vulnerability corroboration, while retaining vendor, CISA and NVD evidence rules for authoritative claims.
 - Sends multipart HTML/plain-text email through the Gmail API.
 
 The current dashboard includes:
@@ -181,6 +183,7 @@ independently establish a confirmed organisational incident.
 │   ├── operations/
 │   │   └── WEEKLY_VULNERABILITY_REPORT.md
 │   └── releases/
+│       ├── RELEASE_6.1.0.md
 │       ├── RELEASE_6.0.0.md
 │       ├── RELEASE_5.7.0.md
 │       └── manifests/
@@ -204,6 +207,7 @@ independently establish a confirmed organisational incident.
 │   │   ├── models.py
 │   │   ├── priority_vendor_sources.py
 │   │   ├── nvd_cache.py
+│   │   ├── open_source_sources.py
 │   │   ├── report_policy.py
 │   │   ├── rendering.py
 │   │   ├── rendering_components.py
@@ -214,6 +218,7 @@ independently establish a confirmed organisational incident.
 │   │   ├── runtime_profile.py
 │   │   ├── utils.py
 │   │   ├── vulnerability_reporting.py
+│   │   ├── vendor_coverage.py
 │   │   ├── weekly_app.py
 │   │   └── weekly_rendering.py
 │   ├── send_security_advisory.py

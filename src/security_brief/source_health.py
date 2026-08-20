@@ -41,6 +41,11 @@ def assess_and_persist(entry: dict[str, Any], *, freshness_days: int = 14) -> di
     now = str(entry["checked_at"])
     newest = str(entry.get("newest_item") or previous.get("newest_seen", ""))
     state = str(entry["health_state"])
+    # Adapters may confirm that the index was reachable while reporting an
+    # incomplete expected dataset. Preserve that distinction from a clean quiet
+    # result; report policy will consequently refuse a clean negative.
+    if entry.get("partial") and state in {"CONTENT", "QUIET"}:
+        state = "PARTIAL"
     newest_at = _timestamp(newest)
     if state in {"CONTENT", "QUIET"} and newest_at and newest_at < datetime.now(timezone.utc) - timedelta(days=freshness_days):
         state = "STALE"

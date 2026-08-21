@@ -57,11 +57,19 @@ class WeeklyPresentationTests(unittest.TestCase):
         low = record("CVE-2026-00006")
         low.cvss = 3.9
 
-        displayed = weekly_display_records([medium, low, critical, unscored, cvss_ten, zero_day])
+        displayed = weekly_display_records(
+            [medium, low, critical, unscored, cvss_ten, zero_day]
+        )
 
         self.assertEqual(
             [value.cve for value in displayed],
-            ["CVE-2026-00001", "CVE-2026-00002", "CVE-2026-00003", "CVE-2026-00004", "CVE-2026-00005"],
+            [
+                "CVE-2026-00001",
+                "CVE-2026-00002",
+                "CVE-2026-00003",
+                "CVE-2026-00004",
+                "CVE-2026-00005",
+            ],
         )
 
     def test_iso_week_is_shown(self) -> None:

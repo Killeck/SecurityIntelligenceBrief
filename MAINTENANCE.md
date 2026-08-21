@@ -92,7 +92,7 @@ The backlog below contains open work only.
 
 ## Priority 2 — AI Security & Trustworthiness
 
-Create a dedicated first-class reporting point for material AI developments.
+Create a dedicated first-class reporting point for material AI developments, as well as looking for any other relevant developments that highlight AI as a threat, limitations or bands being put on AI etc.
 
 ### Security and operational risk
 

@@ -125,6 +125,7 @@ REPLACED_GENERIC_HTML_SOURCES = frozenset(
         "Fortinet PSIRT",
         "HPE Security Bulletin Library",
         "Okta Security",
+        "CISA ICS Advisories",
     }
 )
 

@@ -13,6 +13,7 @@ from .config import DEFCON_LEVELS, ZERO_DAY_TERMS
 from .evidence import annotate_evidence
 from .rules import (
     ACTIONS,
+    AI_SECURITY_TERMS,
     CATEGORY_RULES,
     DETECTION_TEMPLATES,
     EXECUTIVE_NEWS_EXCLUDE,
@@ -465,12 +466,19 @@ def classify(
 
     return "General security", 0
 
-def route_section(category: str, source: Source) -> str:
+def route_section(category: str, source: Source, combined: str = "") -> str:
     """Map a classified record into its final report section.
 
     Vendor-specific and governance-specific routing takes precedence over the
-    source's default section so the report structure stays predictable.
+    source's default section so the report structure stays predictable. AI
+    Security & Trustworthiness is checked first, ahead of vendor routing, so
+    material AI-security content from a vendor source (e.g. Microsoft, CISA)
+    still lands in the dedicated section per Priority 2 rather than being
+    absorbed into that vendor's own section.
     """
+
+    if combined and any(term in combined.lower() for term in AI_SECURITY_TERMS):
+        return "AI Security and Trustworthiness"
 
     if source.vendor == "Fortinet":
         return "Fortinet"
@@ -592,7 +600,7 @@ def build_item(
         published=published,
         source=source.name,
         vendor=source.vendor,
-        section=route_section(category, source),
+        section=route_section(category, source, combined),
         category=category,
         score=score,
         cves=cves,
@@ -1345,6 +1353,7 @@ def select_final_items(
         "HPE and Aruba",
         "Other Vendor Advisories",
         "Cloud and Identity",
+        "AI Security and Trustworthiness",
         "SOC and Detection Engineering",
         "Threat Intelligence",
         "Vulnerability Research",

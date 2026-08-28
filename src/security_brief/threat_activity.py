@@ -59,10 +59,20 @@ def merge_activity(
             continue
         previous = records.get(key)
         previous_seen = _parse(previous.get("last_seen")) if isinstance(previous, dict) else None
+        # Nordic relevance is sticky: once any qualifying observation of this
+        # actor/campaign has mentioned a Nordic country or region, the entry
+        # stays flagged even if a later, more-recent update does not repeat
+        # the geography — a global actor observed once targeting the Nordics
+        # remains worth flagging for a Nordic CISO audience.
+        previously_nordic = bool(previous.get("nordic_relevant")) if isinstance(previous, dict) else False
+        nordic_relevant = previously_nordic or bool(candidate.get("nordic_relevant"))
         if previous_seen is not None and previous_seen > observed:
+            if previously_nordic != nordic_relevant and isinstance(previous, dict):
+                previous["nordic_relevant"] = nordic_relevant
             continue
         records[key] = {
             "label": label,
+            "nordic_relevant": nordic_relevant,
             "activity": str(candidate.get("activity") or "").strip(),
             "last_seen": observed.isoformat(),
             "confidence": str(candidate.get("confidence") or "Single-source report").strip(),
@@ -87,8 +97,14 @@ def merge_activity(
         pass
 
     values = list(records.values())
+    # Nordic-relevant entries sort first (recency-ordered within that group),
+    # then everything else (also recency-ordered), so a fixed `limit` slice
+    # downstream does not silently drop older-but-still-active Nordic
+    # campaigns in favour of unrelated, more-recent global activity.
     values.sort(
-        key=lambda value: _parse(value.get("last_seen")) or datetime.min.replace(tzinfo=timezone.utc),
-        reverse=True,
+        key=lambda value: (
+            0 if value.get("nordic_relevant") else 1,
+            -(_parse(value.get("last_seen")) or datetime.min.replace(tzinfo=timezone.utc)).timestamp(),
+        ),
     )
     return values

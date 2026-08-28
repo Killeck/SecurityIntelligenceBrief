@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from .config import MSRC_UPDATES_API
 from .models import Source
+from .rules import AI_SECURITY_TERMS
 
 EXECUTIVE_NEWS_RSS = (
     {
@@ -222,6 +223,24 @@ RSS_SOURCES = (
         section="Threat Intelligence",
     ),
     Source(
+        name="OpenAI News",
+        vendor="OpenAI",
+        url="https://openai.com/news/rss.xml",
+        source_type="rss",
+        base_score=28,
+        section="AI Security and Trustworthiness",
+        topic_keywords=AI_SECURITY_TERMS,
+    ),
+    Source(
+        name="Google DeepMind Blog",
+        vendor="Google DeepMind",
+        url="https://deepmind.google/blog/feed/basic/",
+        source_type="rss",
+        base_score=26,
+        section="AI Security and Trustworthiness",
+        topic_keywords=AI_SECURITY_TERMS,
+    ),
+    Source(
         name="Microsoft Security Blog",
         vendor="Microsoft",
         url="https://www.microsoft.com/en-us/security/blog/feed/",
@@ -277,6 +296,49 @@ RSS_SOURCES = (
         section="Threat Intelligence",
     ),
     Source(
+        name="SentinelOne Blog",
+        vendor="SentinelOne",
+        url="https://www.sentinelone.com/feed/",
+        source_type="rss",
+        base_score=24,
+        section="Threat Intelligence",
+    ),
+    Source(
+        name="Trend Micro Research",
+        vendor="Trend Micro",
+        url="https://feeds.trendmicro.com/TrendMicroResearch",
+        source_type="rss",
+        base_score=24,
+        section="Threat Intelligence",
+    ),
+    Source(
+        name="Kubernetes Official CVE Feed",
+        vendor="Kubernetes",
+        url="https://k8s.io/docs/reference/issues-security/official-cve-feed/feed.xml",
+        source_type="rss",
+        base_score=30,
+        section="Cloud and Identity",
+    ),
+    Source(
+        name="Salesforce Security Blog",
+        vendor="Salesforce",
+        url="https://www.salesforce.com/blog/category/security/",
+        source_type="html",
+        base_score=20,
+        section="Cloud and Identity",
+        selectors=(
+            "h2 a[href]",
+            "article a[href]",
+        ),
+        include_patterns=("salesforce.com/blog/",),
+        exclude_patterns=(
+            "/category/",
+            "/author/",
+            "/page/",
+        ),
+        max_candidates=25,
+    ),
+    Source(
         name="The DFIR Report",
         vendor="The DFIR Report",
         url="https://thedfirreport.com/feed/",
@@ -303,6 +365,24 @@ RSS_SOURCES = (
 )
 
 HTML_SOURCES = (
+    Source(
+        name="Anthropic News",
+        vendor="Anthropic",
+        url="https://www.anthropic.com/news",
+        source_type="html",
+        base_score=28,
+        section="AI Security and Trustworthiness",
+        selectors=(
+            "main a[href^='/news/']",
+            "a[href^='/news/']",
+        ),
+        include_patterns=("anthropic.com/news",),
+        exclude_patterns=(
+            "/news/index",
+        ),
+        max_candidates=40,
+        topic_keywords=AI_SECURITY_TERMS,
+    ),
     Source(
         name="Shadowserver Foundation",
         vendor="Shadowserver",
@@ -682,11 +762,20 @@ HTML_SOURCES = (
         max_candidates=40,
     ),
     Source(
-        name="Nozomi Networks Labs",
+        name="Nozomi Networks PSIRT",
+        vendor="Nozomi Networks",
+        url="https://security.nozominetworks.com/rss.xml",
+        source_type="rss",
+        base_score=32,
+        section="OT, Energy and Oil & Gas",
+        freshness_days=45,
+    ),
+    Source(
+        name="Nozomi Networks Labs Blog",
         vendor="Nozomi Networks",
         url="https://www.nozominetworks.com/blog",
         source_type="html",
-        base_score=32,
+        base_score=30,
         section="OT, Energy and Oil & Gas",
         selectors=(
             "main h2 a[href]",

@@ -14,6 +14,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from security_brief.models import Item
+from security_brief.analysis import route_section
+from security_brief.models import Source
 from security_brief.pipeline_state import effective_daily_cutoff, mark_daily_success
 from security_brief.report_policy import (
     _normalise_tldr,
@@ -188,6 +190,77 @@ class IntelligenceQuality613Tests(unittest.TestCase):
         self.assertEqual(result[0]["activity"], "Targeted exploitation confirmed.")
         self.assertEqual(result[0]["source"], "Primary Research")
 
+    def test_nordic_relevance_is_sticky_across_later_non_nordic_updates(self) -> None:
+        now = datetime(2026, 8, 21, 12, 0, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "threat.json"
+            merge_activity(
+                [
+                    {
+                        "key": "actor two",
+                        "label": "Actor Two",
+                        "activity": "Confirmed targeting of a Norwegian energy operator.",
+                        "last_seen": (now - timedelta(days=5)).isoformat(),
+                        "confidence": "High",
+                        "source": "Primary Research",
+                        "link": "https://example.invalid/nordic",
+                        "nordic_relevant": True,
+                    }
+                ],
+                now=now,
+                path=path,
+            )
+            result = merge_activity(
+                [
+                    {
+                        "key": "actor two",
+                        "label": "Actor Two",
+                        "activity": "Broader campaign update, no region named.",
+                        "last_seen": now.isoformat(),
+                        "confidence": "High",
+                        "source": "Primary Research",
+                        "link": "https://example.invalid/global",
+                        "nordic_relevant": False,
+                    }
+                ],
+                now=now,
+                path=path,
+            )
+        self.assertEqual(len(result), 1)
+        self.assertTrue(result[0]["nordic_relevant"])
+
+    def test_nordic_relevant_entries_sort_before_more_recent_global_entries(self) -> None:
+        now = datetime(2026, 8, 21, 12, 0, tzinfo=timezone.utc)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "threat.json"
+            result = merge_activity(
+                [
+                    {
+                        "key": "global actor",
+                        "label": "Global Actor",
+                        "activity": "Most recent, no Nordic mention.",
+                        "last_seen": now.isoformat(),
+                        "confidence": "High",
+                        "source": "Primary Research",
+                        "link": "https://example.invalid/global",
+                        "nordic_relevant": False,
+                    },
+                    {
+                        "key": "nordic actor",
+                        "label": "Nordic Actor",
+                        "activity": "Older, targets a Swedish financial institution.",
+                        "last_seen": (now - timedelta(days=10)).isoformat(),
+                        "confidence": "High",
+                        "source": "Primary Research",
+                        "link": "https://example.invalid/nordic",
+                        "nordic_relevant": True,
+                    },
+                ],
+                now=now,
+                path=path,
+            )
+        self.assertEqual([value["label"] for value in result], ["Nordic Actor", "Global Actor"])
+
     def test_watch_next_uses_decision_oriented_24_72_structure(self) -> None:
         html = render_watch_next([item(exploited=True)], [], limit=4)
         self.assertIn("Next 24h — action & verification", html)
@@ -261,6 +334,56 @@ class IntelligenceQuality613Tests(unittest.TestCase):
         aruba_status = next(value for value in statuses if value.label == "Aruba")
         self.assertEqual(hpe.count, 0)
         self.assertEqual(aruba_status.count, 1)
+
+
+class AiUsedOrAbusedRoutingTests(unittest.TestCase):
+    def test_ai_used_as_attack_tool_routes_to_ai_security_section(self) -> None:
+        generic_source = Source(
+            name="Generic News",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        combined = (
+            "Criminals used a deepfake voice clone to impersonate a CFO in an "
+            "ai-powered scam targeting a European bank."
+        )
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "AI Security and Trustworthiness",
+        )
+
+    def test_ai_used_defensively_also_routes_to_ai_security_section(self) -> None:
+        generic_source = Source(
+            name="Generic News",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="SOC and Detection Engineering",
+        )
+        combined = "The SOC deployed ai-powered detection to triage the incident faster."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "AI Security and Trustworthiness",
+        )
+
+    def test_unrelated_content_keeps_source_default_section(self) -> None:
+        generic_source = Source(
+            name="Generic News",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        combined = "A ransomware group claimed a new victim on its leak site."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "Threat Intelligence",
+        )
 
 
 if __name__ == "__main__":

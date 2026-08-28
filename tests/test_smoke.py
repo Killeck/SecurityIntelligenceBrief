@@ -106,7 +106,7 @@ class PipelineTests(unittest.TestCase):
             tags=[
                 "Dark Web/Exposure",
                 "Nordics",
-                "Retail/Hospitality/Property",
+                "Retail",
             ],
             summary=(
                 "A ransomware claim alleges stolen customer data from a "

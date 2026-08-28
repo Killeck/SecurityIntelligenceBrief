@@ -5,6 +5,111 @@
 
 from __future__ import annotations
 
+# Shared Nordic-relevance keyword set. Kept as a single source of truth so
+# RELEVANCE_RULES tagging and the rolling threat-actor/campaign activity view
+# (threat_activity.py, via report_policy.py) apply an identical definition of
+# "Nordic-relevant" rather than two drifting keyword lists.
+NORDIC_TERMS = (
+    "norway",
+    "norwegian",
+    "sweden",
+    "swedish",
+    "denmark",
+    "danish",
+    "finland",
+    "finnish",
+    "nordic",
+    "scandinavia",
+    "scandinavian",
+    "iceland",
+)
+
+# AI Security & Trustworthiness (Priority 2): material developments where AI
+# itself is a threat, a security limitation, an imposed boundary/control, or
+# a trustworthiness/governance concern - not generic model launches or
+# marketing. Kept as a single source of truth so the dedicated content-based
+# section override in analysis.route_section and the topic_keywords filter on
+# AI-vendor sources in sources.py apply the same definition.
+AI_SECURITY_TERMS = (
+    # Security and operational risk
+    "ai-assisted attack",
+    "ai assisted attack",
+    "agentic ai attack",
+    "autonomous agent",
+    "agent abuse",
+    "model vulnerability",
+    "model vulnerabilities",
+    "prompt injection",
+    "jailbreak",
+    "data leakage",
+    "insecure copilot",
+    "insecure agent",
+    "ai supply chain",
+    "model supply chain",
+    "ai pipeline",
+    "compromised model",
+    "red team",
+    "red-team",
+    "adversarial",
+    "malicious use of ai",
+    "malicious ai use",
+    "influence operation",
+    "covert influence",
+    "cyber capabilit",
+    # AI used or abused in the wild: how threat actors (and defenders) are
+    # actually deploying AI, not just AI's own security posture.
+    "deepfake",
+    "voice clone",
+    "voice cloning",
+    "synthetic media",
+    "ai-generated phishing",
+    "ai generated phishing",
+    "ai-generated malware",
+    "ai generated malware",
+    "ai-written malware",
+    "ai-powered scam",
+    "ai powered scam",
+    "romance scam",
+    "ai voice scam",
+    "vishing",
+    "disinformation campaign",
+    "misinformation campaign",
+    "ai fraud",
+    "fraud ring",
+    "jailbreak-as-a-service",
+    "jailbreak as a service",
+    "wormgpt",
+    "fraudgpt",
+    "malicious gpt",
+    "llm-powered malware",
+    "llm powered malware",
+    "autonomous cyberattack",
+    "agentic malware",
+    "ai-assisted social engineering",
+    "ai assisted social engineering",
+    "ai-generated disinformation",
+    "ai generated disinformation",
+    "ai defender",
+    "ai-powered detection",
+    "ai powered detection",
+    "agentic soc",
+    # Trustworthiness and governance
+    "ai safety",
+    "ai governance",
+    "ai regulation",
+    "model provenance",
+    "content provenance",
+    "ai transparency",
+    "ai accountability",
+    "human oversight",
+    "ai act",
+    "frontier safety",
+    "responsible ai",
+    "ai risk",
+    "third-party evaluation",
+    "third party evaluation",
+)
+
 RELEVANCE_RULES = (
     (
         "Dark Web/Exposure",
@@ -128,20 +233,7 @@ RELEVANCE_RULES = (
     ),
     (
         "Nordics",
-        (
-            "norway",
-            "norwegian",
-            "sweden",
-            "swedish",
-            "denmark",
-            "danish",
-            "finland",
-            "finnish",
-            "nordic",
-            "scandinavia",
-            "scandinavian",
-            "iceland",
-        ),
+        NORDIC_TERMS,
         30,
     ),
     (
@@ -160,17 +252,42 @@ RELEVANCE_RULES = (
         22,
     ),
     (
-        "Energy/Oil & Gas",
+        "Energy",
+        (
+            "energy sector",
+            "power grid",
+            "electricity",
+            "electric grid",
+            "renewable energy",
+            "renewables",
+            "energy trading",
+            "energy services",
+            "utility",
+            "utilities",
+            "grid operator",
+            "transmission system operator",
+            "district heating",
+        ),
+        30,
+    ),
+    (
+        "Oil & Gas",
         (
             "oil and gas",
             "oil & gas",
             "offshore",
-            "energy sector",
-            "power grid",
-            "utility",
-            "utilities",
-            "electricity",
             "pipeline",
+            "upstream",
+            "downstream",
+            "refinery",
+            "petroleum",
+            "drilling",
+        ),
+        32,
+    ),
+    (
+        "OT/ICS/Critical Infrastructure",
+        (
             "industrial control",
             "operational technology",
             " ot ",
@@ -204,22 +321,47 @@ RELEVANCE_RULES = (
         22,
     ),
     (
-        "Retail/Hospitality/Property",
+        "Retail",
         (
             "retail",
             "retailer",
             "point of sale",
             "pos system",
             "e-commerce",
+            "ecommerce",
             "webshop",
+            "loyalty platform",
+            "loyalty program",
+            "warehouse",
+            "logistics",
+        ),
+        24,
+    ),
+    (
+        "Hospitality/Property",
+        (
             "hospitality",
             "hotel",
             "travel",
             "restaurant",
             "property",
             "real estate",
-            "housing",
             "construction",
+        ),
+        22,
+    ),
+    (
+        "Housing Estates/BoligByggerlag",
+        (
+            "boligbyggerlag",
+            "borettslag",
+            "housing association",
+            "housing cooperative",
+            "housing estate",
+            "building management system",
+            "access control system",
+            "resident portal",
+            "property management platform",
         ),
         24,
     ),
@@ -442,21 +584,40 @@ SENSITIVE_DATA_CLASSES = {
 
 SECTOR_IMPACT_RULES = (
     (
-        "Oil, Gas and Energy",
+        "Energy",
         (
-            "oil and gas",
-            "oil & gas",
-            "offshore",
             "energy sector",
             "utility",
             "utilities",
             "power grid",
             "electricity",
+            "electric grid",
+            "renewable energy",
+            "renewables",
+            "energy trading",
+            "energy services",
+            "grid operator",
+            "transmission system operator",
+            "district heating",
+        ),
+        (
+            "Review OT exposure, grid/SCADA dependencies, renewable and trading "
+            "platform integrations, and Nordic energy-service supplier reliance."
+        ),
+        33,
+    ),
+    (
+        "Oil and Gas",
+        (
+            "oil and gas",
+            "oil & gas",
+            "offshore",
             "pipeline",
-            "industrial control",
-            "operational technology",
-            "scada",
-            "critical infrastructure",
+            "upstream",
+            "downstream",
+            "refinery",
+            "petroleum",
+            "drilling",
         ),
         (
             "Review OT exposure, remote vendor access, operational continuity "
@@ -465,7 +626,7 @@ SECTOR_IMPACT_RULES = (
         35,
     ),
     (
-        "Retail and E-commerce",
+        "Retail",
         (
             "retail",
             "retailer",
@@ -476,10 +637,14 @@ SECTOR_IMPACT_RULES = (
             "ecommerce",
             "webshop",
             "merchant",
+            "loyalty platform",
+            "loyalty program",
+            "warehouse",
+            "logistics provider",
         ),
         (
-            "Assess payment, identity, outsourced IT and distributed endpoint "
-            "exposure."
+            "Assess payment, identity, loyalty/customer platform, warehouse OT "
+            "and logistics-supplier exposure."
         ),
         28,
     ),
@@ -601,6 +766,27 @@ SECTOR_IMPACT_RULES = (
             "and supplier access."
         ),
         22,
+    ),
+    (
+        "Housing Estates and BoligByggerlag",
+        (
+            "boligbyggerlag",
+            "borettslag",
+            "housing association",
+            "housing cooperative",
+            "housing estate",
+            "building management system",
+            "access control system",
+            "resident portal",
+            "property management platform",
+        ),
+        (
+            "Review access-control and building-system exposure, resident/"
+            "customer portal authentication, payment and finance integrations, "
+            "and managed-infrastructure/supplier dependencies specific to "
+            "housing cooperatives."
+        ),
+        24,
     ),
     (
         "Managed Services, Telecom and Hosting",

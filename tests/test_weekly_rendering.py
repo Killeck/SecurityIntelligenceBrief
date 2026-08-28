@@ -158,6 +158,140 @@ class WeeklyPresentationTests(unittest.TestCase):
         self.assertIn("Checked — no qualifying update", html)
         self.assertIn("Source unavailable — status unknown", html)
 
+    def test_weekly_report_adds_top_vulnerabilities_section(self) -> None:
+        normal = record("CVE-2026-10001")
+        normal.priority_score = 99
+        normal.cvss = 10.0
+        urgent = record("CVE-2026-10002")
+        urgent.priority_score = 70
+        urgent.cvss = 8.8
+        urgent.zero_day = True
+
+        text, html = render_weekly_vulnerability_report(
+            [normal, urgent],
+            [],
+            [],
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+        )
+
+        self.assertIn("Top Vulnerabilities of the Week", text)
+        self.assertIn("Top Vulnerabilities of the Week", html)
+        self.assertLess(
+            html.index("CVE-2026-10002"),
+            html.index("CVE-2026-10001"),
+        )
+        self.assertEqual(html.count('data-top-week-entry="1"'), 2)
+
+    def test_month_in_rearview_is_limited_to_twenty_entries(self) -> None:
+        month_records = []
+        for index in range(25):
+            value = record(f"CVE-2026-{20000 + index}")
+            value.priority_score = 100 - index
+            value.cvss = 10.0 - min(index, 6) * 0.1
+            month_records.append(value)
+
+        text, html = render_weekly_vulnerability_report(
+            [record()],
+            [],
+            month_records,
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+        )
+
+        self.assertIn("A month in the Rearview", text)
+        self.assertIn("A month in the Rearview", html)
+        self.assertEqual(html.count('data-rearview-entry="1"'), 20)
+        self.assertIn("limited to 20", html)
+        self.assertIn("CVE-2026-20019", html)
+        self.assertNotIn("CVE-2026-20024", html)
+
+    def test_lifecycle_changes_are_grouped_by_vendor_and_vulnerability_class(self) -> None:
+        value = record("CVE-2026-30001")
+        value.vendor = "Cisco"
+        value.summary = "Remote code execution allows an unauthenticated attacker to execute code."
+        text_body, html = render_weekly_vulnerability_report(
+            [value],
+            ["CVE-2026-30001: newly added to CISA KEV"],
+            [value],
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+        )
+        self.assertIn("3. Exploitation, KEV & EPSS Changes", text_body)
+        self.assertIn("Cisco", html)
+        self.assertIn("Remote code execution", html)
+
+    def test_remediation_priority_lists_vendor_then_cves(self) -> None:
+        first = record("CVE-2026-31001")
+        first.vendor = "Fortinet"
+        first.remediation_band = "Patch immediately"
+        second = record("CVE-2026-31002")
+        second.vendor = "Cisco"
+        second.remediation_band = "Validate exposure"
+        text_body, html = render_weekly_vulnerability_report(
+            [first, second],
+            [],
+            [],
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+        )
+        self.assertIn("4. Remediation Priority", text_body)
+        self.assertIn("Patch immediately", html)
+        self.assertIn("Fortinet", html)
+        self.assertIn("CVE-2026-31001", html)
+        self.assertIn("Validate exposure", html)
+        self.assertIn("Cisco", html)
+        self.assertIn("CVE-2026-31002", html)
+
+    def test_quarterly_trend_panel_contains_four_severity_series(self) -> None:
+        trend = {
+            "weeks": [
+                {
+                    "week_start": f"2026-06-{1 + index:02d}",
+                    "label": f"W{20 + index:02d}",
+                    "Zero-Day": index % 2,
+                    "Critical": index,
+                    "High": index + 1,
+                    "Medium": index + 2,
+                }
+                for index in range(13)
+            ],
+            "totals": {"Zero-Day": 6, "Critical": 78, "High": 91, "Medium": 104},
+            "latest_four": {"Zero-Day": 2, "Critical": 42, "High": 46, "Medium": 50},
+            "previous_four": {"Zero-Day": 1, "Critical": 26, "High": 30, "Medium": 34},
+            "direction": "increasing",
+            "peak_week": "W32",
+            "peak_count": 40,
+            "concentrations": [
+                {"vendor": "Microsoft", "category": "Operating Systems", "count": 12}
+            ],
+            "counting_note": "Each CVE is counted once.",
+        }
+        text_body, html = render_weekly_vulnerability_report(
+            [record()],
+            [],
+            [],
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+            quarterly_trend=trend,
+        )
+        self.assertIn("Quarterly Vulnerability Trend — rolling 13 weeks", text_body)
+        self.assertIn("Quarterly Vulnerability Trend — Rolling 13 Weeks", html)
+        for label in ("Zero-Day", "Critical", "High", "Medium"):
+            self.assertIn(label, html)
+        self.assertIn("latest 4 weeks", html)
+        self.assertIn("Microsoft / Operating Systems", html)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,13 +1,7 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary and confidential. See LICENSE.
 
-"""Application orchestration for the Daily Security Brief.
-
-This module owns side effects and workflow sequencing. Collection functions are
-pure source adapters; analysis and rendering remain deterministic and testable.
-Independent public sources are fetched concurrently with a bounded worker pool,
-which substantially reduces total runtime without increasing per-source load.
-"""
+"""Application orchestration for the Daily Security Brief."""
 
 from __future__ import annotations
 
@@ -56,6 +50,11 @@ from .governance import (
     load_configured_governance_events,
 )
 from .models import ExposureSignal, Item, NewsLink
+from .pipeline_state import (
+    effective_daily_cutoff,
+    effective_lookback_hours,
+    mark_daily_success,
+)
 from .priority_vendor_sources import (
     AUTHORITATIVE_VENDOR_RSS_SOURCES,
     REPLACED_GENERIC_HTML_SOURCES,
@@ -72,6 +71,11 @@ from .source_config import (
     load_source_overrides,
 )
 from .source_health import assess_and_persist
+from .source_resilience import (
+    RESILIENT_HTML_SOURCES,
+    fetch_claroty_team82_disclosures,
+    fetch_resilient_html,
+)
 from .utils import (
     csv_setting,
     integer_setting,
@@ -82,6 +86,21 @@ from .utils import (
 
 
 T = TypeVar("T")
+
+
+HISTORICAL_CONTEXT_SOURCES = frozenset(
+    {
+        "Microsoft Security Response Center",
+        "Google Threat Intelligence",
+        "Palo Alto Unit 42",
+        "CrowdStrike Blog",
+        "The DFIR Report",
+        "Cisco Talos",
+        "FortiGuard Labs Threat Research",
+        "Dragos",
+        "Nozomi Networks Labs",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -101,6 +120,7 @@ class RuntimeSettings:
     executive_news_max: int
     source_workers: int
     dedup_days: int
+    vendor_context_days: int
     monitored_brands: tuple[str, ...]
     monitored_domains: tuple[str, ...]
     hibp_api_key: str
@@ -154,6 +174,12 @@ class RuntimeSettings:
                 minimum=1,
                 maximum=90,
             ),
+            vendor_context_days=integer_setting(
+                "VENDOR_CONTEXT_DAYS",
+                default=90,
+                minimum=30,
+                maximum=180,
+            ),
             monitored_brands=csv_setting("MONITORED_BRANDS"),
             monitored_domains=csv_setting("MONITORED_DOMAINS"),
             hibp_api_key=os.getenv("HIBP_API_KEY", "").strip(),
@@ -192,8 +218,6 @@ class FetchOutcome(Generic[T]):
 
 
 def _execute_task(task: FetchTask[T]) -> FetchOutcome[T]:
-    """Execute one source adapter without allowing its error to escape."""
-
     try:
         return FetchOutcome(task=task, values=task.fetch())
     except Exception as error:  # Source isolation is intentional.
@@ -201,8 +225,6 @@ def _execute_task(task: FetchTask[T]) -> FetchOutcome[T]:
 
 
 def _newest_value_timestamp(values: list[Any]) -> str:
-    """Return the newest timestamp exposed by collected values, when available."""
-
     candidates: list[datetime] = []
     for value in values:
         for attribute in ("published", "observed"):
@@ -213,10 +235,7 @@ def _newest_value_timestamp(values: list[Any]) -> str:
                 timestamp = timestamp.replace(tzinfo=timezone.utc)
             candidates.append(timestamp.astimezone(timezone.utc))
             break
-
-    if not candidates:
-        return ""
-    return max(candidates).isoformat()
+    return max(candidates).isoformat() if candidates else ""
 
 
 def collect_tasks(
@@ -226,44 +245,35 @@ def collect_tasks(
     *,
     workers: int,
 ) -> None:
-    """Fetch independent sources concurrently and record ordered health data.
-
-    ``executor.map`` preserves task order, so Source Coverage remains stable
-    even though network requests run concurrently.
-    """
+    """Fetch independent sources concurrently and record ordered health data."""
 
     if not tasks:
         return
-
     worker_count = min(workers, len(tasks))
-
     with ThreadPoolExecutor(
         max_workers=worker_count,
         thread_name_prefix="brief-source",
     ) as executor:
         outcomes = executor.map(_execute_task, tasks)
-
         for outcome in outcomes:
             task = outcome.task
-
             if outcome.error is None:
                 target.extend(outcome.values)
                 state.source_health.append(
-                    assess_and_persist({
-                        "source": task.name,
-                        "status": "OK",
-                        "health_state": (
-                            "CONTENT" if outcome.values else "QUIET"
-                        ),
-                        "items": len(outcome.values),
-                        "detail": task.detail,
-                        "checked_at": datetime.now(timezone.utc).isoformat(),
-                        "newest_item": _newest_value_timestamp(outcome.values),
-                    }, freshness_days=task.freshness_days)
+                    assess_and_persist(
+                        {
+                            "source": task.name,
+                            "status": "OK",
+                            "health_state": "CONTENT" if outcome.values else "QUIET",
+                            "items": len(outcome.values),
+                            "detail": task.detail,
+                            "checked_at": datetime.now(timezone.utc).isoformat(),
+                            "newest_item": _newest_value_timestamp(outcome.values),
+                        },
+                        freshness_days=task.freshness_days,
+                    )
                 )
-                print(
-                    f"{task.name}: {len(outcome.values)} {task.unit}"
-                )
+                print(f"{task.name}: {len(outcome.values)} {task.unit}")
                 continue
 
             error = outcome.error
@@ -271,15 +281,18 @@ def collect_tasks(
             warning = f"{task.name}: {detail}"
             state.warnings.append(warning)
             state.source_health.append(
-                assess_and_persist({
-                    "source": task.name,
-                    "status": "FAILED",
-                    "health_state": "FAILED",
-                    "items": 0,
-                    "detail": detail,
-                    "checked_at": datetime.now(timezone.utc).isoformat(),
-                    "newest_item": "",
-                }, freshness_days=task.freshness_days)
+                assess_and_persist(
+                    {
+                        "source": task.name,
+                        "status": "FAILED",
+                        "health_state": "FAILED",
+                        "items": 0,
+                        "detail": detail,
+                        "checked_at": datetime.now(timezone.utc).isoformat(),
+                        "newest_item": "",
+                    },
+                    freshness_days=task.freshness_days,
+                )
             )
             print(f"WARNING: {warning}", file=sys.stderr)
 
@@ -287,14 +300,20 @@ def collect_tasks(
 def primary_tasks(
     cutoff: datetime,
     kev_days: int,
+    *,
+    vendor_context_cutoff: datetime | None = None,
 ) -> list[FetchTask[Item]]:
-    """Build all independent primary-intelligence source operations."""
+    """Build independent primary-intelligence source operations.
 
+    Priority-vendor advisory channels may use a longer context window than the
+    normal Daily report. Their older records are retained only for vendor-status
+    context; ``run_pipeline`` filters reader-facing Daily content back to the
+    effective Daily/catch-up cutoff.
+    """
+
+    vendor_cutoff = vendor_context_cutoff or cutoff
     tasks: list[FetchTask[Item]] = [
-        FetchTask(
-            name="CISA KEV",
-            fetch=lambda: fetch_kev(kev_days),
-        ),
+        FetchTask(name="CISA KEV", fetch=lambda: fetch_kev(kev_days)),
         FetchTask(
             name="NVD priority-vendor CVEs",
             fetch=lambda: fetch_priority_vendor_nvd(cutoff),
@@ -303,27 +322,36 @@ def primary_tasks(
     ]
 
     overrides = load_source_overrides()
-
     tasks.extend(
         FetchTask(
             name=source.name,
             fetch=lambda source=source: fetch_authoritative_vendor_rss(
                 source,
-                cutoff,
+                vendor_cutoff,
             ),
-            detail="Authoritative vendor security bulletin feed",
+            detail="Authoritative vendor security bulletin feed with historical context",
             freshness_days=source.freshness_days,
         )
         for source in configure_sources(AUTHORITATIVE_VENDOR_RSS_SOURCES, overrides)
     )
-
     tasks.append(
         FetchTask(
             name="HPE Security Bulletin Library",
-            fetch=lambda: fetch_hpe_security_bulletins(cutoff),
-            detail="Authoritative HPE/Aruba bulletin library",
+            fetch=lambda: fetch_hpe_security_bulletins(vendor_cutoff),
+            detail="Authoritative HPE/Aruba bulletin library with historical context",
+            freshness_days=45,
         )
     )
+
+    if overrides.get("Claroty Team82", {}).get("enabled") is not False:
+        tasks.append(
+            FetchTask(
+                name="Claroty Team82",
+                fetch=lambda: fetch_claroty_team82_disclosures(vendor_cutoff),
+                detail="Structured Team82 CPS vulnerability disclosure dashboard",
+                freshness_days=45,
+            )
+        )
 
     tasks.extend(
         FetchTask(
@@ -334,25 +362,42 @@ def primary_tasks(
         )
         for source in configure_sources(OPEN_VULNERABILITY_SOURCES, overrides)
     )
-
     tasks.extend(
         FetchTask(
             name=source.name,
-            fetch=lambda source=source: fetch_rss(source, cutoff),
+            fetch=lambda source=source: fetch_rss(
+                source,
+                vendor_cutoff if source.name in HISTORICAL_CONTEXT_SOURCES else cutoff,
+            ),
             freshness_days=source.freshness_days,
         )
         for source in configure_sources(RSS_SOURCES, overrides)
     )
 
-    tasks.extend(
-        FetchTask(
-            name=source.name,
-            fetch=lambda source=source: fetch_html(source, cutoff),
-            freshness_days=source.freshness_days,
+    for source in configure_sources(HTML_SOURCES, overrides):
+        if source.name in REPLACED_GENERIC_HTML_SOURCES or source.name == "Claroty Team82":
+            continue
+        source_cutoff = (
+            vendor_cutoff
+            if source.name == "Apple Security Releases" or source.name in HISTORICAL_CONTEXT_SOURCES
+            else cutoff
         )
-        for source in configure_sources(HTML_SOURCES, overrides)
-        if source.name not in REPLACED_GENERIC_HTML_SOURCES
-    )
+        fetcher = fetch_resilient_html if source.name in RESILIENT_HTML_SOURCES else fetch_html
+        tasks.append(
+            FetchTask(
+                name=source.name,
+                fetch=lambda source=source, source_cutoff=source_cutoff, fetcher=fetcher: fetcher(
+                    source,
+                    source_cutoff,
+                ),
+                detail=(
+                    "Historical vendor/threat context"
+                    if source.name == "Apple Security Releases" or source.name in HISTORICAL_CONTEXT_SOURCES
+                    else "Primary HTML intelligence"
+                ),
+                freshness_days=source.freshness_days,
+            )
+        )
     return tasks
 
 
@@ -360,8 +405,6 @@ def exposure_tasks(
     settings: RuntimeSettings,
     cutoff: datetime,
 ) -> list[FetchTask[ExposureSignal]]:
-    """Build public and optional authorised exposure-source operations."""
-
     tasks = [
         FetchTask(
             name="Have I Been Pwned breach catalogue",
@@ -370,7 +413,6 @@ def exposure_tasks(
             unit="new exposure signal(s)",
         )
     ]
-
     if settings.monitored_domains and settings.hibp_api_key:
         tasks.append(
             FetchTask(
@@ -379,47 +421,45 @@ def exposure_tasks(
                     settings.monitored_domains,
                     settings.hibp_api_key,
                 ),
-                detail=(
-                    f"{len(settings.monitored_domains)} verified domain(s) "
-                    "configured"
-                ),
+                detail=f"{len(settings.monitored_domains)} verified domain(s) configured",
                 unit="domain exposure signal(s)",
             )
         )
-
     return tasks
 
 
-def discovery_tasks(
-    cutoff: datetime,
-) -> list[FetchTask[NewsLink]]:
-    """Build secondary discovery-source operations."""
+def discovery_tasks(cutoff: datetime) -> list[FetchTask[NewsLink]]:
+    """Build secondary discovery operations with BankInfoSecurity RSS fallback."""
 
     overrides = load_source_overrides()
     tasks = [
         FetchTask(
             name=source["name"],
-            fetch=lambda source=source: fetch_executive_news_rss(
-                source,
-                cutoff,
-            ),
+            fetch=lambda source=source: fetch_executive_news_rss(source, cutoff),
             detail="Executive news discovery",
             unit="relevant news link(s)",
         )
         for source in configure_mapping_sources(EXECUTIVE_NEWS_RSS, overrides)
     ]
-    tasks.extend(
-        FetchTask(
-            name=source["name"],
-            fetch=lambda source=source: fetch_executive_news_html(
-                source,
-                cutoff,
-            ),
-            detail="Executive news discovery",
-            unit="relevant news link(s)",
-        )
-        for source in configure_mapping_sources(EXECUTIVE_NEWS_HTML, overrides)
-    )
+    for source in configure_mapping_sources(EXECUTIVE_NEWS_HTML, overrides):
+        if source["name"] == "BankInfoSecurity":
+            tasks.append(
+                FetchTask(
+                    name=source["name"],
+                    fetch=lambda source=source: fetch_executive_news_rss(source, cutoff),
+                    detail="Executive news discovery via BankInfoSecurity RSS",
+                    unit="relevant news link(s)",
+                )
+            )
+        else:
+            tasks.append(
+                FetchTask(
+                    name=source["name"],
+                    fetch=lambda source=source: fetch_executive_news_html(source, cutoff),
+                    detail="Executive news discovery",
+                    unit="relevant news link(s)",
+                )
+            )
     return tasks
 
 
@@ -428,21 +468,31 @@ def run_pipeline(settings: RuntimeSettings) -> None:
 
     local_now = datetime.now(OSLO_TIMEZONE)
     utc_now = datetime.now(timezone.utc)
-    cutoff = utc_now - timedelta(hours=settings.lookback_hours)
+    cutoff = effective_daily_cutoff(utc_now, settings.lookback_hours)
+    effective_hours = effective_lookback_hours(utc_now, cutoff)
+    vendor_context_cutoff = utc_now - timedelta(days=settings.vendor_context_days)
     state = PipelineState()
     profiler = RuntimeProfiler("daily")
 
-    print(
-        f"Reporting window: {settings.lookback_hours} hours "
-        f"(Europe/Oslo weekday={local_now.strftime('%A')})"
-    )
-    print(
-        f"Parallel source workers: {settings.source_workers}"
-    )
+    if effective_hours > settings.lookback_hours:
+        print(
+            f"Reporting window expanded to {effective_hours} hours to catch up from the last successful delivery."
+        )
+    else:
+        print(
+            f"Reporting window: {effective_hours} hours "
+            f"(Europe/Oslo weekday={local_now.strftime('%A')})"
+        )
+    print(f"Vendor status context: {settings.vendor_context_days} days")
+    print(f"Parallel source workers: {settings.source_workers}")
 
     with profiler.stage("collection"):
         collect_tasks(
-            primary_tasks(cutoff, settings.kev_days),
+            primary_tasks(
+                cutoff,
+                settings.kev_days,
+                vendor_context_cutoff=vendor_context_cutoff,
+            ),
             state.primary_items,
             state,
             workers=settings.source_workers,
@@ -460,17 +510,18 @@ def run_pipeline(settings: RuntimeSettings) -> None:
             workers=settings.source_workers,
         )
 
-    # Deduplicate before NVD enrichment so duplicate CVEs do not consume API
-    # capacity. CVSS enrichment then participates in final prioritisation.
+    # ``status_items`` includes the longer authoritative vendor context. Only
+    # records inside the effective Daily/catch-up window enter the actual report.
+    status_items = deduplicate(state.primary_items)
+    report_candidates = [item for item in status_items if item.published >= cutoff]
+
     with profiler.stage("enrichment"):
-        all_items = deduplicate(state.primary_items)
-        enrich_nvd(all_items, state.warnings)
-    all_items.sort(
-        key=lambda item: (item.score, item.published),
-        reverse=True,
-    )
-    items = select_final_items(all_items, settings.max_items)
-    items = ensure_mandatory_vulnerabilities(items, all_items)
+        enrich_nvd(report_candidates, state.warnings)
+
+    status_items.sort(key=lambda item: (item.score, item.published), reverse=True)
+    report_candidates.sort(key=lambda item: (item.score, item.published), reverse=True)
+    items = select_final_items(report_candidates, settings.max_items)
+    items = ensure_mandatory_vulnerabilities(items, report_candidates)
     items, suppressed_duplicates = suppress_recent_duplicates(
         items,
         now=utc_now,
@@ -478,14 +529,12 @@ def run_pipeline(settings: RuntimeSettings) -> None:
     )
     if suppressed_duplicates:
         print(f"Persistent duplicates suppressed: {suppressed_duplicates}")
+
     executive_news = select_executive_news(
         state.news_candidates,
         items,
         settings.executive_news_max,
     )
-
-    # Exposure intelligence remains separate from primary advisories, retaining
-    # visible confidence labels and avoiding risk-score contamination.
     state.exposure_candidates.extend(
         build_open_source_exposure_signals(
             items,
@@ -499,21 +548,9 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         state.exposure_candidates,
         settings.exposure_max,
     )
-
-    sector_impacts = build_sector_impacts(
-        items,
-        executive_news,
-        max_items=5,
-    )
-    detection_opportunities = build_detection_opportunities(
-        items,
-        max_items=6,
-    )
-    regional_links = build_regional_links(
-        items,
-        executive_news,
-        max_items=8,
-    )
+    sector_impacts = build_sector_impacts(items, executive_news, max_items=5)
+    detection_opportunities = build_detection_opportunities(items, max_items=6)
+    regional_links = build_regional_links(items, executive_news, max_items=8)
 
     today = local_now.date()
     upcoming_events = deduplicate_governance_events(
@@ -523,7 +560,7 @@ def run_pipeline(settings: RuntimeSettings) -> None:
             state.warnings,
         )
         + detect_governance_go_live_events(
-            all_items,
+            report_candidates,
             today,
             settings.upcoming_days,
         )
@@ -533,7 +570,7 @@ def run_pipeline(settings: RuntimeSettings) -> None:
         text_body, html_body = render_report(
             items,
             state.warnings,
-            settings.lookback_hours,
+            effective_hours,
             upcoming_events,
             settings.upcoming_days,
             state.source_health,
@@ -544,7 +581,7 @@ def run_pipeline(settings: RuntimeSettings) -> None:
             exposure_signals,
             settings.monitored_brands,
             settings.monitored_domains,
-            status_items=all_items,
+            status_items=status_items,
         )
 
     advisory = advisory_status(items, exposure_signals)
@@ -558,6 +595,7 @@ def run_pipeline(settings: RuntimeSettings) -> None:
             "items": len(items),
             "exposure_signals": len(exposure_signals),
             "warnings": len(state.warnings),
+            "effective_lookback_hours": effective_hours,
         },
     )
 
@@ -572,9 +610,9 @@ def run_pipeline(settings: RuntimeSettings) -> None:
             text_body,
             html_body,
         )
+    mark_daily_success(utc_now)
 
     profile = profiler.persist()
-
     print(
         f"Briefing sent: {advisory['display']}, "
         f"{len(items)} item(s), "
@@ -592,14 +630,9 @@ def run_pipeline(settings: RuntimeSettings) -> None:
 
 
 def main() -> int:
-    """CLI entry point with one top-level failure boundary."""
-
     try:
         run_pipeline(RuntimeSettings.from_environment())
         return 0
     except Exception as error:
-        print(
-            f"Pipeline failed: {type(error).__name__}: {error}",
-            file=sys.stderr,
-        )
+        print(f"Pipeline failed: {type(error).__name__}: {error}", file=sys.stderr)
         return 1

@@ -27,6 +27,7 @@ from .weekly_rendering import (
     iso_week_label,
     render_weekly_vulnerability_report,
 )
+from .weekly_trends import build_quarterly_vulnerability_trend
 
 
 @dataclass(frozen=True)
@@ -41,6 +42,7 @@ class WeeklySettings:
     lookback_days: int
     max_records: int
     source_workers: int
+    vendor_context_days: int
     database_path: Path
 
     @classmethod
@@ -69,6 +71,12 @@ class WeeklySettings:
                 minimum=1,
                 maximum=16,
             ),
+            vendor_context_days=integer_setting(
+                "VENDOR_CONTEXT_DAYS",
+                default=90,
+                minimum=30,
+                maximum=180,
+            ),
             database_path=Path(
                 os.getenv(
                     "VULNERABILITY_DB_PATH",
@@ -84,32 +92,47 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
     local_now = datetime.now(OSLO_TIMEZONE)
     utc_now = datetime.now(timezone.utc)
     cutoff = utc_now - timedelta(days=settings.lookback_days)
+    vendor_context_cutoff = utc_now - timedelta(days=settings.vendor_context_days)
     state = PipelineState()
     profiler = RuntimeProfiler("weekly")
 
     with profiler.stage("collection"):
         collect_tasks(
-            primary_tasks(cutoff, settings.lookback_days + 7),
+            primary_tasks(
+                cutoff,
+                settings.lookback_days + 7,
+                vendor_context_cutoff=vendor_context_cutoff,
+            ),
             state.primary_items,
             state,
             workers=settings.source_workers,
         )
-    with profiler.stage("enrichment"):
-        items = deduplicate(state.primary_items)
-        enrich_nvd(items, state.warnings)
-        records = weekly_display_records(
-            build_vulnerability_records(items, now=utc_now)
-        )[: settings.max_records]
 
-    with profiler.stage("lifecycle"):
-        with VulnerabilityStore(settings.database_path) as store:
-            changes = store.record(records, utc_now)
-            mtd_records = store.month_to_date(local_now.date())
-            monthly_counts = store.monthly_counts(local_now.date())
+    # The shared primary pipeline can contain historical vendor/threat context.
+    # Only the Weekly reporting window becomes current Weekly vulnerability rows.
+    with profiler.stage("enrichment"):
+        all_items = deduplicate(state.primary_items)
+        current_items = [item for item in all_items if item.published >= cutoff]
+        enrich_nvd(current_items, state.warnings)
+        records = weekly_display_records(
+            build_vulnerability_records(current_items, now=utc_now)
+        )[: settings.max_records]
 
     week_end = local_now.date()
     week_start = week_end - timedelta(days=settings.lookback_days - 1)
     week_label = iso_week_label(week_end)
+
+    with profiler.stage("lifecycle"):
+        with VulnerabilityStore(settings.database_path) as store:
+            changes = store.record(records, utc_now)
+            mtd_records = store.month_to_date(week_end)
+            monthly_counts = store.monthly_counts(week_end)
+
+        quarterly_trend = build_quarterly_vulnerability_trend(
+            settings.database_path,
+            week_end,
+            weeks=13,
+        )
 
     with profiler.stage("rendering"):
         text_body, html_body = render_weekly_vulnerability_report(
@@ -120,7 +143,9 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
             week_start,
             week_end,
             state.source_health,
+            quarterly_trend=quarterly_trend,
         )
+
     subject = (
         f"Weekly Vulnerability Report — {week_label} — "
         f"{week_end.isoformat()}"
@@ -136,6 +161,7 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
             text_body,
             html_body,
         )
+
     profile = profiler.persist()
     print(
         f"Weekly vulnerability report sent: {week_label}, "

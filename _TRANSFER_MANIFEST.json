@@ -1,0 +1,175 @@
+{
+  "version": "6.1.3",
+  "repository": "Killeck/SecurityIntelligenceBrief",
+  "repository_files": 29,
+  "delete_if_present": [
+    "tests/tests/test_priority_vendor_sources.py"
+  ],
+  "python_compile_passed": true,
+  "python_compile": {
+    "src/security_brief/app.py": "PASS",
+    "src/security_brief/pipeline_state.py": "PASS",
+    "src/security_brief/report_policy.py": "PASS",
+    "src/security_brief/source_health.py": "PASS",
+    "src/security_brief/source_resilience.py": "PASS",
+    "src/security_brief/threat_activity.py": "PASS",
+    "src/security_brief/vendor_coverage.py": "PASS",
+    "src/security_brief/weekly_app.py": "PASS",
+    "src/security_brief/weekly_rendering.py": "PASS",
+    "src/security_brief/weekly_trends.py": "PASS",
+    "tests/test_priority_vendor_sources.py": "PASS",
+    "tests/test_report_policy.py": "PASS",
+    "tests/test_source_health.py": "PASS",
+    "tests/test_v6_1_3_intelligence_quality.py": "PASS",
+    "tests/test_v6_maintenance.py": "PASS",
+    "tests/test_weekly_rendering.py": "PASS",
+    "tests/test_weekly_trends.py": "PASS"
+  },
+  "files": [
+    {
+      "path": "VERSION",
+      "bytes": 6,
+      "sha256": "212c23b1f7154cbf0df9cb171c9ba00f16e16e78331f34eb133a8e1a1629300c"
+    },
+    {
+      "path": "README.md",
+      "bytes": 18368,
+      "sha256": "d158888ce7004315c7978b9a8f1369681df0a681276575b33441f27133c6bb8c"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "bytes": 21005,
+      "sha256": "493c5ebbe66103311836a2a60bd09fa655ad65930ab079a63d980fb6800ed7f6"
+    },
+    {
+      "path": "MAINTENANCE.md",
+      "bytes": 6692,
+      "sha256": "1e9d6f00ad8947b155d4082ac3e3a081a97481dbb60b8312fe8ceafff8ab03e1"
+    },
+    {
+      "path": "config/sources.json",
+      "bytes": 3275,
+      "sha256": "7c2d4dea7ba36a17f5cd6be4f0d82e10deb4e5b268ce5c7f274d4bad32ac7cea"
+    },
+    {
+      "path": ".github/workflows/daily-security-brief.yml",
+      "bytes": 4828,
+      "sha256": "4f4cfd16b8bae58a29145e3c83e196e88da344ed8be695207d6ce242c97b2fa7"
+    },
+    {
+      "path": ".github/workflows/weekly-vulnerability-report.yml",
+      "bytes": 3829,
+      "sha256": "ed52bf50877a7ad52c2c9abbb88c40604de2253c7399888f12884528bd267a30"
+    },
+    {
+      "path": "src/security_brief/app.py",
+      "bytes": 21243,
+      "sha256": "c70c6607d7863b353475369f049502e2dfca93f705a4eafb01a1585e870cdb68"
+    },
+    {
+      "path": "src/security_brief/pipeline_state.py",
+      "bytes": 3343,
+      "sha256": "b56382d32579c80fe3c44811e3723648863f461aa7dbfed044bda43335cb9637"
+    },
+    {
+      "path": "src/security_brief/report_policy.py",
+      "bytes": 40526,
+      "sha256": "4c3f4301bc9ea59a59cf0c080d77efc6f80c2fc98a4392fc4d36ec3e9be11ba0"
+    },
+    {
+      "path": "src/security_brief/source_health.py",
+      "bytes": 3282,
+      "sha256": "382b83a2598874d9d224e7e72af27deae1fc58a42e46c37d345f89957ccb1c0e"
+    },
+    {
+      "path": "src/security_brief/source_resilience.py",
+      "bytes": 5041,
+      "sha256": "b19f428217687382e8a61b43549f0d498749aedce4ea30b1a209d6aa2c9d6671"
+    },
+    {
+      "path": "src/security_brief/threat_activity.py",
+      "bytes": 3201,
+      "sha256": "3726cd25e9777d286483dfb50136fbe02c1f560e6cc87eda85a568c6d4cc9302"
+    },
+    {
+      "path": "src/security_brief/vendor_coverage.py",
+      "bytes": 2766,
+      "sha256": "0c8c4829d4d3aa44e592dfe9270799dc896314148645f9a45c57fd7b245bc6de"
+    },
+    {
+      "path": "src/security_brief/weekly_app.py",
+      "bytes": 5882,
+      "sha256": "32653e817a3d11311bfdc5346943afdc1a0572658fd6670a3fb968b209246286"
+    },
+    {
+      "path": "src/security_brief/weekly_rendering.py",
+      "bytes": 35853,
+      "sha256": "fc11991b2429d6599d95e1facb831ccbce87b7c7a729f97db62f33de8b3bc7f4"
+    },
+    {
+      "path": "src/security_brief/weekly_trends.py",
+      "bytes": 5734,
+      "sha256": "6566f4eb800608c24ef9ce0483b68985edf05c912a16e2defe7408194494b610"
+    },
+    {
+      "path": "tests/test_priority_vendor_sources.py",
+      "bytes": 5924,
+      "sha256": "4d618b441aae029986e2fe9900e75c28d3a37ef2370490884ae6c27b56b0ecd8"
+    },
+    {
+      "path": "tests/test_report_policy.py",
+      "bytes": 6730,
+      "sha256": "355f6f6d58d655c8230397b1c0cb8f0402888cc344dda0c76cd477ef1d92cbd5"
+    },
+    {
+      "path": "tests/test_source_health.py",
+      "bytes": 4342,
+      "sha256": "cbe990dd56d10df01ae9cb462b0910a06c358c98ad4f57bf8c47ab7acc22ba5d"
+    },
+    {
+      "path": "tests/test_v6_1_3_intelligence_quality.py",
+      "bytes": 10642,
+      "sha256": "21adfbbcf69f813915061ebaaedb7ea865df414948afd9e960307f60ec792a6f"
+    },
+    {
+      "path": "tests/test_v6_maintenance.py",
+      "bytes": 6607,
+      "sha256": "e9187891a39a2e390bdc29beefd92d284f651a0c70e924f4bd4f4829c4449644"
+    },
+    {
+      "path": "tests/test_weekly_rendering.py",
+      "bytes": 10272,
+      "sha256": "5749b14862104543748ea886dcbb36493c8a27e6e2738d4add223763dffff0d4"
+    },
+    {
+      "path": "tests/test_weekly_trends.py",
+      "bytes": 4690,
+      "sha256": "4c3458a4c9c0612d8f2afeed221fc3ffc4a8b96f4cbad1a8b97762165297efb9"
+    },
+    {
+      "path": "docs/architecture/OPTIMISATION.md",
+      "bytes": 2763,
+      "sha256": "689af05c07d9063e4cf97cdea56e893317b3752421b941aaff121cd31fd8a448"
+    },
+    {
+      "path": "docs/operations/CONTINUITY.md",
+      "bytes": 2575,
+      "sha256": "4fe69d0c98bca34776ac4e06ca171680dcfe2b202dd527b62554f48761b57ad8"
+    },
+    {
+      "path": "docs/operations/WEEKLY_VULNERABILITY_REPORT.md",
+      "bytes": 3073,
+      "sha256": "9a252469b0b645a4ead7d62cf47d7ece038848cc52de47f83c9daf4df0dfe8af"
+    },
+    {
+      "path": "docs/releases/RELEASE_6.1.3.md",
+      "bytes": 4909,
+      "sha256": "4ea0f8ef6dffa53807159fe5ceb034164c821d3024c1e942701ef22fc206b04e"
+    },
+    {
+      "path": "docs/releases/manifests/RELEASE_6.1.3.json",
+      "bytes": 5757,
+      "sha256": "135b74c8b490824d3b5fbc024d10f388b839d73cf08047072f29740c3505cf78"
+    }
+  ]
+}

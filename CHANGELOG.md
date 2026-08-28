@@ -14,6 +14,64 @@ history remains available in Git history.
 
 ---
 
+## 6.1.3 - 2026-08-21
+
+### Daily intelligence quality
+
+- Completed the former Priority 1 Daily backlog.
+- Normalises Critical Vulnerability / Zero-Day TL;DR text before rendering,
+  removing Markdown/heading artefacts while preserving meaningful numeric hash references.
+- Added persistent rolling 90-day Active Exploitation / Threat Actor Activity
+  state with actor/campaign, activity, last observed, days ago, confidence and evidence.
+- Reworked Security Advisory & CISO Watch Next into separate 24-hour and 72-hour
+  decision horizons with Development, Evidence, Enterprise relevance, Sector
+  relevance, What to watch next and Recommended action.
+
+### Source truth and continuity
+
+- Added persistent last-success delivery state so a failed Daily run expands the
+  next collection window with overlap rather than losing advisories between runs.
+- Separated reader-facing Daily content from a 90-day priority-vendor context window.
+- Replaced generic `No material update` semantics with explicit current-window,
+  latest-material, incomplete, unavailable and unknown states.
+- Split HPE and Aruba into separate vendor status cards.
+- Stopped treating an old newest publication as proof that a successfully checked
+  low-frequency source is stale.
+- Added resilient handling/configuration for BankInfoSecurity, Claroty Team82,
+  Dragos, FBI Cyber News, ISACA News and Trends, ISO News, NIST CSRC News,
+  Nozomi Networks Labs and Splunk Security Blog.
+- Added structured Claroty Team82 disclosure-dashboard collection.
+- Added BankInfoSecurity first-party RSS override.
+
+### Weekly Vulnerability Report
+
+- Added **Top Vulnerabilities of the Week**.
+- Reworked **3. Exploitation, KEV & EPSS Changes** to group lifecycle changes by
+  vendor and vulnerability class/type.
+- Reworked **4. Remediation Priority** around the four established bands:
+  Patch immediately, Patch within 7 days, Validate exposure and Monitor; within
+  each band the report lists vendor first and CVEs underneath.
+- Added **Quarterly Vulnerability Trend — Rolling 13 Weeks**, covering Zero-Day,
+  Critical, High and Medium only, using first-observed lifecycle history.
+- Added trend interpretation comparing the latest four weeks with the preceding
+  four, quarter totals, peak week and material vendor/technology concentration.
+- Added **A Month in the Rearview**, ranking the 20 most prominent month-to-date
+  vulnerability entities.
+
+### CI integrity
+
+- Relocated priority-vendor regression coverage to `tests/test_priority_vendor_sources.py`
+  so the standard unittest discovery command executes it.
+- Added focused regression coverage for Daily catch-up, source health, TL;DR
+  cleanup, vendor context, threat activity, decision-oriented watch sections,
+  Weekly ranking/grouping and quarterly trend calculations.
+
+### Validation
+
+- All supplied Python files syntax-compile in the 6.1.3 build package.
+- Focused pure trend-engine validation passes locally.
+- Full Repository CI and live Daily/Weekly Gmail delivery remain production gates.
+
 ## 6.1.2 - 2026-08-20
 
 ### Fixed

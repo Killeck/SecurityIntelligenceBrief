@@ -11,7 +11,7 @@ CISOs:
 
 - **Daily Security Brief** — immediate developments, exposure and actions.
 - **Weekly Vulnerability Report** — CVE-centred remediation priorities,
-  lifecycle changes and a month-to-date vulnerability overview.
+  lifecycle changes, monthly rearview and rolling-quarter severity trends.
 
 `VERSION` is the single runtime source of truth for the release number.
 
@@ -63,7 +63,8 @@ and news sources.
 | Google Cloud | Google Cloud Security Bulletins XML feed |
 | Google Chrome | Official Chrome Releases feed |
 | Palo Alto Networks | Palo Alto Networks Security Advisories RSS |
-| HPE / Aruba | HPE Security Bulletin Library structured adapter |
+| HPE | HPE Security Bulletin Library structured adapter |
+| Aruba | HPE Security Bulletin Library structured adapter with separate vendor-status presentation |
 | Okta | Okta Security Advisories RSS |
 | Apple | Apple Security Releases |
 | Cisco | Cisco Security Advisories |
@@ -98,6 +99,40 @@ checked. Failed or partial authoritative coverage is shown as unknown/degraded.
 - Labels exposure intelligence by confidence.
 - Adds GitHub Advisory Database records as open-source vulnerability corroboration, while retaining vendor, CISA and NVD evidence rules for authoritative claims.
 - Sends multipart HTML/plain-text email through the Gmail API.
+
+
+### Intelligence quality and source truth — 6.1.3
+
+Version 6.1.3 separates three facts that older releases could collapse into a
+misleading `No material update` state:
+
+1. **Collector health** — was the authoritative source checked successfully?
+2. **Current reporting window** — did a priority advisory occur in the effective
+   Daily/catch-up window?
+3. **Latest material context** — what is the most recent material advisory in the
+   retained 90-day vendor context, and how many days ago was it observed?
+
+A failed Daily delivery no longer creates a blind interval. The last successful
+delivery timestamp is persisted in `.state/pipeline_state.json`; if necessary,
+the next run expands its collection cutoff with overlap, bounded to seven days.
+
+Priority-vendor feeds and selected high-value threat-research sources can retain
+up to 90 days of context for status/history while reader-facing Daily items
+remain limited to the effective 36/72-hour or catch-up window.
+
+Version 6.1.3 also:
+
+- normalises Critical Vulnerability / Zero-Day TL;DR text before HTML rendering;
+- persists a rolling 90-day Active Exploitation / Threat Actor Activity view;
+- groups CISO Watch Next into **Next 24h** action/verification and **Next 72h**
+  emerging/monitoring horizons;
+- separates HPE and Aruba vendor-status cards;
+- avoids treating low publication frequency as proof that a successfully checked
+  source is stale;
+- uses resilient/custom collection paths for the historically problematic
+  BankInfoSecurity, Claroty Team82, Dragos, FBI Cyber News, ISACA, ISO, NIST,
+  Nozomi Networks Labs and Splunk Security Blog sources.
+
 
 ### Executive threat header — 6.1.2
 
@@ -146,12 +181,22 @@ It provides:
 
 - ISO week number/year and reporting window
 - Critical, High, exploited, KEV and zero-day metrics
+- **Top Vulnerabilities of the Week**
 - CVSS and EPSS prioritisation
 - priority-vendor vulnerability overview
-- remediation bands
-- lifecycle/state changes
+- lifecycle changes grouped by **vendor and vulnerability class/type**
+- remediation priority grouped by the four established bands, then **vendor → CVE**
+- **Quarterly Vulnerability Trend — Rolling 13 Weeks** for Zero-Day, Critical,
+  High and Medium, with current four-week direction, prior-four-week comparison,
+  peak week and concentration insight
+- **A Month in the Rearview**, limited to the 20 most prominent vulnerability entities
 - month-to-date vulnerability overview
-- SQLite history stored through the GitHub Actions cache
+- SQLite lifecycle history stored through the GitHub Actions cache
+
+The quarterly trend counts a CVE once, in the week it is first observed in the
+lifecycle database. Zero-Day is intentionally a separate series and may overlap
+the CVE's CVSS severity series. Historical depth therefore improves as the
+weekly lifecycle database accumulates observations.
 
 See [`docs/operations/WEEKLY_VULNERABILITY_REPORT.md`](docs/operations/WEEKLY_VULNERABILITY_REPORT.md).
 
@@ -195,10 +240,12 @@ independently establish a confirmed organisational incident.
 │   │   ├── CONTINUITY.md
 │   │   └── WEEKLY_VULNERABILITY_REPORT.md
 │   └── releases/
+│       ├── RELEASE_6.1.3.md
 │       ├── RELEASE_6.1.2.md
 │       ├── RELEASE_6.1.1.md
 │       ├── RELEASE_6.1.0.md
 │       └── manifests/
+│           ├── RELEASE_6.1.3.json
 │           └── RELEASE_6.1.2.json
 ├── config/
 │   ├── sources.json
@@ -226,6 +273,9 @@ independently establish a confirmed organisational incident.
 │   │   ├── rules.py
 │   │   ├── sources.py
 │   │   ├── source_health.py
+│   │   ├── source_resilience.py
+│   │   ├── pipeline_state.py
+│   │   ├── threat_activity.py
 │   │   ├── source_config.py
 │   │   ├── runtime_profile.py
 │   │   ├── utils.py
@@ -240,6 +290,9 @@ independently establish a confirmed organisational incident.
 │   ├── test_report_policy.py
 │   ├── test_smoke.py
 │   ├── test_source_health.py
+│   ├── test_priority_vendor_sources.py
+│   ├── test_v6_1_3_intelligence_quality.py
+│   ├── test_weekly_trends.py
 │   ├── test_v6_maintenance.py
 │   ├── test_vulnerability_reporting.py
 │   └── test_weekly_rendering.py
@@ -289,6 +342,9 @@ and log only safe milestones: OAuth refresh and Gmail API acceptance.
 | `DAILY_DEDUP_STATE_FILE` | `.state/daily_dedup.json` | Persistent Daily duplicate state |
 | `RUNTIME_PROFILE_FILE` | `.state/runtime_profile.json` | Latest stage-level timing profile |
 | `SOURCE_DEFINITIONS_FILE` | `config/sources.json` | Source-definition override file |
+| `VENDOR_CONTEXT_DAYS` | `90` | Historical context retained for priority-vendor status |
+| `PIPELINE_STATE_FILE` | `.state/pipeline_state.json` | Last successful Daily delivery used for bounded catch-up |
+| `THREAT_ACTIVITY_STATE_FILE` | `.state/threat_activity.json` | Rolling 90-day actor/campaign activity state |
 | `NVD_API_KEY` | Empty | Optional NVD API key |
 | `HIBP_API_KEY` | Empty | Optional HIBP API key |
 
@@ -317,7 +373,7 @@ Then run:
 Actions → Test Daily Security Brief
 ```
 
-For 6.1.2, visually verify the received Daily report has:
+For 6.1.3, visually verify the received Daily report still has:
 
 1. compact Overall Threat box at the left;
 2. DEFCON 1–5 text legend at the right on the same row;
@@ -327,6 +383,15 @@ For 6.1.2, visually verify the received Daily report has:
 
 A failed authoritative source must be investigated in GitHub Actions rather
 than assuming the vendor had no security updates.
+
+For 6.1.3, also visually verify the Weekly report contains:
+
+1. Top Vulnerabilities of the Week.
+2. Section 3 grouped by vendor and vulnerability class/type.
+3. Section 4 grouped by remediation band, then vendor, then CVE.
+4. Quarterly Vulnerability Trend — Rolling 13 Weeks with Zero-Day, Critical,
+   High and Medium series only.
+5. A Month in the Rearview with no more than 20 entities.
 
 ## Documentation roles
 

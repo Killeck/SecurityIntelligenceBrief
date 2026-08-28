@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from security_brief.models import Item
 from security_brief.report_policy import (
@@ -24,12 +24,13 @@ def make_item(
     kev: bool = False,
     epss: str = "",
     score: int = 50,
+    published: datetime | None = None,
 ) -> Item:
     return Item(
         title=f"{cve} — test",
         summary="Test vulnerability",
         link=f"https://example.test/{cve}",
-        published=datetime(2026, 8, 13, tzinfo=timezone.utc),
+        published=published or datetime(2026, 8, 13, tzinfo=timezone.utc),
         source="Unit test",
         vendor=vendor,
         section="Other Vendor Advisories",
@@ -46,13 +47,24 @@ def make_item(
 
 
 class ReportPolicyTests(unittest.TestCase):
-    def test_cisco_clean_negative_requires_psirt_success(self) -> None:
+    def test_cisco_clean_state_reports_checked_source_not_no_material_update(self) -> None:
         statuses = vendor_statuses(
             [],
-            [{"source": "Cisco Security Advisories", "status": "OK", "items": 0}],
+            [
+                {
+                    "source": "Cisco Security Advisories",
+                    "status": "OK",
+                    "health_state": "QUIET",
+                    "items": 0,
+                }
+            ],
         )
         cisco = next(status for status in statuses if status.label == "Cisco")
-        self.assertEqual(cisco.status, "Checked — no material update")
+        self.assertEqual(
+            cisco.status,
+            "Source checked · no qualifying advisory found in retained context",
+        )
+        self.assertNotIn("no material update", cisco.status.lower())
 
     def test_critical_order_is_evidence_then_cvss_then_epss(self) -> None:
         values = [
@@ -86,7 +98,7 @@ class ReportPolicyTests(unittest.TestCase):
         )
         self.assertEqual(len(result), 3)
 
-    def test_clean_negative_requires_authoritative_success(self) -> None:
+    def test_checked_quiet_vendor_uses_explicit_no_advisory_semantics(self) -> None:
         statuses = vendor_statuses(
             [],
             [
@@ -99,7 +111,10 @@ class ReportPolicyTests(unittest.TestCase):
             ],
         )
         fortinet = next(value for value in statuses if value.label == "Fortinet")
-        self.assertEqual(fortinet.status, "Checked — no material update")
+        self.assertEqual(
+            fortinet.status,
+            "Source checked · no qualifying advisory found in retained context",
+        )
 
     def test_failure_never_becomes_clean_negative(self) -> None:
         statuses = vendor_statuses(
@@ -114,14 +129,12 @@ class ReportPolicyTests(unittest.TestCase):
             ],
         )
         fortinet = next(value for value in statuses if value.label == "Fortinet")
-        self.assertEqual(
-            fortinet.status,
-            "Source unavailable — status unknown",
-        )
+        self.assertEqual(fortinet.status, "Source unavailable · vendor status unknown")
 
-    def test_material_status_uses_all_collected_items(self) -> None:
+    def test_material_status_uses_current_window_items(self) -> None:
+        now = datetime(2026, 8, 13, 12, tzinfo=timezone.utc)
         statuses = vendor_statuses(
-            [make_item("CVE-2026-30001", cvss=8.8)],
+            [make_item("CVE-2026-30001", cvss=8.8, published=now - timedelta(hours=3))],
             [
                 {
                     "source": "Fortinet PSIRT RSS",
@@ -130,9 +143,34 @@ class ReportPolicyTests(unittest.TestCase):
                     "items": 1,
                 }
             ],
+            lookback_hours=36,
+            now=now,
         )
         fortinet = next(value for value in statuses if value.label == "Fortinet")
-        self.assertEqual((fortinet.count, fortinet.status), (1, "1 material update(s)"))
+        self.assertEqual(
+            (fortinet.count, fortinet.status),
+            (1, "1 priority advisory update(s) in reporting window"),
+        )
+
+    def test_old_material_advisory_is_retained_as_context(self) -> None:
+        now = datetime(2026, 8, 21, 12, tzinfo=timezone.utc)
+        statuses = vendor_statuses(
+            [make_item("CVE-2026-30002", cvss=9.8, published=now - timedelta(days=6))],
+            [
+                {
+                    "source": "Fortinet PSIRT RSS",
+                    "status": "OK",
+                    "health_state": "CONTENT",
+                    "items": 1,
+                }
+            ],
+            lookback_hours=36,
+            now=now,
+        )
+        fortinet = next(value for value in statuses if value.label == "Fortinet")
+        self.assertEqual(fortinet.count, 0)
+        self.assertIn("latest CVE-2026-30002", fortinet.status)
+        self.assertIn("6 day(s) ago", fortinet.status)
 
     def test_supporting_only_vendor_does_not_claim_clean_negative(self) -> None:
         statuses = vendor_statuses(

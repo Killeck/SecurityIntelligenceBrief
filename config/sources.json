@@ -1,3 +1,132 @@
 {
-  "sources": {}
+  "sources": {
+    "BankInfoSecurity": {
+      "url": "https://www.bankinfosecurity.com/rssFeeds.php?type=main",
+      "base_score": 8
+    },
+    "Claroty Team82": {
+      "url": "https://claroty.com/team82/disclosure-dashboard?vulnerabilities_direction=desc&vulnerabilities_sort=date",
+      "freshness_days": 45
+    },
+    "Dragos": {
+      "url": "https://www.dragos.com/blog/",
+      "selectors": [
+        "main article a[href]",
+        "article h2 a[href]",
+        "article h3 a[href]",
+        "main h2 a[href]",
+        "main h3 a[href]"
+      ],
+      "include_patterns": [
+        "dragos.com/blog/"
+      ],
+      "exclude_patterns": [
+        "/author/",
+        "/tag/",
+        "/category/",
+        "/resources/",
+        "webinar"
+      ],
+      "freshness_days": 45,
+      "max_candidates": 60
+    },
+    "FBI Cyber News": {
+      "selectors": [
+        "main article a[href]",
+        "main h2 a[href]",
+        "main h3 a[href]",
+        ".collection-item a[href]"
+      ],
+      "freshness_days": 60,
+      "max_candidates": 50
+    },
+    "ISACA News and Trends": {
+      "selectors": [
+        "main article a[href]",
+        "main h2 a[href]",
+        "main h3 a[href]",
+        "article a[href]"
+      ],
+      "include_patterns": [
+        "isaca.org/resources/news-and-trends/"
+      ],
+      "freshness_days": 45,
+      "max_candidates": 60
+    },
+    "ISO News": {
+      "selectors": [
+        "main article a[href]",
+        "main h2 a[href]",
+        "main h3 a[href]",
+        "article a[href]"
+      ],
+      "topic_keywords": [
+        "cyber",
+        "security",
+        "information security",
+        "privacy",
+        "artificial intelligence",
+        "AI",
+        "resilience",
+        "risk management",
+        "ISO/IEC 270",
+        "ISO/IEC 42001"
+      ],
+      "freshness_days": 60,
+      "max_candidates": 60
+    },
+    "NIST CSRC News": {
+      "url": "https://csrc.nist.gov/News?sortBy-lg=NewsDateTime%20DESC",
+      "selectors": [
+        "main article a[href]",
+        "main h2 a[href]",
+        "main h3 a[href]",
+        ".news-item a[href]",
+        ".row a[href]"
+      ],
+      "include_patterns": [
+        "csrc.nist.gov/News/",
+        "csrc.nist.gov/news/"
+      ],
+      "freshness_days": 45,
+      "max_candidates": 60
+    },
+    "Nozomi Networks Labs": {
+      "url": "https://www.nozominetworks.com/blog",
+      "selectors": [
+        "main article a[href]",
+        "article h2 a[href]",
+        "article h3 a[href]",
+        "main h2 a[href]",
+        "main h3 a[href]"
+      ],
+      "include_patterns": [
+        "nozominetworks.com/blog/"
+      ],
+      "freshness_days": 45,
+      "max_candidates": 60
+    },
+    "Splunk Security Blog": {
+      "url": "https://www.splunk.com/en_us/blog/security.html",
+      "selectors": [
+        "main article a[href]",
+        "article h2 a[href]",
+        "article h3 a[href]",
+        "main h2 a[href]",
+        "main h3 a[href]"
+      ],
+      "include_patterns": [
+        "splunk.com/en_us/blog/security/",
+        "splunk.com/en_us/blog/artificial-intelligence/"
+      ],
+      "exclude_patterns": [
+        "/products/",
+        "/events/",
+        "/conf/",
+        "/contact/"
+      ],
+      "freshness_days": 45,
+      "max_candidates": 60
+    }
+  }
 }

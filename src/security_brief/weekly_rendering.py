@@ -121,6 +121,299 @@ def _vendor_summary(
     )
 
 
+
+def _prominent_vulnerabilities(
+    records: Iterable[VulnerabilityRecord],
+    *,
+    limit: int,
+) -> list[VulnerabilityRecord]:
+    """Return the most decision-relevant vulnerabilities for a period.
+
+    Prominence is evidence-first rather than simply newest-first: zero-days,
+    confirmed exploitation/CISA KEV, remediation priority, CVSS and EPSS lead.
+    This keeps the Weekly and month-rearview sections focused on vulnerabilities
+    that materially changed exposure or remediation urgency.
+    """
+
+    unique: dict[str, VulnerabilityRecord] = {}
+    for record in records:
+        key = record.cve.upper().strip()
+        existing = unique.get(key)
+        if existing is None or (
+            record.priority_score, record.cvss or 0.0, record.epss
+        ) > (
+            existing.priority_score, existing.cvss or 0.0, existing.epss
+        ):
+            unique[key] = record
+
+    values = list(unique.values())
+    values.sort(
+        key=lambda record: (
+            record.zero_day,
+            record.exploited or record.kev,
+            record.kev,
+            record.exploited,
+            record.priority_score,
+            record.cvss or 0.0,
+            record.epss,
+            record.published,
+        ),
+        reverse=True,
+    )
+    return values[: max(0, limit)]
+
+
+def _prominent_plain(record: VulnerabilityRecord, rank: int) -> str:
+    flags: list[str] = []
+    if record.zero_day:
+        flags.append("Zero-day")
+    if record.exploited:
+        flags.append("Exploited")
+    if record.kev:
+        flags.append("CISA KEV")
+    if record.ransomware:
+        flags.append("Ransomware-linked")
+    status = ", ".join(flags) or "No confirmed exploitation"
+    cvss = f"{record.cvss:.1f}" if record.cvss is not None else "N/A"
+    summary = record.summary.strip() or record.title.strip()
+    return (
+        f"{rank}. {_cve_plain(record.cve)} | {record.vendor} | CVSS {cvss} | "
+        f"{status} | {summary} | Action: {record.action}"
+    )
+
+
+def _prominent_table(
+    records: list[VulnerabilityRecord],
+    *,
+    colours: dict[str, str],
+    marker: str,
+) -> str:
+    """Render a compact Outlook-safe prominent-vulnerability table."""
+
+    if not records:
+        return (
+            f'<p style="margin:0;color:{colours["muted"]};">'
+            "No qualifying vulnerability records for this period.</p>"
+        )
+
+    rows: list[str] = []
+    for rank, record in enumerate(records, start=1):
+        flags: list[str] = []
+        if record.zero_day:
+            flags.append("Zero-day")
+        if record.exploited:
+            flags.append("Exploited")
+        if record.kev:
+            flags.append("KEV")
+        if record.ransomware:
+            flags.append("Ransomware")
+        status = " · ".join(flags) or "Watch"
+        cvss = f"{record.cvss:.1f}" if record.cvss is not None else "N/A"
+        reason = record.summary.strip() or record.title.strip()
+        rows.append(
+            f'<tr data-{marker}-entry="1">'
+            f'<td width="5%" align="center" valign="top" style="padding:7px;border-top:1px solid {colours["border"]};">{rank}</td>'
+            f'<td width="15%" valign="top" style="padding:7px;border-top:1px solid {colours["border"]};">{_cve_html(record.cve, colours["link"])}</td>'
+            f'<td width="13%" valign="top" style="padding:7px;border-top:1px solid {colours["border"]};color:{colours["text"]};">{_esc(record.vendor)}</td>'
+            f'<td width="8%" align="center" valign="top" style="padding:7px;border-top:1px solid {colours["border"]};font-weight:700;">{_esc(cvss)}</td>'
+            f'<td width="15%" valign="top" style="padding:7px;border-top:1px solid {colours["border"]};color:{colours["high"]};">{_esc(status)}</td>'
+            f'<td width="30%" valign="top" style="padding:7px;border-top:1px solid {colours["border"]};color:{colours["text"]};line-height:1.35;">{_esc(reason)}</td>'
+            f'<td width="14%" valign="top" style="padding:7px;border-top:1px solid {colours["border"]};color:{colours["muted"]};line-height:1.35;">{_esc(record.action)}</td>'
+            "</tr>"
+        )
+
+    return (
+        '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" '
+        'style="width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px;">'
+        f'<tr style="color:{colours["muted"]};">'
+        '<th width="5%" style="padding:6px;">#</th>'
+        '<th width="15%" align="left" style="padding:6px;">CVE</th>'
+        '<th width="13%" align="left" style="padding:6px;">Vendor</th>'
+        '<th width="8%" style="padding:6px;">CVSS</th>'
+        '<th width="15%" align="left" style="padding:6px;">Status</th>'
+        '<th width="30%" align="left" style="padding:6px;">Why it matters</th>'
+        '<th width="14%" align="left" style="padding:6px;">Action</th>'
+        '</tr>' + "".join(rows) + "</table>"
+    )
+
+
+_VULN_CLASSES = (
+    ("Authentication bypass", ("authentication bypass", "auth bypass", "missing authentication", "improper authentication")),
+    ("Remote code execution", ("remote code execution", "arbitrary code execution", "code execution", " rce ")),
+    ("Command injection", ("command injection", "os command", "shell command")),
+    ("Privilege escalation", ("privilege escalation", "elevation of privilege")),
+    ("Information disclosure", ("information disclosure", "sensitive information", "data exposure", "information leak")),
+    ("Memory corruption", ("use-after-free", "buffer overflow", "out-of-bounds", "memory corruption")),
+    ("SQL injection", ("sql injection", "sqli")),
+    ("Cross-site scripting", ("cross-site scripting", "cross site scripting", " xss ")),
+    ("Path traversal", ("path traversal", "directory traversal")),
+    ("Server-side request forgery", ("server-side request forgery", "server side request forgery", " ssrf ")),
+    ("Deserialization", ("deserialization", "deserialisation")),
+    ("Denial of service", ("denial of service", "denial-of-service")),
+)
+
+
+def vulnerability_class(record: VulnerabilityRecord) -> str:
+    source = f" {record.title} {record.summary} {record.product} {record.affected} {record.category} ".casefold()
+    for label, terms in _VULN_CLASSES:
+        if any(term in source for term in terms):
+            return label
+    return record.category or "Other vulnerability"
+
+
+def _group_changes(changes: list[str], records: Iterable[VulnerabilityRecord]) -> list[tuple[str, list[tuple[str, list[str]]]]]:
+    lookup = {record.cve.upper(): record for record in records}
+    grouped: dict[str, dict[str, list[str]]] = {}
+    for change in changes[:30]:
+        match = CVE_PATTERN.search(change)
+        record = lookup.get(match.group(0).upper()) if match else None
+        vendor = record.vendor if record else "Unknown vendor"
+        kind = vulnerability_class(record) if record else "Lifecycle / exploitation state"
+        grouped.setdefault(vendor, {}).setdefault(kind, []).append(change)
+    return [
+        (vendor, [(kind, values) for kind, values in sorted(classes.items())])
+        for vendor, classes in sorted(grouped.items())
+    ]
+
+
+def _changes_plain(changes: list[str], records: Iterable[VulnerabilityRecord]) -> list[str]:
+    if not changes:
+        return ["No lifecycle state changes identified."]
+    lines: list[str] = []
+    for vendor, classes in _group_changes(changes, records):
+        lines.append(vendor)
+        for kind, values in classes:
+            lines.append(f"  {kind}")
+            lines.extend(f"    - {_linkify_cves_plain(value)}" for value in values)
+    return lines
+
+
+def _changes_html(changes: list[str], records: Iterable[VulnerabilityRecord], colours: dict[str, str]) -> str:
+    if not changes:
+        return f'<p style="margin:0;color:{colours["muted"]};">No lifecycle state changes identified.</p>'
+    blocks: list[str] = []
+    for vendor, classes in _group_changes(changes, records):
+        inner: list[str] = []
+        for kind, values in classes:
+            rows = "".join(
+                f'<tr><td width="18" valign="top" style="padding:3px 5px 3px 0;color:{colours["purple"]};">◆</td>'
+                f'<td style="padding:3px;color:{colours["text"]};font-size:10px;">{_linkify_cves_html(value, colours["link"])}</td></tr>'
+                for value in values
+            )
+            inner.append(
+                f'<div style="margin-top:4px;color:{colours["high"]};font-size:10px;font-weight:700;">{_esc(kind)}</div>'
+                f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0">{rows}</table>'
+            )
+        blocks.append(
+            f'<div style="margin:0 0 8px;padding:8px;background:{colours["panel_alt"]};border:1px solid {colours["border"]};border-radius:5px;">'
+            f'<strong style="color:{colours["text"]};font-size:11px;">{_esc(vendor)}</strong>'
+            + "".join(inner) + "</div>"
+        )
+    return "".join(blocks)
+
+
+_REMEDIATION_BANDS = ("Patch immediately", "Patch within 7 days", "Validate exposure", "Monitor")
+
+
+def _remediation_plain(records: Iterable[VulnerabilityRecord]) -> list[str]:
+    values = list(records)
+    lines: list[str] = []
+    for band in _REMEDIATION_BANDS:
+        lines.append(band)
+        selected = [record for record in values if record.remediation_band == band]
+        vendors: dict[str, list[VulnerabilityRecord]] = {}
+        for record in selected:
+            vendors.setdefault(record.vendor or "Unknown", []).append(record)
+        if not vendors:
+            lines.append("  None")
+            continue
+        for vendor in sorted(vendors):
+            lines.append(f"  {vendor}")
+            for record in sorted(vendors[vendor], key=lambda r: (r.cvss or 0, r.epss), reverse=True):
+                lines.append(f"    - {_cve_plain(record.cve)} · {vulnerability_class(record)} · Advisory: {record.link}")
+    return lines
+
+
+def _remediation_html(records: Iterable[VulnerabilityRecord], colours: dict[str, str]) -> str:
+    values = list(records)
+    blocks: list[str] = []
+    for band in _REMEDIATION_BANDS:
+        selected = [record for record in values if record.remediation_band == band]
+        vendors: dict[str, list[VulnerabilityRecord]] = {}
+        for record in selected:
+            vendors.setdefault(record.vendor or "Unknown", []).append(record)
+        vendor_html: list[str] = []
+        for vendor in sorted(vendors):
+            rows = "".join(
+                f'<tr><td width="18" valign="top" style="padding:3px 5px 3px 0;color:{colours["high"]};">•</td>'
+                f'<td style="padding:3px;color:{colours["text"]};font-size:10px;">'
+                f'{_cve_html(record.cve, colours["link"])} · {_esc(vulnerability_class(record))}'
+                + (f' · <a href="{html.escape(record.link, quote=True)}" style="color:{colours["link"]};">Advisory ›</a>' if record.link else "")
+                + '</td></tr>'
+                for record in sorted(vendors[vendor], key=lambda r: (r.cvss or 0, r.epss), reverse=True)
+            )
+            vendor_html.append(
+                f'<div style="margin-top:5px;color:{colours["text"]};font-size:10px;font-weight:700;">{_esc(vendor)}</div>'
+                f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0">{rows}</table>'
+            )
+        body = "".join(vendor_html) or f'<span style="color:{colours["muted"]};font-size:10px;">None</span>'
+        blocks.append(
+            f'<div style="margin:0 0 7px;padding:8px;background:{colours["panel_alt"]};border:1px solid {colours["border"]};border-radius:5px;">'
+            f'<strong style="color:{colours["high"]};font-size:11px;">{_esc(band)}</strong>{body}</div>'
+        )
+    return "".join(blocks)
+
+
+def _quarter_plain(trend: dict[str, Any]) -> list[str]:
+    totals = trend.get("totals", {})
+    latest = trend.get("latest_four", {})
+    previous = trend.get("previous_four", {})
+    keys = ("Zero-Day", "Critical", "High", "Medium")
+    return [
+        "Quarterly Vulnerability Trend — rolling 13 weeks",
+        "-----------------------------------------------",
+        f"Direction: {trend.get('direction', 'stable')} · latest 4 weeks {sum(int(latest.get(k,0)) for k in keys)} vs previous 4 weeks {sum(int(previous.get(k,0)) for k in keys)}",
+        f"Quarter totals: Zero-Day {totals.get('Zero-Day',0)} · Critical {totals.get('Critical',0)} · High {totals.get('High',0)} · Medium {totals.get('Medium',0)}",
+        f"Peak week: {trend.get('peak_week') or 'N/A'} · {trend.get('peak_count',0)} observation(s)",
+        str(trend.get("counting_note", "")),
+    ]
+
+
+def _quarter_html(trend: dict[str, Any], colours: dict[str, str]) -> str:
+    weeks = list(trend.get("weeks") or [])
+    mapping = {"Zero-Day": colours["purple"], "Critical": colours["critical"], "High": colours["high"], "Medium": colours["medium"]}
+    maximum = max((int(bucket.get(series,0)) for bucket in weeks for series in mapping), default=1) or 1
+    header = "".join(f'<th style="padding:3px 1px;color:{colours["muted"]};font-size:8px;">{_esc(bucket.get("label",""))}</th>' for bucket in weeks)
+    rows: list[str] = []
+    for series, colour in mapping.items():
+        cells: list[str] = []
+        for bucket in weeks:
+            count = int(bucket.get(series, 0))
+            width = round((count / maximum) * 100) if count else 0
+            bar = (
+                f'<table role="presentation" width="100%" cellspacing="0" cellpadding="0"><tr>'
+                f'<td width="{width}%" height="4" bgcolor="{colour}" style="height:4px;background:{colour};font-size:1px;">&nbsp;</td>'
+                f'<td width="{100-width}%" height="4" style="height:4px;font-size:1px;">&nbsp;</td></tr></table>'
+                if count else ""
+            )
+            cells.append(f'<td align="center" style="padding:3px 1px;border-left:1px solid {colours["border"]};font-size:9px;">{count}{bar}</td>')
+        rows.append(f'<tr><td width="72" style="padding:4px;color:{colour};font-size:9px;font-weight:700;">{series}</td>' + "".join(cells) + "</tr>")
+    totals, latest, previous = trend.get("totals", {}), trend.get("latest_four", {}), trend.get("previous_four", {})
+    keys = tuple(mapping)
+    concentrations = trend.get("concentrations") or []
+    concentration = " · ".join(f"{x.get('vendor')} / {x.get('category')} ({x.get('count')})" for x in concentrations[:3]) or "No material concentration identified yet."
+    insight = (
+        f'<div style="margin-bottom:8px;font-size:10px;line-height:1.45;">'
+        f'<strong>Direction:</strong> {_esc(str(trend.get("direction","stable")).title())} · latest 4 weeks {sum(int(latest.get(k,0)) for k in keys)} vs previous 4 weeks {sum(int(previous.get(k,0)) for k in keys)}<br>'
+        f'<strong>Quarter totals:</strong> Zero-Day {totals.get("Zero-Day",0)} · Critical {totals.get("Critical",0)} · High {totals.get("High",0)} · Medium {totals.get("Medium",0)}<br>'
+        f'<strong>Peak:</strong> {_esc(trend.get("peak_week") or "N/A")} · {trend.get("peak_count",0)} observation(s)<br>'
+        f'<strong>Concentration:</strong> {_esc(concentration)}</div>'
+    )
+    graph = '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed;border-collapse:collapse;">' + f'<tr><th width="72"></th>{header}</tr>' + "".join(rows) + "</table>"
+    note = f'<div style="margin-top:7px;color:{colours["muted"]};font-size:9px;">{_esc(trend.get("counting_note",""))}</div>'
+    return insight + graph + note
+
+
 def _health_state(entry: dict[str, Any]) -> str:
     state = str(entry.get("health_state", "")).upper()
     if state:
@@ -138,12 +431,17 @@ def render_weekly_vulnerability_report(
     week_start: date,
     week_end: date,
     source_health: list[dict[str, Any]],
+    *,
+    quarterly_trend: dict[str, Any] | None = None,
 ) -> tuple[str, str]:
     """Render aligned text/HTML weekly reports with ISO week identification."""
 
     weekly = _counts(records)
     mtd = _counts(mtd_records)
     week_label = iso_week_label(week_end)
+    top_week = _prominent_vulnerabilities(records, limit=10)
+    rearview = _prominent_vulnerabilities(mtd_records, limit=20)
+    quarterly_trend = quarterly_trend or {"weeks": [], "totals": {}, "latest_four": {}, "previous_four": {}, "direction": "stable", "peak_week": "", "peak_count": 0, "concentrations": [], "counting_note": "No lifecycle trend history available yet."}
 
     lines = [
         f"Weekly Vulnerability Report — {week_label}",
@@ -161,8 +459,15 @@ def render_weekly_vulnerability_report(
             f"Vendors affected: {weekly['vendors']}"
         ),
         "",
-        "Critical & exploited vulnerabilities",
+        "Top Vulnerabilities of the Week",
+        "-------------------------------",
     ]
+    if top_week:
+        lines.extend(_prominent_plain(record, rank) for rank, record in enumerate(top_week, start=1))
+    else:
+        lines.append("No qualifying vulnerabilities for the week.")
+
+    lines.extend(["", "Critical & exploited vulnerabilities"])
 
     for record in records[:25]:
         lines.append(
@@ -174,11 +479,12 @@ def render_weekly_vulnerability_report(
             f"{record.remediation_band} | Advisory: {record.link}"
         )
 
-    lines.extend(["", "Exploitation & KEV changes"])
-    if changes:
-        lines.extend(_linkify_cves_plain(change) for change in changes[:20])
-    else:
-        lines.append("No lifecycle state changes identified.")
+    lines.extend(["", "3. Exploitation, KEV & EPSS Changes"])
+    lines.extend(_changes_plain(changes, list(records) + list(mtd_records)))
+    lines.extend(["", "4. Remediation Priority"])
+    lines.extend(_remediation_plain(records))
+    lines.extend([""])
+    lines.extend(_quarter_plain(quarterly_trend))
 
     lines.extend(
         [
@@ -189,8 +495,15 @@ def render_weekly_vulnerability_report(
                 f"High: {mtd['high']} | KEV: {mtd['kev']} | "
                 f"Exploited: {mtd['exploited']} | Zero-days: {mtd['zero_day']}"
             ),
+            "",
+            "A month in the Rearview",
+            "-----------------------",
         ]
     )
+    if rearview:
+        lines.extend(_prominent_plain(record, rank) for rank, record in enumerate(rearview, start=1))
+    else:
+        lines.append("No month-to-date vulnerability history available.")
 
     failed = [
         entry["source"]
@@ -313,37 +626,9 @@ def render_weekly_vulnerability_report(
         + "</table>"
     )
 
-    change_rows = "".join(
-        '<tr><td valign="top" style="padding:4px 8px 4px 0;'
-        f'color:{colours["purple"]};">◆</td>'
-        f'<td style="padding:4px;color:{colours["text"]};">'
-        f'{_linkify_cves_html(change, colours["link"])}</td></tr>'
-        for change in changes[:20]
-    ) or (
-        f'<tr><td style="color:{colours["muted"]};">'
-        "No lifecycle state changes identified.</td></tr>"
-    )
-
-    remediation_cells: list[str] = []
-    for band in (
-        "Patch immediately",
-        "Patch within 7 days",
-        "Validate exposure",
-        "Monitor",
-    ):
-        selected = [record for record in records if record.remediation_band == band]
-        cve_rows = "<br>".join(
-            _cve_html(record.cve, colours["link"])
-            for record in selected[:8]
-        ) or "None"
-        remediation_cells.append(
-            f'<td width="25%" valign="top" style="padding:4px;">'
-            f'<div style="background:{colours["panel_alt"]};border:1px solid {colours["border"]};'
-            f'border-radius:6px;padding:9px;">'
-            f'<strong style="color:{colours["high"]};font-size:11px;">{_esc(band)}</strong>'
-            f'<div style="margin-top:5px;color:{colours["text"]};font-size:11px;'
-            f'line-height:1.5;">{cve_rows}</div></div></td>'
-        )
+    change_body = _changes_html(changes, list(records) + list(mtd_records), colours)
+    remediation_body = _remediation_html(records, colours)
+    quarterly_trend_body = _quarter_html(quarterly_trend, colours)
 
     mtd_vendor_cells = "".join(
         f'<td width="25%" valign="top" style="padding:4px;">'
@@ -380,6 +665,22 @@ def render_weekly_vulnerability_report(
         f'Top technology categories</strong><table>{category_rows}</table></td>'
         f'<td width="50%" valign="top"><strong style="color:{colours["purple"]};">'
         f'Month-to-month trend</strong><table>{trend_rows}</table></td></tr></table>'
+    )
+
+    top_week_body = _prominent_table(
+        top_week,
+        colours=colours,
+        marker="top-week",
+    )
+    rearview_body = (
+        f'<p style="margin:0 0 8px;color:{colours["muted"]};font-size:11px;">'
+        f'Most prominent vulnerability records observed during {week_end.strftime("%B %Y")}; '
+        'limited to 20.</p>'
+        + _prominent_table(
+            rearview,
+            colours=colours,
+            marker="rearview",
+        )
     )
 
     content = [entry["source"] for entry in source_health if _health_state(entry) == "CONTENT"]
@@ -428,10 +729,13 @@ def render_weekly_vulnerability_report(
     <div style="margin-top:8px;color:{colours['text']};font-size:24px;font-weight:700;">Weekly Vulnerability Report — {_esc(week_label)}</div>
     <div style="color:{colours['muted']};font-size:11px;">{week_start.isoformat()} — {week_end.isoformat()}</div></td></tr>
     <tr><td><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="table-layout:fixed;"><tr>{metric_cells}</tr></table></td></tr>
+    <tr><td>{panel('Top Vulnerabilities of the Week', top_week_body, colours['critical'])}</td></tr>
     <tr><td>{panel('1. Critical & Exploited Vulnerabilities', vulnerability_table, colours['critical'])}</td></tr>
     <tr><td>{panel('2. Priority Vendor Vulnerability Overview', vendor_cards, colours['blue'])}</td></tr>
-    <tr><td>{panel('3. Exploitation, KEV & EPSS Changes', '<table role="presentation">' + change_rows + '</table>', colours['purple'])}</td></tr>
-    <tr><td>{panel('4. Remediation Priority', '<table role="presentation" width="100%"><tr>' + ''.join(remediation_cells) + '</tr></table>', colours['high'])}</td></tr>
+    <tr><td>{panel('3. Exploitation, KEV & EPSS Changes', change_body, colours['purple'])}</td></tr>
+    <tr><td>{panel('4. Remediation Priority', remediation_body, colours['high'])}</td></tr>
+    <tr><td>{panel('Quarterly Vulnerability Trend — Rolling 13 Weeks', quarterly_trend_body, colours['blue'])}</td></tr>
+    <tr><td>{panel('A month in the Rearview', rearview_body, colours['green'])}</td></tr>
     <tr><td>{panel('Month-to-Date Vulnerability Overview — ' + week_end.strftime('%B %Y'), mtd_body, colours['green'])}</td></tr>
     <tr><td>{panel('Source Coverage & Trust', source_note + '<p style="color:' + colours['muted'] + ';font-size:11px;">Tier A authoritative · Tier B primary research · Tier C trusted reporting · Tier D discovery only.</p>', colours['blue'])}</td></tr>
     </table></td></tr></table></body></html>"""

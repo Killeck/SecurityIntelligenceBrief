@@ -72,6 +72,48 @@ Open follow-on:
   public feed) — not revisitable without direct membership access.
 - Symantec/Broadcom vendor coverage remains blocked: advisories are
   login-gated on the Broadcom Support Portal with no public feed.
+- [DONE 6.1.5] Trend Micro Research feed URL fixed (http, not https - the
+  https variant does not resolve, was causing "temporarily unavailable").
+- [DONE 6.1.5] Nozomi Networks Labs Blog selectors fixed: the site is
+  Webflow-built (no semantic h2/h3/article wrapper tags), so the original
+  selectors matched zero elements. Replaced with href-pattern selectors
+  matching the site's actual /blog/{slug} link convention.
+- Nozomi Networks Vulnerability Advisories page (nozominetworks.com/vulnerability-advisories)
+  identified as high-value (third-party OT/ICS/IoT CVE disclosures from
+  Nozomi Labs, openly available, no login) but structurally unsuited to the
+  generic link-based HTML collector: content is duplicated in the DOM
+  (table + card responsive layouts render the same rows twice) and most
+  rows have no reliable per-item link to Nozomi's own domain (the
+  "Details" link is a dead `#` on most rows; "Notification" links point
+  to third-party vendor PDFs, GitHub, or CISA advisories, not a Nozomi
+  page). Needs a dedicated row-based table parser (like
+  `parse_hpe_security_bulletins_html`), keyed on the CVE-ID text itself,
+  not a `Source(selectors=...)` config. Building this blind carries a real
+  risk of silent duplication (not just clean failure) given the doubled
+  DOM - get real page HTML (view-source/curl from a machine with access)
+  before implementing.
+- Nozomi Networks Threat Intelligence Feed (STIX 2.0/2.1 over a hosted
+  TAXII server) identified as the proper structured alternative to scraping
+  entirely: official, documented REST protocol (TAXII 2.x), IOCs
+  (IPs/domains/URLs/hashes) plus YARA/Sigma/packet detection rules and
+  vulnerability descriptions. Marketed explicitly for IT+OT ingestion
+  (Splunk, QRadar, Azure Sentinel are Nozomi's own example targets, not
+  just OT sensors). Sold standalone, independent of owning Guardian/Vantage
+  sensors, via AWS Marketplace or a reseller (e.g. BAKOTECH). To pursue:
+  (1) purchase the subscription - business/procurement decision, not
+  technical; (2) Nozomi provisions TAXII server credentials on purchase;
+  (3) build a TAXII 2.x client collector against Nozomi's published
+  "Threat Intelligence Feed - Configuration Guide" once credentials exist.
+  Scope caveat: this is tactical IOC/detection-rule content, not the
+  narrative CVE write-ups from the Vulnerability Advisories page above -
+  complementary, not a replacement.
+- Two lower-cost paths worth trying before any purchase decision: (a)
+  email Nozomi PSIRT/Labs directly (prodsec@nozominetworks.com) to ask
+  whether structured API access to the Vulnerability Advisories dataset
+  specifically exists for legitimate aggregation/research use, independent
+  of the commercial TI feed; (b) if NetNordic does not already have a
+  Nozomi partner relationship, explore whether one would open up better
+  data access as a side benefit.
 - Salesforce Security Blog is HTML-scraped with best-effort selectors,
   unverified against live DOM — same caveat as Anthropic News above.
 

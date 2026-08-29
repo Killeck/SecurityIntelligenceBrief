@@ -306,7 +306,7 @@ RSS_SOURCES = (
     Source(
         name="Trend Micro Research",
         vendor="Trend Micro",
-        url="https://feeds.trendmicro.com/TrendMicroResearch",
+        url="http://feeds.trendmicro.com/TrendMicroResearch",
         source_type="rss",
         base_score=24,
         section="Threat Intelligence",
@@ -778,11 +778,10 @@ HTML_SOURCES = (
         base_score=30,
         section="OT, Energy and Oil & Gas",
         selectors=(
-            "main h2 a[href]",
-            "main h3 a[href]",
-            "article a[href]",
+            "a[href^='/blog/']",
+            "a[href*='nozominetworks.com/blog/']",
         ),
-        include_patterns=("nozominetworks.com/blog",),
+        include_patterns=("nozominetworks.com/blog/",),
         exclude_patterns=(
             "/events/",
             "/webinars/",

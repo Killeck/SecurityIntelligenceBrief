@@ -134,6 +134,39 @@ Version 6.1.3 also:
   Nozomi Networks Labs and Splunk Security Blog sources.
 
 
+### Nordics, IT/OT balance and AI Security & Trustworthiness — 6.1.4
+
+Version 6.1.4 adds a dedicated, content-routed **AI Security and
+Trustworthiness** section to the Daily report — material AI-security and
+AI-use/abuse content is routed here from any source (including vendor
+sources like Microsoft) rather than being absorbed into that source's usual
+section. Coverage spans both AI's own security posture (model
+vulnerabilities, prompt injection, supply-chain compromise, governance) and
+real-world AI use/abuse (deepfakes, voice cloning, AI-generated
+phishing/malware, jailbreak-as-a-service, disinformation campaigns,
+defensive AI use). Sources: OpenAI News, Google DeepMind Blog, Anthropic
+News, plus MITRE ATLAS and OWASP GenAI LLM Top 10 framework-update trackers.
+
+Version 6.1.4 also:
+
+- adds structured CISA advisory collection (`cisa_csaf.py`) via the official
+  `cisagov/CSAF` GitHub repository (IT, OT and VA branches), replacing the
+  brittle "CISA ICS Advisories" HTML scrape and adding IT-side CISA coverage
+  that was previously absent — requires a `GITHUB_TOKEN` in CI for a usable
+  rate limit (see `MAINTENANCE.md`);
+- migrates NSM/NCSC to its confirmed RSS feed;
+- splits Nozomi Networks into a PSIRT RSS feed and a separately-named
+  research blog source;
+- adds sticky Nordic-relevance tagging, priority sort and a visual badge to
+  the rolling 90-day Active Exploitation / Threat Actor Activity view;
+- splits sector-impact classification into Retail, Housing
+  Estates/BoligByggerlag, and Energy (separated from Oil & Gas);
+- adds SentinelOne, Trend Micro, Kubernetes and Salesforce vendor coverage,
+  cross-checked against the organisation's monitored security stack;
+- removes the dead `src/Archive/` directory and fixes a Bandit B608 false
+  positive with a justified `# nosec`.
+
+
 ### Executive threat header — 6.1.2
 
 Version 6.1.2 restores the approved executive threat-header hierarchy:

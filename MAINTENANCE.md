@@ -19,7 +19,7 @@ Proprietary software. See LICENSE.
 
 ## Current baseline
 
-Version **6.1.3** is the current validation candidate.
+Version **6.1.4** is the current validation candidate.
 
 The former Priority 1 Daily intelligence-quality work, source-truth correction,
 failed-run catch-up, Weekly Top Vulnerabilities, vendor/class lifecycle grouping,
@@ -29,39 +29,23 @@ backlog.
 
 ## Priority 2 — AI Security & Trustworthiness
 
-Create a dedicated first-class reporting point for material AI developments,
-including developments that show AI as a threat, security limitation, imposed
-boundary/control, trustworthiness issue or material governance constraint.
+Implemented in 6.1.4: dedicated "AI Security and Trustworthiness" first-class
+Daily section via content-based routing (takes precedence over vendor
+routing); OpenAI/DeepMind/Anthropic sources; MITRE ATLAS and OWASP GenAI LLM
+Top 10 framework-update trackers; expanded term coverage for real-world AI
+use/abuse (deepfakes, voice cloning, AI-generated phishing/malware, scams,
+jailbreak-as-a-service, disinformation) alongside AI's-own-security and
+governance language.
 
-### Security and operational risk
+Open follow-on:
 
-Include high-signal developments involving:
-
-- AI-assisted attacks;
-- autonomous/agent abuse;
-- model vulnerabilities;
-- prompt injection;
-- data leakage;
-- insecure copilots and agents;
-- AI development / model supply-chain compromise;
-- identity and permissions for autonomous agents;
-- compromised AI pipelines and integrations.
-
-### Trustworthiness and governance
-
-Track material developments affecting:
-
-- security;
-- privacy;
-- resilience;
-- provenance;
-- transparency and accountability;
-- human oversight;
-- regulatory or provider changes with operational security consequence.
-
-Relevant ecosystems include Microsoft, OpenAI, Google, AWS, Anthropic and major
-open-source platforms. Exclude generic model launches and marketing unless there
-is a concrete security, trust, regulatory or operational consequence.
+- Weekly report currently has no equivalent AI Security tagging/section —
+  decide whether it needs one or stays Daily-only.
+- Consider a dedicated ACTIONS/WHY category (rather than reusing whatever
+  the general classifier assigned) so AI Security items get tailored
+  remediation guidance text instead of generic "General security" defaults.
+- Revisit whether Anthropic News (HTML scrape, unverified selectors) needs
+  live-DOM validation before full trust.
 
 ## Priority 3 — Source architecture follow-on
 
@@ -77,37 +61,25 @@ is a concrete security, trust, regulatory or operational consequence.
 - Add source-specific fixture tests for every custom/resilient adapter.
 - Evaluate public GuidePoint Security GRIT research as Tier-B supporting threat intelligence.
 - Do not introduce paid/licensed dependencies solely for source enrichment.
+- **Operational requirement**: `cisa_csaf.py` and the AI framework trackers
+  (`ai_security_trackers.py`) call the GitHub REST API. Unauthenticated
+  rate limit is 60/hour, which is too low for daily+catch-up windows. Add
+  `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` (auto-provided per-run, no new
+  secret to create) to the env of `daily-security-brief.yml` and
+  `weekly-vulnerability-report.yml`.
+- Norwegian sector-CERT coverage confirmed structurally blocked for
+  HelseCERT, KraftCERT and FinansCERT/NFCERT (closed sector-ISAC models, no
+  public feed) — not revisitable without direct membership access.
+- Symantec/Broadcom vendor coverage remains blocked: advisories are
+  login-gated on the Broadcom Support Portal with no public feed.
+- Salesforce Security Blog is HTML-scraped with best-effort selectors,
+  unverified against live DOM — same caveat as Anthropic News above.
 
 ## Priority 4 — Sector relevance
 
-Split broad customer-impact buckets into:
-
-### Retail
-- ecommerce/webshops;
-- POS/payment environments;
-- logistics dependencies;
-- loyalty/customer platforms;
-- store and warehouse operational technology where relevant.
-
-### Housing Estates / BoligByggerlag
-- housing associations/cooperatives;
-- property-management platforms;
-- access-control/building systems;
-- resident/customer portals;
-- payment/finance integrations;
-- managed infrastructure and supplier dependencies.
-
-### Energy
-Treat Energy separately from Oil & Gas where useful:
-- electricity and grid;
-- renewables;
-- energy services;
-- energy trading;
-- OT/ICS/industrial systems;
-- supporting digital infrastructure;
-- Nordic energy-service organisations.
-
-Retain dedicated Oil & Gas classification where sector-specific operational risk warrants it.
+Implemented in 6.1.4: Retail, Housing Estates/BoligByggerlag, and Energy
+(split from Oil & Gas) across both `RELEVANCE_RULES` and
+`SECTOR_IMPACT_RULES`.
 
 ## Priority 5 — GRC & Standards redesign
 

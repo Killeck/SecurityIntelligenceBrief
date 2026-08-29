@@ -14,6 +14,7 @@ from typing import Any, Iterable
 
 from . import rendering as base
 from .models import Item
+from .rules import NORDIC_TERMS
 from .threat_activity import merge_activity
 from .utils import truncate
 from .vendor_coverage import CISA_KEV_COVERAGE, VENDOR_COVERAGE, VendorCoverage
@@ -526,6 +527,7 @@ def _threat_candidate(item: Item) -> dict[str, Any] | None:
         "confidence": confidence,
         "source": item.source,
         "link": item.link,
+        "nordic_relevant": any(term in combined for term in NORDIC_TERMS),
     }
 
 
@@ -557,9 +559,16 @@ def render_threat_activity(items: list[Item], limit: int = 10) -> str:
             source=value.get("source") or "",
             colour=base.DASHBOARD_COLOURS["link"],
         )
+        nordic_badge = (
+            f'<span style="display:inline-block;margin-left:6px;padding:1px 6px;'
+            f'border-radius:3px;font-size:11px;font-weight:700;'
+            f'background:{base.DASHBOARD_COLOURS["blue"]};color:#00090A;">NORDIC</span>'
+            if value.get("nordic_relevant")
+            else ""
+        )
         rows.append(
             "<tr>"
-            f'<td style="padding:7px;border-top:1px solid {base.DASHBOARD_COLOURS["border"]};color:{base.DASHBOARD_COLOURS["text"]};font-weight:700;">{base._escape(value.get("label", ""))}</td>'
+            f'<td style="padding:7px;border-top:1px solid {base.DASHBOARD_COLOURS["border"]};color:{base.DASHBOARD_COLOURS["text"]};font-weight:700;">{base._escape(value.get("label", ""))}{nordic_badge}</td>'
             f'<td style="padding:7px;border-top:1px solid {base.DASHBOARD_COLOURS["border"]};color:{base.DASHBOARD_COLOURS["muted"]};">{base._escape(value.get("activity", ""))}</td>'
             f'<td style="padding:7px;border-top:1px solid {base.DASHBOARD_COLOURS["border"]};white-space:nowrap;">{last_seen.date().isoformat()}</td>'
             f'<td style="padding:7px;border-top:1px solid {base.DASHBOARD_COLOURS["border"]};white-space:nowrap;">{days} day(s)</td>'

@@ -14,7 +14,86 @@ history remains available in Git history.
 
 ---
 
-## 6.1.3 - 2026-08-21
+## 6.1.4 - 2026-08-28
+
+### Nordics and IT/OT source integrity
+
+- Migrated NSM/NCSC to its confirmed RSS feed (`varsler-fra-ncsc/rss/`) with
+  `freshness_days=45` reflecting its true ~monthly publishing cadence,
+  replacing brittle HTML scraping.
+- Split Nozomi Networks into two sources: a confirmed-working PSIRT RSS
+  feed (own-product advisories) and a retained "Nozomi Networks Labs Blog"
+  HTML source, correctly renamed and re-threaded through the historical
+  context and resilient-fallback source sets.
+- Added the CISA CSAF structured-advisory collector (`cisa_csaf.py`),
+  covering OT, IT and VA branches directly from `cisagov/CSAF` via the
+  GitHub Commits API (efficient path/since-filtered polling rather than
+  brute-force downloads), replacing the brittle "CISA ICS Advisories" HTML
+  scrape and adding IT-side CISA coverage that was previously absent.
+- Researched Norwegian sector-CERT coverage (HelseCERT, KraftCERT,
+  FinansCERT/NFCERT): confirmed all three are closed sector-ISAC models with
+  no public feed; documented as structurally blocked rather than a gap in
+  collection logic.
+
+### Sector relevance (Priority 4)
+
+- Split "Energy/Oil & Gas" into separate Energy and Oil & Gas
+  classifications across both `RELEVANCE_RULES` and `SECTOR_IMPACT_RULES`.
+- Split "Retail/Hospitality/Property" into Retail, Hospitality/Property, and
+  a new dedicated Housing Estates/BoligByggerlag classification with
+  Norwegian housing-cooperative-specific keywords and guidance.
+
+### Nordic-focused threat activity
+
+- Added sticky Nordic-relevance tagging to the rolling 90-day
+  threat-actor/campaign view: an entry flagged Nordic-relevant from any
+  qualifying observation stays flagged even after later non-Nordic updates.
+- Nordic-relevant entries now sort ahead of more-recent non-Nordic entries
+  in the rolling view, with a visual "NORDIC" badge in the rendered table.
+
+### AI Security & Trustworthiness (Priority 2)
+
+- Added "AI Security and Trustworthiness" as a first-class dedicated Daily
+  report section (not a tag) via a content-based routing override that
+  takes precedence over vendor-specific routing, so material AI-security
+  content is surfaced regardless of source.
+- Added OpenAI News and Google DeepMind Blog (RSS) and Anthropic News
+  (HTML) as topic-filtered sources; Microsoft AI-security content already
+  flows through the existing Microsoft Security Blog source via the new
+  routing.
+- Added MITRE ATLAS (GitHub Releases API) and OWASP GenAI LLM Top 10
+  (GitHub Commits API rollup) framework-update trackers
+  (`ai_security_trackers.py`).
+- Expanded `AI_SECURITY_TERMS` beyond AI's-own-security language to cover
+  real-world AI use and abuse: deepfakes, voice cloning, synthetic media,
+  AI-generated phishing/malware, AI-powered scams, jailbreak-as-a-service,
+  named malicious-LLM tooling, disinformation campaigns, and defensive use
+  (AI-powered detection, agentic SOC).
+
+### Monitored-stack coverage
+
+- Cross-checked source coverage against the organisation's actual security
+  vendor stack. Added SentinelOne Blog, Trend Micro Research and the
+  Kubernetes Official CVE Feed (all confirmed-working RSS). Added Salesforce
+  Security Blog (HTML; the Trust-site RSS was retired in 2023 and the
+  advisories page is a client-rendered SPA that cannot be scraped).
+  Symantec/Broadcom remains uncovered: advisories are login-gated on the
+  Broadcom Support Portal with no public feed.
+
+### Code security and maintenance
+
+- Fixed a Bandit B608 (SQL construction) false positive in
+  `vulnerability_reporting.py` with a justified `# nosec` and a cleaner
+  parameterised query builder.
+- Removed the dead `src/Archive/` directory (unreferenced legacy scripts;
+  source of the only remaining `urlopen()` findings).
+- Promoted `tests/tests/test_priority_vendor_sources.py` to
+  `tests/test_priority_vendor_sources.py` so it is actually discovered by
+  `python -m unittest discover -s tests`; fixed a stale assertion the
+  promotion surfaced (missing Cisco Security Advisories in expected
+  sources — the implementation was correct, the test was stale).
+
+
 
 ### Daily intelligence quality
 

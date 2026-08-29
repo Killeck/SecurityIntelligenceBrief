@@ -62,6 +62,8 @@ from .priority_vendor_sources import (
     fetch_hpe_security_bulletins,
     fetch_priority_vendor_nvd,
 )
+from .cisa_csaf import fetch_cisa_csaf_branch
+from .ai_security_trackers import fetch_mitre_atlas_updates, fetch_owasp_llm_top10_updates
 from .open_source_sources import OPEN_VULNERABILITY_SOURCES
 from .report_policy import ensure_mandatory_vulnerabilities, render_report
 from .runtime_profile import RuntimeProfiler
@@ -98,7 +100,7 @@ HISTORICAL_CONTEXT_SOURCES = frozenset(
         "Cisco Talos",
         "FortiGuard Labs Threat Research",
         "Dragos",
-        "Nozomi Networks Labs",
+        "Nozomi Networks Labs Blog",
     }
 )
 
@@ -350,6 +352,41 @@ def primary_tasks(
                 fetch=lambda: fetch_claroty_team82_disclosures(vendor_cutoff),
                 detail="Structured Team82 CPS vulnerability disclosure dashboard",
                 freshness_days=45,
+            )
+        )
+
+    tasks.extend(
+        FetchTask(
+            name=f"CISA CSAF - {branch} Advisories",
+            fetch=lambda branch=branch: fetch_cisa_csaf_branch(branch, vendor_cutoff),
+            detail=(
+                "Structured CISA advisory JSON (cisagov/CSAF) - replaces HTML "
+                "scraping with CVE/CVSS/tracking-date fields read directly "
+                "from the source document."
+            ),
+            freshness_days=14,
+        )
+        for branch in ("OT", "IT", "VA")
+        if overrides.get(f"CISA CSAF - {branch} Advisories", {}).get("enabled") is not False
+    )
+
+    if overrides.get("MITRE ATLAS Framework Updates", {}).get("enabled") is not False:
+        tasks.append(
+            FetchTask(
+                name="MITRE ATLAS Framework Updates",
+                fetch=lambda: fetch_mitre_atlas_updates(vendor_cutoff),
+                detail="AI Security & Trustworthiness: adversarial-AI framework releases",
+                freshness_days=45,
+            )
+        )
+
+    if overrides.get("OWASP GenAI LLM Top 10 Updates", {}).get("enabled") is not False:
+        tasks.append(
+            FetchTask(
+                name="OWASP GenAI LLM Top 10 Updates",
+                fetch=lambda: fetch_owasp_llm_top10_updates(vendor_cutoff),
+                detail="AI Security & Trustworthiness: OWASP GenAI LLM Top 10 changes",
+                freshness_days=60,
             )
         )
 

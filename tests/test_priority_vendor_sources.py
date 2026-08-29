@@ -56,7 +56,12 @@ class PriorityVendorSourceTests(unittest.TestCase):
     def test_generic_collectors_replaced_by_authoritative_adapters(self) -> None:
         self.assertEqual(
             REPLACED_GENERIC_HTML_SOURCES,
-            {"Fortinet PSIRT", "HPE Security Bulletin Library", "Okta Security"},
+            {
+                "Fortinet PSIRT",
+                "HPE Security Bulletin Library",
+                "Okta Security",
+                "CISA ICS Advisories",
+            },
         )
 
     def test_priority_vendor_nvd_attribution_is_specific(self) -> None:

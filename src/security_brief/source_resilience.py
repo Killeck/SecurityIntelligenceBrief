@@ -33,7 +33,7 @@ RESILIENT_HTML_SOURCES = frozenset(
         "ISACA News and Trends",
         "ISO News",
         "NIST CSRC News",
-        "Nozomi Networks Labs",
+        "Nozomi Networks Labs Blog",
         "Splunk Security Blog",
     }
 )

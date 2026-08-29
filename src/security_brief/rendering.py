@@ -405,6 +405,7 @@ def build_report_context(
         "HPE and Aruba",
         "Other Vendor Advisories",
         "Cloud and Identity",
+        "AI Security and Trustworthiness",
         "SOC and Detection Engineering",
         "Threat Intelligence",
         "Vulnerability Research",

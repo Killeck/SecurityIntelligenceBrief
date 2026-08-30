@@ -116,6 +116,28 @@ Open follow-on:
   data access as a side benefit.
 - Salesforce Security Blog is HTML-scraped with best-effort selectors,
   unverified against live DOM — same caveat as Anthropic News above.
+- [DONE 6.1.5] HPE Security Bulletin Library switched from custom HTML
+  table scrape to HPE's official RSS feed. CVSS/severity extraction from
+  the feed's item description is best-effort and unverified against real
+  feed content in this environment — confirm on the next real run whether
+  severity data is actually present, and whether it's as complete as the
+  old parser's direct table-column extraction. Old parser code kept as
+  fallback (`priority_vendor_sources.fetch_hpe_security_bulletins`), not
+  wired into any task.
+- BankInfoSecurity has a real, confirmed-active official RSS feed
+  (bankinfosecurity.com/rss-feeds shows genuine current article content),
+  but the exact `.xml`/feed endpoint wasn't pinned down — worth switching
+  from the current HTML scrape once confirmed, given BankInfoSecurity is
+  one of the pre-existing historically-fragile sources.
+- Apple Security Releases: Apple itself has no official RSS/feed at all
+  (confirmed). SOFA (sofa.macadmins.io, MacAdmins community project) is
+  the right replacement — JSON feed, updated every 6h via GitHub Actions,
+  and critically flags `ActivelyExploitedCVEs` directly, which the current
+  scraper has no equivalent for. Do NOT implement from search results
+  alone: multiple sources gave conflicting URLs (`sofa.macadmins.io/v2/...`
+  vs `sofafeed.macadmins.io/v1/...` vs a 2024 migration notice) - confirm
+  the live, current URL via a real fetch before building, same lesson as
+  the Trend Micro http/https mistake.
 
 ## Priority 3 — Sector relevance
 

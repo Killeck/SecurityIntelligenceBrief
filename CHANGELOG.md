@@ -26,6 +26,21 @@ history remains available in Git history.
   check found no usable article candidates". Replaced with href-pattern
   selectors matching the site's actual `/blog/{slug}` link convention,
   validated against a representative Webflow-style DOM structure.
+- Switched Kubernetes Official CVE Feed from RSS/Atom to the official JSON
+  Feed (kubernetes.io, jsonfeed.org spec): clean ISO8601 dates (no
+  feedparser struct_time handling), the literal CVE ID with no regex
+  extraction from title text, and best-effort CVSS extraction from the
+  advisory body - validated 7/7 against real production text samples
+  pulled from the live feed, not just hand-written fixtures.
+- Switched HPE Security Bulletin Library from a custom HTML table scrape to
+  HPE's official RSS feed (`support.hpe.com/hpesc/public/api/document/
+  sec_bull_rss_feed.xml`). Note: the feed's item-description format was not
+  directly inspected against live content in this environment - CVSS/
+  severity extraction is best-effort with graceful "Not available"
+  fallback (never fabricated), same principle as the CSAF and Kubernetes
+  collectors. The previous custom parser (`parse_hpe_security_bulletins_html`
+  in `priority_vendor_sources.py`) is left in place, tested but unused, as
+  a fallback pending confirmation against real feed content.
 
 ### Documented follow-on (MAINTENANCE.md)
 

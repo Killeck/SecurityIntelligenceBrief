@@ -312,14 +312,6 @@ RSS_SOURCES = (
         section="Threat Intelligence",
     ),
     Source(
-        name="Kubernetes Official CVE Feed",
-        vendor="Kubernetes",
-        url="https://k8s.io/docs/reference/issues-security/official-cve-feed/feed.xml",
-        source_type="rss",
-        base_score=30,
-        section="Cloud and Identity",
-    ),
-    Source(
         name="Salesforce Security Blog",
         vendor="Salesforce",
         url="https://www.salesforce.com/blog/category/security/",

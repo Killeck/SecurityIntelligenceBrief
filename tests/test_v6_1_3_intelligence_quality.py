@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from security_brief.models import Item
-from security_brief.analysis import route_section
+from security_brief.analysis import classify, route_section
 from security_brief.models import Source
 from security_brief.pipeline_state import effective_daily_cutoff, mark_daily_success
 from security_brief.report_policy import (
@@ -384,6 +384,52 @@ class AiUsedOrAbusedRoutingTests(unittest.TestCase):
             route_section("General security", generic_source, combined),
             "Threat Intelligence",
         )
+
+
+class AiSecurityCategoryTests(unittest.TestCase):
+    def test_ai_content_gets_dedicated_category_not_general_security(self) -> None:
+        generic_source = Source(
+            name="Generic News",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        text = "Attackers used a deepfake voice clone in an ai-powered scam against a bank."
+        category, weight = classify(text, generic_source)
+        self.assertEqual(category, "AI security and abuse")
+        self.assertGreater(weight, 0)
+
+    def test_active_exploitation_still_takes_precedence_over_ai_labeling(self) -> None:
+        """Operational urgency (active exploitation) must not be masked by
+        topical AI labeling - exploitation-level guidance is more actionable
+        than generic AI-security guidance."""
+
+        generic_source = Source(
+            name="Generic News",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        text = (
+            "CISA confirms this jailbreak-as-a-service vulnerability affecting an AI "
+            "agent platform is being actively exploited in the wild."
+        )
+        category, _ = classify(text, generic_source)
+        self.assertEqual(category, "Active exploitation")
+
+    def test_ai_category_has_matching_actions_why_and_detection_entries(self) -> None:
+        from security_brief.rules import ACTIONS, DETECTION_TEMPLATES, WHY
+
+        self.assertIn("AI security and abuse", WHY)
+        self.assertIn("AI security and abuse", ACTIONS)
+        self.assertIn("AI security and abuse", DETECTION_TEMPLATES)
+        # None of these should silently fall back to generic placeholder text
+        self.assertNotEqual(WHY["AI security and abuse"], WHY["General security"])
+        self.assertNotEqual(ACTIONS["AI security and abuse"], ACTIONS["General security"])
 
 
 if __name__ == "__main__":

@@ -49,7 +49,7 @@ from .governance import (
     detect_governance_go_live_events,
     load_configured_governance_events,
 )
-from .models import ExposureSignal, Item, NewsLink
+from .models import ExposureSignal, Item, NewsLink, PartialItemList
 from .pipeline_state import (
     effective_daily_cutoff,
     effective_lookback_hours,
@@ -219,6 +219,10 @@ class FetchOutcome(Generic[T]):
     values: list[T]
     error: Exception | None = None
 
+    @property
+    def partial(self) -> bool:
+        return isinstance(self.values, PartialItemList)
+
 
 def _execute_task(task: FetchTask[T]) -> FetchOutcome[T]:
     try:
@@ -272,6 +276,7 @@ def collect_tasks(
                             "detail": task.detail,
                             "checked_at": datetime.now(timezone.utc).isoformat(),
                             "newest_item": _newest_value_timestamp(outcome.values),
+                            "partial": outcome.partial,
                         },
                         freshness_days=task.freshness_days,
                     )

@@ -818,6 +818,17 @@ DETECTION_TEMPLATES = {
         ),
         "T1078 Valid Accounts; T1528 Steal Application Access Token",
     ),
+    "AI security and abuse": (
+        "Monitor for anomalous LLM/agent API usage, prompt-injection payloads "
+        "in logs, unauthorised model or agent credential use, and AI-generated "
+        "content (phishing, voice/deepfake) in reported incidents.",
+        (
+            "LLM/API gateway logs, agent/service-account identity logs, email "
+            "and endpoint telemetry, and MITRE ATLAS case studies for "
+            "adversary tactics against AI systems"
+        ),
+        "T1588.007 Obtain Capabilities: Artificial Intelligence; see MITRE ATLAS for AI-specific tactics",
+    ),
     "Active exploitation": (
         "Monitor internet-facing services for exploit chains, unexpected child "
         "processes, web shells, new accounts and configuration changes.",
@@ -990,6 +1001,11 @@ CATEGORY_RULES = (
         23,
     ),
     (
+        "AI security and abuse",
+        AI_SECURITY_TERMS,
+        22,
+    ),
+    (
         "Regulatory and compliance",
         (
             "nis2",
@@ -1159,6 +1175,12 @@ WHY = {
         "Identity compromise can provide direct access to cloud, email, "
         "administrative, and business systems."
     ),
+    "AI security and abuse": (
+        "The development involves AI as an attack tool, a security "
+        "limitation, an abused capability, or a governance/trustworthiness "
+        "concern with operational security consequence - distinct handling "
+        "from a routine vendor or vulnerability item is warranted."
+    ),
     "Regulatory and compliance": (
         "The development may change legal duties, reporting expectations, "
         "audit scope, implementation timelines, or evidence requirements."
@@ -1226,6 +1248,13 @@ ACTIONS = {
     "Identity security": (
         "Review sign-ins and token use, enforce phishing-resistant MFA where "
         "possible, and revoke suspicious sessions or credentials."
+    ),
+    "AI security and abuse": (
+        "Assess whether the organisation's AI tooling, agents or exposed "
+        "endpoints are affected; review AI-related access/identity controls; "
+        "and evaluate detection coverage for AI-generated attack content "
+        "(phishing, deepfakes, synthetic media) relevant to the workforce or "
+        "customers."
     ),
     "Regulatory and compliance": (
         "Identify affected entities and deadlines, map the change to current "

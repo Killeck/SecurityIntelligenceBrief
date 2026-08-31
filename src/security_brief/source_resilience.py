@@ -40,16 +40,24 @@ RESILIENT_HTML_SOURCES = frozenset(
 
 
 def fetch_resilient_html(source: Source, cutoff: datetime) -> list[Item]:
-    """Use the configured parser first, then a broad-but-host-filtered fallback."""
+    """Use the configured parser first, then broader fallback tiers.
+
+    Tier 2 assumes semantic wrapper tags (main/article/h2/h3) - it does not
+    help sites (e.g. Webflow-built ones) that render content as plain
+    div/a structures with no semantic markup at all. Tier 3 makes no
+    structural assumption whatsoever: it selects every anchor on the page
+    and relies entirely on the source's include/exclude URL patterns to
+    filter to relevant content, so it degrades gracefully even when a
+    site's markup shares nothing with a "normal" article-list layout.
+    """
 
     try:
         return fetch_html(source, cutoff)
     except RuntimeError as error:
-        message = str(error).lower()
-        if not any(term in message for term in ("selector", "candidate", "article", "link")):
+        if not _is_selector_health_error(error):
             raise
 
-    fallback = replace(
+    tier2 = replace(
         source,
         selectors=(
             "main article a[href]",
@@ -62,7 +70,23 @@ def fetch_resilient_html(source: Source, cutoff: datetime) -> list[Item]:
         ),
         max_candidates=max(source.max_candidates, 50),
     )
-    return fetch_html(fallback, cutoff)
+    try:
+        return fetch_html(tier2, cutoff)
+    except RuntimeError as error:
+        if not _is_selector_health_error(error):
+            raise
+
+    tier3 = replace(
+        source,
+        selectors=("a[href]",),
+        max_candidates=max(source.max_candidates, 60),
+    )
+    return fetch_html(tier3, cutoff)
+
+
+def _is_selector_health_error(error: Exception) -> bool:
+    message = str(error).lower()
+    return any(term in message for term in ("selector", "candidate", "article", "link"))
 
 
 def _claroty_published(text: str) -> datetime | None:

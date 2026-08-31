@@ -37,28 +37,65 @@ use/abuse (deepfakes, voice cloning, AI-generated phishing/malware, scams,
 jailbreak-as-a-service, disinformation) alongside AI's-own-security and
 governance language.
 
-Open follow-on:
+[DONE] Dedicated "AI security and abuse" category added to CATEGORY_RULES
+(keyed on the same AI_SECURITY_TERMS), with matching WHY, ACTIONS and
+DETECTION_TEMPLATES entries - AI-related items get tailored guidance text
+instead of falling through to generic "General security" defaults.
+Positioned after Active exploitation/Ransomware/Nation-state/Identity
+security in rule precedence, so operational urgency still overrides topical
+AI labeling (verified by test: an actively-exploited AI-platform CVE keeps
+"Active exploitation" category, not "AI security and abuse").
 
-- Weekly report currently has no equivalent AI Security tagging/section —
-  decide whether it needs one or stays Daily-only.
-- Consider a dedicated ACTIONS/WHY category (rather than reusing whatever
-  the general classifier assigned) so AI Security items get tailored
-  remediation guidance text instead of generic "General security" defaults.
-- Revisit whether Anthropic News (HTML scrape, unverified selectors) needs
-  live-DOM validation before full trust.
+[DECIDED] Weekly report does NOT get an equivalent AI Security
+section/tagging. Weekly's vulnerability-class taxonomy (`_VULN_CLASSES` in
+weekly_rendering.py) is a technical-mechanism axis (RCE, SQLi, XSS, SSRF,
+etc.) describing *how* a CVE manifests, not a topical/domain axis - "AI
+security and abuse" doesn't fit that taxonomy the way it fits Daily's
+narrative section. Weekly is explicitly a CVE remediation/lifecycle report;
+narrative AI content (deepfakes, jailbreaks, disinformation, governance
+developments) isn't CVE-shaped and doesn't belong in a remediation
+worklist. If a genuine AI/ML-product CVE arises, Weekly's existing
+vendor -> vulnerability-class -> CVE grouping already handles it correctly
+without modification (e.g. an RCE in an ML framework is still "Remote code
+execution", grouped under whatever vendor produces it).
+
+Anthropic News (HTML scrape, href-pattern selectors `a[href^='/news/']`):
+lower risk than originally flagged - this session's Nozomi Blog investigation
+confirmed href-pattern selectors (as opposed to semantic-tag selectors like
+`main h2 a[href]`) are the more robust approach generally, and Anthropic's
+selector already uses that pattern. Still not live-DOM-verified from this
+sandbox (no network access to anthropic.com); confirm on the next real run
+rather than treating as high-risk.
 
 ## Priority 2 — Source architecture follow-on
 
-- Add GitHub Advisory Database pagination and explicit completeness/rate-limit handling.
-- Use GHSA `updated_at` when a materially changed advisory would otherwise be
-  missed by its original publication date.
-- Enrich GHSA records with package/ecosystem, aliases and withdrawn state.
-- Mark GHSA collection `PARTIAL` when the available result set is known to be
-  truncated or incomplete.
+- [DONE] GitHub Advisory Database pagination (bounded to 10 pages via the
+  `Link` header's `rel="next"`) with explicit `PartialItemList` signalling
+  when the bound is hit while more pages remain - now correctly surfaces
+  as `PARTIAL` source health via the existing (previously-unused)
+  `entry["partial"]` mechanism in `source_health.py`.
+- [DONE] GHSA collection now uses `updated_at` (the field the API is
+  already sorted by) instead of `published_at`, so a materially revised
+  old advisory surfaces instead of being silently missed.
+- [DONE] GHSA records enriched with package/ecosystem (from
+  `vulnerabilities[].package`, appended to the item summary) and CVE
+  aliases (from `identifiers[]`, merged into `item.cves` - catches CVEs
+  only listed there and not in the top-level `cve_id` field).
+- [DONE] Withdrawn GHSA advisories (`withdrawn_at` present) are now
+  excluded entirely rather than reported as active vulnerabilities.
+- [DONE] Source-specific fixture tests added for the three custom/resilient
+  adapters that had zero coverage: `fetch_resilient_html`,
+  `fetch_authoritative_vendor_rss`, `fetch_priority_vendor_nvd`.
+- [DONE, found during the above audit] `fetch_resilient_html`'s own
+  fallback tier assumed semantic wrapper tags (`main`/`article`/`h2`/`h3`)
+  - the exact blind spot that broke the original Nozomi Blog selectors.
+  Any other `RESILIENT_HTML_SOURCES` entry hitting a Webflow-style (or
+  similarly non-semantic) site would have failed the same way. Added a
+  third, fully structure-agnostic fallback tier (`a[href]`, relying on
+  existing include/exclude URL patterns) as a last resort.
 - Add a stronger authoritative CrowdStrike path if a stable public source becomes available.
 - Continue replacing fragile generic HTML parsing with structured vendor,
   government, RSS, API or disclosure feeds where available.
-- Add source-specific fixture tests for every custom/resilient adapter.
 - Evaluate public GuidePoint Security GRIT research as Tier-B supporting threat intelligence.
 - Do not introduce paid/licensed dependencies solely for source enrichment.
 - **Operational requirement**: `cisa_csaf.py` and the AI framework trackers

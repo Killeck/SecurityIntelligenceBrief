@@ -37,7 +37,7 @@ from .config import (
     USER_AGENT,
 )
 from .rules import ACTIONS, NVD_RECENT_COVERAGE, SENSITIVE_DATA_CLASSES, WHY
-from .models import ExposureSignal, Item, NewsLink, Source
+from .models import ExposureSignal, Item, NewsLink, PartialItemList, Source
 from .nvd_cache import NvdCache
 from .utils import (
     absolute_url,
@@ -83,33 +83,75 @@ def fetch_github_advisories(source: Source, cutoff: datetime) -> list[Item]:
     GitHub's advisory database is not a vendor remediation authority.  Its
     records therefore enter the research section and are later corroborated with
     NVD, KEV or vendor evidence before becoming high-confidence reporting.
+
+    Uses ``updated_at`` (not ``published_at``) as the timestamp checked
+    against ``cutoff``: the API is queried sorted by ``updated``, so an
+    advisory that was published long ago but materially revised recently
+    (new affected-version range, corrected CVSS, newly assigned CVE) should
+    still surface - using ``published_at`` would silently miss it. Withdrawn
+    advisories are excluded entirely rather than reported as active.
+
+    Paginates via the response's ``Link`` header (bounded to
+    ``_GHSA_MAX_PAGES`` for safety) rather than fetching only the first
+    page. If the bound is hit while GitHub still reports further pages
+    available, the result is returned as a ``PartialItemList`` so source
+    health reflects PARTIAL rather than implying complete coverage.
     """
 
-    response = http_get(
-        source.url,
-        headers={"Accept": "application/vnd.github+json", "User-Agent": USER_AGENT},
-        params={"per_page": 100, "direction": "desc", "sort": "updated"},
-        timeout=45,
-    )
-    response.raise_for_status()
-    payload = response.json()
-    if not isinstance(payload, list):
-        raise RuntimeError("GitHub advisories response is not a list")
+    all_advisories: list[dict] = []
+    url: str | None = source.url
+    params: dict[str, Any] | None = {"per_page": 100, "direction": "desc", "sort": "updated"}
+    truncated = False
+
+    for _ in range(_GHSA_MAX_PAGES):
+        if url is None:
+            break
+        response = http_get(
+            url,
+            headers={"Accept": "application/vnd.github+json", "User-Agent": USER_AGENT},
+            params=params,
+            timeout=45,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload, list):
+            raise RuntimeError("GitHub advisories response is not a list")
+        all_advisories.extend(advisory for advisory in payload if isinstance(advisory, dict))
+
+        # Only the first request needs query params - subsequent requests
+        # use the full "next" URL from the Link header, which already
+        # encodes its own page/cursor parameters.
+        params = None
+        next_url = _next_page_url(getattr(response, "headers", {}) or {})
+        if next_url is None:
+            url = None
+            break
+        url = next_url
+    else:
+        # Loop exhausted _GHSA_MAX_PAGES without url becoming None - more
+        # pages exist beyond what was fetched.
+        if url is not None:
+            truncated = True
 
     items: list[Item] = []
-    for advisory in payload:
-        if not isinstance(advisory, dict):
-            continue
-        published = _api_datetime(advisory.get("published_at") or advisory.get("updated_at"))
+    for advisory in all_advisories:
+        if advisory.get("withdrawn_at"):
+            continue  # withdrawn advisories are not active vulnerabilities
+
+        published = _api_datetime(advisory.get("updated_at") or advisory.get("published_at"))
         if published is None:
             continue
         cve = clean_text(advisory.get("cve_id"))
         title = clean_text(advisory.get("summary")) or clean_text(advisory.get("ghsa_id"))
         description = clean_text(advisory.get("description"))
+
+        affected = _ghsa_affected_summary(advisory.get("vulnerabilities"))
+        summary = f"{description} Affected: {affected}." if affected else description
+
         item = build_item(
             source=source,
             title=f"{cve}: {title}" if cve else title,
-            summary=description,
+            summary=summary,
             link=clean_text(advisory.get("html_url") or advisory.get("url")),
             published=published,
             cutoff=cutoff,
@@ -121,8 +163,78 @@ def fetch_github_advisories(source: Source, cutoff: datetime) -> list[Item]:
                     item.cvss_score = float(cvss.get("score"))
                 except (TypeError, ValueError):
                     pass
+
+            aliases = _ghsa_aliases(advisory)
+            if aliases:
+                item.cves = sorted(set(item.cves) | aliases) if item.cves else sorted(aliases)
+
             items.append(item)
-    return items
+
+    return PartialItemList(items) if truncated else items
+
+
+_GHSA_MAX_PAGES = 10
+
+
+def _next_page_url(headers: dict[str, str]) -> str | None:
+    """Extract the "next" URL from a GitHub API ``Link`` response header.
+
+    Header format: ``<https://api.github.com/...&page=2>; rel="next", <...>; rel="last"``
+    """
+
+    link_header = headers.get("Link") or headers.get("link")
+    if not link_header:
+        return None
+    for part in link_header.split(","):
+        segment = part.strip()
+        if 'rel="next"' not in segment:
+            continue
+        start = segment.find("<")
+        end = segment.find(">")
+        if start != -1 and end != -1 and end > start:
+            return segment[start + 1 : end]
+    return None
+
+
+def _ghsa_aliases(advisory: dict) -> set[str]:
+    """Extract CVE-format identifiers from a GHSA advisory's identifiers list.
+
+    GHSA advisories can carry multiple identifiers (the GHSA ID itself plus
+    zero or more CVE aliases); ``cve_id`` alone sometimes misses a CVE that
+    is only listed under ``identifiers``.
+    """
+
+    aliases: set[str] = set()
+    for identifier in advisory.get("identifiers") or []:
+        if not isinstance(identifier, dict):
+            continue
+        value = clean_text(identifier.get("value"))
+        if value.upper().startswith("CVE-"):
+            aliases.add(value.upper())
+    return aliases
+
+
+def _ghsa_affected_summary(vulnerabilities: object, limit: int = 3) -> str:
+    """Build a short "package (ecosystem)" summary from a GHSA advisory's
+    ``vulnerabilities`` array, e.g. "requests (pip), lodash (npm)"."""
+
+    if not isinstance(vulnerabilities, list):
+        return ""
+    entries: list[str] = []
+    for vuln in vulnerabilities:
+        if not isinstance(vuln, dict):
+            continue
+        package = vuln.get("package")
+        if not isinstance(package, dict):
+            continue
+        name = clean_text(package.get("name"))
+        ecosystem = clean_text(package.get("ecosystem"))
+        if not name:
+            continue
+        entries.append(f"{name} ({ecosystem})" if ecosystem else name)
+        if len(entries) >= limit:
+            break
+    return ", ".join(entries)
 
 
 def _nested_text(value: object) -> str:

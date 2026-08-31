@@ -59,6 +59,34 @@ vendor -> vulnerability-class -> CVE grouping already handles it correctly
 without modification (e.g. an RCE in an ML framework is still "Remote code
 execution", grouped under whatever vendor produces it).
 
+[DONE] Regulatory/availability news about major AI vendors (e.g. "Anthropic
+pauses a Claude feature in Europe") now routes to AI Security and
+Trustworthiness. This class of story often carries no AI-specific keyword
+beyond the vendor name, and is usually reported by general tech/policy
+press rather than the vendor's own blog - so this only works because
+route_section checks content from every source, not just the three
+AI-vendor sources. Implemented with a precision guard rather than adding
+the generic regulatory terms straight to AI_SECURITY_TERMS: terms like
+"antitrust investigation", "regulatory fine", "data protection authority"
+are common in totally unrelated contexts (any company's GDPR fine, any
+telecom antitrust case), so AI_REGULATORY_AVAILABILITY_TERMS only counts
+when it co-occurs with a named AI_VENDOR_PRODUCT_NAMES entry
+(is_ai_security_relevant in rules.py) - verified by tests including a
+negative case (bare "antitrust investigation" about an unrelated company
+does NOT route to the AI section).
+
+AI_VENDOR_PRODUCT_NAMES currently covers Anthropic/Claude, OpenAI/ChatGPT/
+GPT, Google DeepMind/Gemini, Microsoft Copilot, Meta AI/Llama, xAI/Grok,
+Mistral AI and Perplexity - the most prominent consumer/enterprise AI
+vendors, not an exhaustive list. Not yet covered, worth adding if relevant
+stories start appearing: Amazon/AWS Bedrock, DeepSeek, Cohere, Stability
+AI, Hugging Face (as a platform), Nvidia (AI software/chips), Baidu/Ernie,
+Alibaba/Qwen, IBM watsonx, ElevenLabs, Databricks. Low cost to extend
+(append to the tuple in rules.py) whenever a gap is actually observed in
+practice - not pre-emptively exhaustive by design, since the list only
+gates the generic regulatory-term co-occurrence check, not the core
+AI_SECURITY_TERMS matching.
+
 Anthropic News (HTML scrape, href-pattern selectors `a[href^='/news/']`):
 lower risk than originally flagged - this session's Nozomi Blog investigation
 confirmed href-pattern selectors (as opposed to semantic-tag selectors like

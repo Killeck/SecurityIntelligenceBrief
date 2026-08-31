@@ -7,7 +7,13 @@ from __future__ import annotations
 
 from .config import MSRC_UPDATES_API
 from .models import Source
-from .rules import AI_SECURITY_TERMS
+from .rules import AI_REGULATORY_AVAILABILITY_TERMS, AI_SECURITY_TERMS
+
+# Combined term set for the AI-vendor sources' topic_keywords filter. No
+# vendor-name co-occurrence check needed here (unlike route_section's
+# is_ai_security_relevant) since content from these sources is already
+# inherently about that vendor.
+_AI_SOURCE_TOPIC_KEYWORDS = AI_SECURITY_TERMS + AI_REGULATORY_AVAILABILITY_TERMS
 
 EXECUTIVE_NEWS_RSS = (
     {
@@ -229,7 +235,7 @@ RSS_SOURCES = (
         source_type="rss",
         base_score=28,
         section="AI Security and Trustworthiness",
-        topic_keywords=AI_SECURITY_TERMS,
+        topic_keywords=_AI_SOURCE_TOPIC_KEYWORDS,
     ),
     Source(
         name="Google DeepMind Blog",
@@ -238,7 +244,7 @@ RSS_SOURCES = (
         source_type="rss",
         base_score=26,
         section="AI Security and Trustworthiness",
-        topic_keywords=AI_SECURITY_TERMS,
+        topic_keywords=_AI_SOURCE_TOPIC_KEYWORDS,
     ),
     Source(
         name="Microsoft Security Blog",
@@ -373,7 +379,7 @@ HTML_SOURCES = (
             "/news/index",
         ),
         max_candidates=40,
-        topic_keywords=AI_SECURITY_TERMS,
+        topic_keywords=_AI_SOURCE_TOPIC_KEYWORDS,
     ),
     Source(
         name="Shadowserver Foundation",

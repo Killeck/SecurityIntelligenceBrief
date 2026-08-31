@@ -13,7 +13,6 @@ from .config import DEFCON_LEVELS, ZERO_DAY_TERMS
 from .evidence import annotate_evidence
 from .rules import (
     ACTIONS,
-    AI_SECURITY_TERMS,
     CATEGORY_RULES,
     DETECTION_TEMPLATES,
     EXECUTIVE_NEWS_EXCLUDE,
@@ -23,6 +22,7 @@ from .rules import (
     RELEVANCE_RULES,
     SECTOR_IMPACT_RULES,
     WHY,
+    is_ai_security_relevant,
 )
 from .sources import EXECUTIVE_NEWS_SOURCE_LIMITS
 from .models import (
@@ -477,7 +477,7 @@ def route_section(category: str, source: Source, combined: str = "") -> str:
     absorbed into that vendor's own section.
     """
 
-    if combined and any(term in combined.lower() for term in AI_SECURITY_TERMS):
+    if combined and is_ai_security_relevant(combined):
         return "AI Security and Trustworthiness"
 
     if source.vendor == "Fortinet":

@@ -108,7 +108,85 @@ AI_SECURITY_TERMS = (
     "ai risk",
     "third-party evaluation",
     "third party evaluation",
+    "eu ai act compliance",
+    "training data consent",
 )
+
+# Major AI vendors/products. Used only to require co-occurrence for the
+# generic regulatory/availability terms below (AI_REGULATORY_AVAILABILITY_TERMS)
+# - those terms alone are too generic (antitrust, GDPR fines, market
+# withdrawals happen constantly to non-AI companies) to safely route on by
+# themselves the way a term like "jailbreak-as-a-service" can.
+AI_VENDOR_PRODUCT_NAMES = (
+    "anthropic",
+    "claude",
+    "openai",
+    "chatgpt",
+    "gpt-4",
+    "gpt-5",
+    "google deepmind",
+    "gemini",
+    "microsoft copilot",
+    "copilot",
+    "meta ai",
+    "llama",
+    "xai",
+    "grok",
+    "mistral ai",
+    "perplexity ai",
+)
+
+# Regulatory action, market availability and enforcement language. This
+# class of story ("Anthropic pauses a Claude feature in Europe") often
+# contains no AI-specific keyword beyond the vendor name itself, but every
+# term here is also common in entirely unrelated contexts (pharma
+# regulation, telecom antitrust, any company's GDPR fine) - so these only
+# count as AI-relevant when they co-occur with an AI_VENDOR_PRODUCT_NAMES
+# match (see is_ai_security_relevant below), never on their own.
+AI_REGULATORY_AVAILABILITY_TERMS = (
+    "blocked in the eu",
+    "banned in the eu",
+    "restricted in the eu",
+    "paused in europe",
+    "pulled from europe",
+    "withdrawn from europe",
+    "delayed in europe",
+    "not available in the eu",
+    "not available in europe",
+    "geo-blocked",
+    "geoblocked",
+    "regulatory delay",
+    "regulatory pause",
+    "regulatory scrutiny",
+    "antitrust investigation",
+    "antitrust probe",
+    "competition authority",
+    "data protection authority",
+    "data protection commission",
+    "privacy regulator",
+    "privacy watchdog",
+    "ico investigation",
+    "gdpr complaint",
+    "gdpr investigation",
+    "market withdrawal",
+    "feature withheld",
+    "regulatory fine",
+)
+
+
+def is_ai_security_relevant(text: str) -> bool:
+    """Decide whether text qualifies for the AI Security and Trustworthiness
+    section: either a directly AI-specific term (AI_SECURITY_TERMS), or a
+    generic regulatory/availability term that co-occurs with a named AI
+    vendor or product - the latter alone is too generic to route on safely
+    (see AI_REGULATORY_AVAILABILITY_TERMS)."""
+
+    lowered = text.lower()
+    if any(term in lowered for term in AI_SECURITY_TERMS):
+        return True
+    if any(term in lowered for term in AI_REGULATORY_AVAILABILITY_TERMS):
+        return any(name in lowered for name in AI_VENDOR_PRODUCT_NAMES)
+    return False
 
 RELEVANCE_RULES = (
     (

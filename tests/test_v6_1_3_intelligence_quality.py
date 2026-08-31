@@ -432,5 +432,76 @@ class AiSecurityCategoryTests(unittest.TestCase):
         self.assertNotEqual(ACTIONS["AI security and abuse"], ACTIONS["General security"])
 
 
+class AiRegulatoryAvailabilityRoutingTests(unittest.TestCase):
+    """Covers: 'Priority 2 is also intended to capture information such as
+    Anthropic update blocked for Europe and similar news about the biggest
+    and most prominent AIs on the market.'"""
+
+    def test_vendor_plus_regulatory_term_routes_to_ai_section(self) -> None:
+        generic_source = Source(
+            name="Generic Tech Press",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        combined = "Anthropic pauses the rollout of a new Claude feature in Europe amid regulatory scrutiny."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "AI Security and Trustworthiness",
+        )
+
+    def test_bare_regulatory_term_without_ai_vendor_does_not_route_to_ai_section(self) -> None:
+        """The precision guard: 'antitrust investigation' alone (e.g. about
+        an unrelated telecom company) must NOT get pulled into AI Security
+        just because the phrase happens to also appear in AI_REGULATORY_
+        AVAILABILITY_TERMS - it needs vendor co-occurrence."""
+
+        generic_source = Source(
+            name="Generic Tech Press",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        combined = "Regulators opened an antitrust investigation into the telecom merger."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "Threat Intelligence",
+        )
+
+    def test_gdpr_fine_without_ai_context_does_not_route_to_ai_section(self) -> None:
+        generic_source = Source(
+            name="Generic Tech Press",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Compliance",
+        )
+        combined = "A retailer faces a regulatory fine after a data protection authority found GDPR violations."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "Compliance",
+        )
+
+    def test_openai_geo_blocking_story_routes_correctly(self) -> None:
+        generic_source = Source(
+            name="Politico Tech",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        combined = "OpenAI's newest ChatGPT feature is geo-blocked in the EU pending an AI Act compliance review."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "AI Security and Trustworthiness",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

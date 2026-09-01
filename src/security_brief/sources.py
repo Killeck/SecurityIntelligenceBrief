@@ -318,25 +318,6 @@ RSS_SOURCES = (
         section="Threat Intelligence",
     ),
     Source(
-        name="Salesforce Security Blog",
-        vendor="Salesforce",
-        url="https://www.salesforce.com/blog/category/security/",
-        source_type="html",
-        base_score=20,
-        section="Cloud and Identity",
-        selectors=(
-            "h2 a[href]",
-            "article a[href]",
-        ),
-        include_patterns=("salesforce.com/blog/",),
-        exclude_patterns=(
-            "/category/",
-            "/author/",
-            "/page/",
-        ),
-        max_candidates=25,
-    ),
-    Source(
         name="The DFIR Report",
         vendor="The DFIR Report",
         url="https://thedfirreport.com/feed/",
@@ -360,6 +341,28 @@ RSS_SOURCES = (
         base_score=22,
         section="SOC and Detection Engineering",
     ),
+    Source(
+        name="Nozomi Networks PSIRT",
+        vendor="Nozomi Networks",
+        url="https://security.nozominetworks.com/rss.xml",
+        source_type="rss",
+        base_score=32,
+        section="OT, Energy and Oil & Gas",
+        freshness_days=45,
+    ),
+    Source(
+        name="NSM NCSC Security Warnings",
+        vendor="NSM Norway",
+        url=(
+            "https://nsm.no/fagomrader/digital-sikkerhet/"
+            "nasjonalt-cybersikkerhetssenter/varsler-fra-ncsc/rss/"
+        ),
+        source_type="rss",
+        base_score=38,
+        section="Nordic Impact",
+        locale="no",
+        freshness_days=45,
+    ),
 )
 
 HTML_SOURCES = (
@@ -380,6 +383,25 @@ HTML_SOURCES = (
         ),
         max_candidates=40,
         topic_keywords=_AI_SOURCE_TOPIC_KEYWORDS,
+    ),
+    Source(
+        name="Salesforce Security Blog",
+        vendor="Salesforce",
+        url="https://www.salesforce.com/blog/category/security/",
+        source_type="html",
+        base_score=20,
+        section="Cloud and Identity",
+        selectors=(
+            "h2 a[href]",
+            "article a[href]",
+        ),
+        include_patterns=("salesforce.com/blog/",),
+        exclude_patterns=(
+            "/category/",
+            "/author/",
+            "/page/",
+        ),
+        max_candidates=25,
     ),
     Source(
         name="Shadowserver Foundation",
@@ -760,15 +782,6 @@ HTML_SOURCES = (
         max_candidates=40,
     ),
     Source(
-        name="Nozomi Networks PSIRT",
-        vendor="Nozomi Networks",
-        url="https://security.nozominetworks.com/rss.xml",
-        source_type="rss",
-        base_score=32,
-        section="OT, Energy and Oil & Gas",
-        freshness_days=45,
-    ),
-    Source(
         name="Nozomi Networks Labs Blog",
         vendor="Nozomi Networks",
         url="https://www.nozominetworks.com/blog",
@@ -831,40 +844,5 @@ HTML_SOURCES = (
             "takedown",
         ),
         max_candidates=60,
-    ),
-    Source(
-        name="NSM Security Warnings",
-        vendor="NSM Norway",
-        url=(
-            "https://nsm.no/fagomrader/digital-sikkerhet/"
-            "nasjonalt-cybersikkerhetssenter/varsler-fra-nsm/"
-        ),
-        source_type="html",
-        base_score=38,
-        section="Nordic Impact",
-        selectors=(
-            "main a[href]",
-            "article a[href]",
-            "h2 a[href]",
-            "h3 a[href]",
-        ),
-        include_patterns=("nsm.no/",),
-        exclude_patterns=(
-            "#",
-            "/2026/",
-            "/2025/",
-            "/2024/",
-            "/2023/",
-            "/2022/",
-            "/2021/",
-            "/2020/",
-            "/2019/",
-            "/2018/",
-            "kontakt",
-            "personvern",
-            "tilgjengelighet",
-        ),
-        max_candidates=45,
-        locale="no",
     ),
 )

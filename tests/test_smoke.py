@@ -949,6 +949,35 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertIn('width="20%" valign="top"', standard_metric)
 
+    def test_every_rss_source_has_rss_source_type(self) -> None:
+        """Regression test for a real bug found in 6.1.6: a source with
+        source_type='rss' was physically grouped inside the HTML_SOURCES
+        Python tuple (topically adjacent to a same-vendor HTML source),
+        which meant the dispatch loop in app.py (which iterates HTML_SOURCES
+        and unconditionally calls fetch_html on every entry) was calling
+        the wrong fetch function on it - it had been silently returning
+        empty results regardless of real feed content. Guards against the
+        same class of mistake recurring for any future source."""
+
+        for source in RSS_SOURCES:
+            self.assertEqual(
+                source.source_type,
+                "rss",
+                f"{source.name!r} is in RSS_SOURCES but has "
+                f"source_type={source.source_type!r} - it will be dispatched "
+                "with the wrong fetch function.",
+            )
+
+    def test_every_html_source_has_html_source_type(self) -> None:
+        for source in HTML_SOURCES:
+            self.assertEqual(
+                source.source_type,
+                "html",
+                f"{source.name!r} is in HTML_SOURCES but has "
+                f"source_type={source.source_type!r} - it will be dispatched "
+                "with the wrong fetch function.",
+            )
+
 
 if __name__ == "__main__":
     unittest.main()

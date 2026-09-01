@@ -1,5 +1,6 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary and confidential. See LICENSE.
+# Last modified: v6.1.6
 
 """Focused regression coverage for the 6.1.3 intelligence-quality release."""
 

@@ -1,6 +1,7 @@
 <!--
 Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
+Last modified: v6.1.6
 -->
 
 # Changelog
@@ -11,6 +12,62 @@ maintained exclusively in `MAINTENANCE.md`.
 The project used working milestones before the formal v4/v5 release line. From
 v5 onward this changelog is intentionally release-oriented; detailed prototype
 history remains available in Git history.
+
+---
+
+## 6.1.6 - 2026-09-01
+
+### Weekly report
+
+- Added "AI Security and AI Development" digest section: last week's AI/LLM
+  developments in compact chunks (title, one-line summary, source, link),
+  deduplicated by link and sorted by recency, capped at 12 entries. Reuses
+  the existing shared collection pipeline (weekly_app.py already runs the
+  same primary_tasks()/collect_tasks() as Daily) rather than a parallel
+  system - Weekly was already collecting these items and discarding
+  everything except CVE records.
+
+### Sector relevance
+
+- Added Salmon Farming and Aquaculture as a distinct, heavily-OT-flagged
+  sector (SCADA/PLC feeding and pen-control systems, underwater
+  camera/ROV and environmental sensor networks, biosecurity monitoring).
+- Added 7 further sectors after review: Water and Wastewater Utilities,
+  Manufacturing and Industrial Production, Mining and Minerals, Defense
+  and Government Security, Legal and Professional Services, Space and
+  Satellite, and Pharma and Life Sciences. Sector taxonomy is now 20
+  sectors, up from 13.
+
+### Source integrity
+
+- Found and fixed two real source-dispatch bugs: "Nozomi Networks PSIRT"
+  (an RSS source) and "Salesforce Security Blog" (an HTML source) were
+  each physically defined inside the wrong Python tuple (grouped by topic
+  next to a related source rather than by collection mechanism), so
+  app.py's dispatch loops were silently calling the wrong fetch function
+  on each - almost certainly the real explanation for both sources'
+  earlier "0 items"/"unavailable" status. Added a permanent regression
+  test verifying every RSS_SOURCES entry has source_type="rss" and every
+  HTML_SOURCES entry has source_type="html".
+- Migrated NSM Security Warnings to the confirmed working RSS feed
+  (renamed NSM NCSC Security Warnings).
+- Added GITHUB_TOKEN to both daily-security-brief.yml and
+  weekly-vulnerability-report.yml, raising the GitHub REST API rate limit
+  from 60/hour to 5,000/hour for cisa_csaf.py and ai_security_trackers.py.
+
+### Research findings (documented in MAINTENANCE.md, no code change)
+
+- CrowdStrike's structured API confirmed blocked: requires a paid Falcon
+  platform subscription, no public unauthenticated alternative exists.
+- GuidePoint Security GRIT: their "GRIT Threat Feed" is a paid commercial
+  product; their GRIT Blog is valuable free Tier-B content but no
+  confirmed RSS URL was found - flagged for a real-fetch pass rather than
+  a guessed URL.
+- Full before/after audit of every HTML_SOURCES entry, categorised by
+  conversion status (structured-and-suppressed, fixed-this-session,
+  migrated-to-RSS, resilient-fallback-wrapped, still-unconverted).
+
+173/173 tests pass. Bandit: 0 findings.
 
 ---
 

@@ -376,6 +376,28 @@ RELEVANCE_RULES = (
         32,
     ),
     (
+        "Salmon Farming/Aquaculture",
+        (
+            "salmon farming",
+            "aquaculture",
+            "fish farming",
+            "fish farm",
+            "lakseoppdrett",
+            "oppdrettsnæring",
+            "oppdrettsanlegg",
+            "sea lice",
+            "fish pen",
+            "marine cage",
+            "recirculating aquaculture",
+            "nordlaks",
+            "salmar",
+            "mowi",
+            "lerøy",
+            "cermaq",
+        ),
+        28,
+    ),
+    (
         "Public/Regulated",
         (
             "government",
@@ -826,6 +848,35 @@ SECTOR_IMPACT_RULES = (
         (
             "Assess operational availability, remote access, OT integration and "
             "supply-chain dependencies."
+        ),
+        26,
+    ),
+    (
+        "Salmon Farming and Aquaculture",
+        (
+            "salmon farming",
+            "aquaculture",
+            "fish farming",
+            "fish farm",
+            "lakseoppdrett",
+            "oppdrettsnæring",
+            "oppdrettsanlegg",
+            "sea lice",
+            "fish pen",
+            "marine cage",
+            "recirculating aquaculture",
+            "biomass sensor",
+            "nordlaks",
+            "salmar",
+            "mowi",
+            "lerøy",
+            "cermaq",
+        ),
+        (
+            "Heavily OT-dependent sector: assess SCADA/PLC exposure for feeding "
+            "and pen-control systems, underwater camera/ROV and environmental "
+            "sensor networks, remote/vessel-based operational access, and "
+            "biosecurity/monitoring system availability."
         ),
         26,
     ),

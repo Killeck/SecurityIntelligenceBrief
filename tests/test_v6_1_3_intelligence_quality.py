@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from security_brief.models import Item
-from security_brief.analysis import classify, route_section
+from security_brief.analysis import build_sector_impacts, classify, executive_news_relevance, route_section
 from security_brief.models import Source
 from security_brief.pipeline_state import effective_daily_cutoff, mark_daily_success
 from security_brief.report_policy import (
@@ -501,6 +501,35 @@ class AiRegulatoryAvailabilityRoutingTests(unittest.TestCase):
             route_section("General security", generic_source, combined),
             "AI Security and Trustworthiness",
         )
+
+
+class SalmonFarmingSectorTests(unittest.TestCase):
+    def test_relevance_tags_include_salmon_farming(self) -> None:
+        _, tags = executive_news_relevance(
+            title="SalMar reports ransomware attack disrupting feeding systems",
+            summary="The salmon farming operator confirmed pen-control SCADA systems were affected.",
+            base_score=10,
+        )
+        self.assertIn("Salmon Farming/Aquaculture", tags)
+
+    def test_sector_impact_surfaces_salmon_farming_with_ot_implication(self) -> None:
+        item = Item(
+            title="Nordlaks confirms OT network intrusion at aquaculture site",
+            summary="Attackers gained access to fish pen monitoring and feeding automation systems.",
+            link="https://example.invalid/nordlaks-incident",
+            published=datetime(2026, 8, 20, tzinfo=timezone.utc),
+            source="Test Source",
+            vendor="Test Vendor",
+            section="OT, Energy and Oil & Gas",
+            category="OT and ICS security",
+            score=40,
+        )
+        impacts = build_sector_impacts([item], [])
+        salmon = next(
+            (i for i in impacts if i.sector == "Salmon Farming and Aquaculture"), None
+        )
+        self.assertIsNotNone(salmon)
+        self.assertIn("SCADA", salmon.implication)
 
 
 if __name__ == "__main__":

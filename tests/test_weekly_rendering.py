@@ -4,8 +4,9 @@
 from __future__ import annotations
 
 import unittest
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
+from security_brief.models import Item
 from security_brief.vulnerability_reporting import (
     VulnerabilityRecord,
     weekly_display_records,
@@ -291,6 +292,135 @@ class WeeklyPresentationTests(unittest.TestCase):
             self.assertIn(label, html)
         self.assertIn("latest 4 weeks", html)
         self.assertIn("Microsoft / Operating Systems", html)
+
+
+def _ai_item(
+    title: str = "OpenAI discloses prompt-injection mitigation research",
+    summary: str = "New research on mitigating indirect prompt injection in agentic workflows.",
+    link: str = "https://openai.com/news/example",
+    source: str = "OpenAI News",
+    published: datetime = datetime(2026, 8, 12, tzinfo=timezone.utc),
+) -> Item:
+    return Item(
+        title=title,
+        summary=summary,
+        link=link,
+        published=published,
+        source=source,
+        vendor=source,
+        section="AI Security and Trustworthiness",
+        category="AI security and abuse",
+        score=20,
+    )
+
+
+class WeeklyAiDigestTests(unittest.TestCase):
+    def test_ai_digest_section_appears_with_entries(self) -> None:
+        text_body, html = render_weekly_vulnerability_report(
+            [record()],
+            [],
+            [],
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+            ai_digest=[_ai_item()],
+        )
+        self.assertIn("AI Security and AI Development", text_body)
+        self.assertIn("OpenAI discloses prompt-injection mitigation research", text_body)
+        self.assertIn("https://openai.com/news/example", text_body)
+        self.assertIn("AI Security and AI Development", html)
+        self.assertIn("OpenAI discloses prompt-injection mitigation research", html)
+        self.assertIn("prompt injection in agentic workflows", html)
+
+    def test_ai_digest_section_handles_empty_list_gracefully(self) -> None:
+        text_body, html = render_weekly_vulnerability_report(
+            [record()],
+            [],
+            [],
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+            ai_digest=[],
+        )
+        self.assertIn("No qualifying AI security or AI development items this week.", text_body)
+        self.assertIn("No qualifying AI security or AI development items this week.", html)
+
+    def test_ai_digest_defaults_to_none_without_error(self) -> None:
+        """Backward compatibility: existing call sites that don't pass
+        ai_digest at all must still work (keyword-only, default None)."""
+
+        text_body, html = render_weekly_vulnerability_report(
+            [record()], [], [], [], date(2026, 8, 7), date(2026, 8, 13), []
+        )
+        self.assertIn("AI Security and AI Development", text_body)
+        self.assertIn("No qualifying AI security or AI development items this week.", text_body)
+
+    def test_ai_digest_deduplicates_by_link(self) -> None:
+        duplicate = _ai_item(published=datetime(2026, 8, 10, tzinfo=timezone.utc))
+        newer_duplicate = _ai_item(published=datetime(2026, 8, 13, tzinfo=timezone.utc))
+        text_body, _ = render_weekly_vulnerability_report(
+            [record()],
+            [],
+            [],
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+            ai_digest=[duplicate, newer_duplicate],
+        )
+        self.assertEqual(
+            text_body.count("OpenAI discloses prompt-injection mitigation research"), 1
+        )
+
+    def test_ai_digest_sorted_most_recent_first(self) -> None:
+        older = _ai_item(
+            title="Older AI story",
+            link="https://example.invalid/older",
+            published=datetime(2026, 8, 8, tzinfo=timezone.utc),
+        )
+        newer = _ai_item(
+            title="Newer AI story",
+            link="https://example.invalid/newer",
+            published=datetime(2026, 8, 13, tzinfo=timezone.utc),
+        )
+        text_body, _ = render_weekly_vulnerability_report(
+            [record()],
+            [],
+            [],
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+            ai_digest=[older, newer],
+        )
+        self.assertLess(text_body.index("Newer AI story"), text_body.index("Older AI story"))
+
+    def test_ai_digest_respects_limit_of_twelve(self) -> None:
+        items = [
+            _ai_item(
+                title=f"AI story number {n:02d} zz",
+                link=f"https://example.invalid/story-{n}",
+                published=datetime(2026, 8, 1, tzinfo=timezone.utc) + timedelta(hours=n),
+            )
+            for n in range(20)
+        ]
+        text_body, _ = render_weekly_vulnerability_report(
+            [record()],
+            [],
+            [],
+            [],
+            date(2026, 8, 7),
+            date(2026, 8, 13),
+            [],
+            ai_digest=items,
+        )
+        included = sum(1 for n in range(20) if f"AI story number {n:02d} zz" in text_body)
+        self.assertEqual(included, 12)
+        # And it should be the 12 MOST RECENT (n=8..19), not an arbitrary 12.
+        for n in range(8, 20):
+            self.assertIn(f"AI story number {n:02d} zz", text_body)
 
 
 if __name__ == "__main__":

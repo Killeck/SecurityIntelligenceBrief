@@ -122,16 +122,72 @@ rather than treating as high-risk.
   third, fully structure-agnostic fallback tier (`a[href]`, relying on
   existing include/exclude URL patterns) as a last resort.
 - Add a stronger authoritative CrowdStrike path if a stable public source becomes available.
+  [CONFIRMED BLOCKED 6.1.6] CrowdStrike's structured API (Falcon
+  Adversary Intelligence, CVE/ExPRT data) requires an authenticated
+  OAuth2 API client tied to a paid Falcon platform subscription -
+  "not public, only accessible by partners or customers" (per Sumo
+  Logic's own integration docs). No public unauthenticated alternative
+  exists. Pursuing this would also violate the "no paid dependencies"
+  principle below. The current RSS blog feed
+  (crowdstrike.com/en-us/blog/feed/) remains the best available free
+  option - not a gap to keep chasing.
 - Continue replacing fragile generic HTML parsing with structured vendor,
   government, RSS, API or disclosure feeds where available.
-- Evaluate public GuidePoint Security GRIT research as Tier-B supporting threat intelligence.
+  [6.1.6 audit] Current status of every source in HTML_SOURCES, explicit
+  before/after:
+    - Converted to structured feeds and suppressed from the generic HTML
+      loop via REPLACED_GENERIC_HTML_SOURCES: Fortinet PSIRT (RSS),
+      HPE Security Bulletin Library (RSS, 6.1.5), Okta Security (RSS),
+      CISA ICS Advisories (structured JSON via cisagov/CSAF, 6.1.4).
+    - Fixed this session (selector/URL bugs, still HTML but now working):
+      Nozomi Networks Labs Blog (href-pattern selectors), Trend Micro
+      Research (was miscategorised as RSS with a broken URL, now fixed).
+    - Migrated to RSS entirely (no longer in HTML_SOURCES): Kubernetes
+      Official CVE Feed (JSON Feed, 6.1.5), NSM NCSC Security Warnings
+      (confirmed working RSS, 6.1.6), Nozomi Networks PSIRT (RSS -
+      also fixed a real dispatch bug, see below).
+    - Wrapped in the 3-tier resilient fallback (semantic-tag tier, then
+      fully structure-agnostic tier as of 6.1.6): NIST CSRC News, ISACA
+      News and Trends, ISO News, Splunk Security Blog, Dragos, FBI Cyber
+      News.
+    - Still plain HTML scrape, not yet audited/converted this session:
+      Anthropic News, Salesforce Security Blog, Shadowserver Foundation,
+      Cisco Talos, FortiGuard Labs Threat Research, Apple Security
+      Releases (SOFA identified as the right replacement, blocked on
+      URL ambiguity - see below), ENISA News, PCI Security Standards
+      Council, NSM Updates, Elastic Security Labs, Claroty Team82
+      (has its own dedicated dashboard parser, not a generic scrape).
+- [DONE 6.1.6] Found and fixed two real source-dispatch bugs during the
+  above audit: "Nozomi Networks PSIRT" (source_type="rss") was
+  physically grouped inside the HTML_SOURCES Python tuple next to a
+  topically-related HTML source; "Salesforce Security Blog"
+  (source_type="html") was physically grouped inside RSS_SOURCES the
+  same way. app.py's dispatch loops call fetch_html()/fetch_rss()
+  based on which tuple a source is defined in, not its source_type field
+  - both had been silently getting the wrong fetch function called on
+  them. Both moved to their correct tuple; added a permanent regression
+  test (test_smoke.py) verifying every RSS_SOURCES entry has
+  source_type="rss" and every HTML_SOURCES entry has source_type="html",
+  so this class of mistake cannot silently recur.
+- Evaluate public GuidePoint Security GRIT research as Tier-B supporting
+  threat intelligence. [RESEARCHED 6.1.6] GuidePoint's "GRIT Threat
+  Feed" is a paid/curated commercial product ("Advisory Services",
+  "Platform Services" per their own site) - same category as CrowdStrike,
+  conflicts with the no-paid-dependencies principle. Their GRIT Blog
+  (quarterly ransomware/threat reports with real data - e.g. Q2 2025
+  report tracked 71 active ransomware groups, sector-targeting stats) is
+  genuinely valuable free Tier-B content and worth adding, but no
+  confirmed RSS feed URL was found via search - same discipline as the
+  Apple/SOFA situation: get a real fetch of guidepointsecurity.com/blog
+  before building, rather than guessing a feed URL.
 - Do not introduce paid/licensed dependencies solely for source enrichment.
-- **Operational requirement**: `cisa_csaf.py` and the AI framework trackers
-  (`ai_security_trackers.py`) call the GitHub REST API. Unauthenticated
-  rate limit is 60/hour, which is too low for daily+catch-up windows. Add
-  `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` (auto-provided per-run, no new
-  secret to create) to the env of `daily-security-brief.yml` and
-  `weekly-vulnerability-report.yml`.
+- [DONE - code] `GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}` added to both
+  `daily-security-brief.yml` and `weekly-vulnerability-report.yml`.
+  [STILL PENDING - apply] Could not be pushed via PAT (GitHub blocks PAT
+  pushes to workflow files without a separate `Workflows` scope) -
+  delivered as standalone files for manual application twice now
+  (2026-08-29 and 2026-09-01). Confirm these were actually applied to
+  the live workflow files before considering this closed.
 - Norwegian sector-CERT coverage confirmed structurally blocked for
   HelseCERT, KraftCERT and FinansCERT/NFCERT (closed sector-ISAC models, no
   public feed) — not revisitable without direct membership access.
@@ -143,6 +199,16 @@ rather than treating as high-risk.
   Webflow-built (no semantic h2/h3/article wrapper tags), so the original
   selectors matched zero elements. Replaced with href-pattern selectors
   matching the site's actual /blog/{slug} link convention.
+- Anthropic News, Salesforce Security Blog and Apple Security Releases
+  (item 2 and related): still not live-DOM-verified from this sandbox
+  (no network access to any of these three domains). Anthropic and
+  Salesforce use plausible, pattern-matched selectors (href-pattern for
+  Anthropic, semantic-tag for Salesforce - the latter is the same class
+  of risk that broke Nozomi Blog, though Salesforce's real WordPress-
+  style markup makes it lower-risk than Nozomi's Webflow markup was).
+  Apple has no usable path at all without either scraping (currently
+  done, unverified) or confirming SOFA's real current URL. Get real
+  page HTML/fetch access for any of the three to close this out properly.
 - Nozomi Networks Vulnerability Advisories page (nozominetworks.com/vulnerability-advisories)
   identified as high-value (third-party OT/ICS/IoT CVE disclosures from
   Nozomi Labs, openly available, no login) but structurally unsuited to the

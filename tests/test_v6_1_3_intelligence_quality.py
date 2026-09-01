@@ -531,6 +531,78 @@ class SalmonFarmingSectorTests(unittest.TestCase):
         self.assertIsNotNone(salmon)
         self.assertIn("SCADA", salmon.implication)
 
+    def test_new_sector_relevance_tags(self) -> None:
+        cases = [
+            (
+                "A ransomware group hit a wastewater treatment plant's SCADA network.",
+                "Water/Wastewater Utilities",
+            ),
+            (
+                "An industrial robot vulnerability affects a manufacturing plant assembly line.",
+                "Manufacturing/Industrial Production",
+            ),
+            (
+                "Boliden's mining operation reported an OT security incident at an ore processing site.",
+                "Mining and Minerals",
+            ),
+            (
+                "Kongsberg Gruppen, a defense contractor, disclosed a breach affecting weapons systems data.",
+                "Defense and Government Security",
+            ),
+            (
+                "A law firm reported a business email compromise exposing client-confidential data.",
+                "Legal and Professional Services",
+            ),
+            (
+                "KSAT's satellite ground station suffered a network intrusion.",
+                "Space and Satellite",
+            ),
+            (
+                "A pharmaceutical manufacturer's clinical trial data was exposed in a breach.",
+                "Pharma/Life Sciences",
+            ),
+        ]
+        for text, expected_tag in cases:
+            with self.subTest(text=text):
+                _, tags = executive_news_relevance(title=text, summary="", base_score=10)
+                self.assertIn(expected_tag, tags)
+
+    def test_new_sector_impact_entries_present_with_implications(self) -> None:
+        cases = [
+            (
+                "Water and Wastewater Utilities",
+                "A wastewater treatment plant's SCADA network was compromised.",
+                "SCADA",
+            ),
+            (
+                "Mining and Minerals",
+                "Boliden's mining operation and ore processing systems were affected by an OT incident.",
+                "OT exposure",
+            ),
+            (
+                "Defense and Government Security",
+                "A defense contractor supporting NATO weapons systems was breached.",
+                "nation-state",
+            ),
+        ]
+        for sector_name, text, expected_fragment in cases:
+            with self.subTest(sector=sector_name):
+                item = Item(
+                    title=text,
+                    summary=text,
+                    link=f"https://example.invalid/{sector_name.replace(' ', '-')}",
+                    published=datetime(2026, 8, 20, tzinfo=timezone.utc),
+                    source="Test Source",
+                    vendor="Test Vendor",
+                    section="Threat Intelligence",
+                    category="General security",
+                    score=30,
+                )
+                impacts = build_sector_impacts([item], [])
+                match = next((i for i in impacts if i.sector == sector_name), None)
+                self.assertIsNotNone(match, f"No sector impact found for {sector_name}")
+                self.assertIn(expected_fragment, match.implication)
+
 
 if __name__ == "__main__":
     unittest.main()

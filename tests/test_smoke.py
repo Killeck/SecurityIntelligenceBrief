@@ -59,10 +59,12 @@ class MockResponse:
         payload: object,
         status_code: int = 200,
         content: bytes = b"",
+        headers: dict[str, str] | None = None,
     ) -> None:
         self._payload = payload
         self.status_code = status_code
         self.content = content
+        self.headers = headers or {}
 
     def raise_for_status(self) -> None:
         if self.status_code >= 400:

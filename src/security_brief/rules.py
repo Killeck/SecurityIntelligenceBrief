@@ -108,7 +108,85 @@ AI_SECURITY_TERMS = (
     "ai risk",
     "third-party evaluation",
     "third party evaluation",
+    "eu ai act compliance",
+    "training data consent",
 )
+
+# Major AI vendors/products. Used only to require co-occurrence for the
+# generic regulatory/availability terms below (AI_REGULATORY_AVAILABILITY_TERMS)
+# - those terms alone are too generic (antitrust, GDPR fines, market
+# withdrawals happen constantly to non-AI companies) to safely route on by
+# themselves the way a term like "jailbreak-as-a-service" can.
+AI_VENDOR_PRODUCT_NAMES = (
+    "anthropic",
+    "claude",
+    "openai",
+    "chatgpt",
+    "gpt-4",
+    "gpt-5",
+    "google deepmind",
+    "gemini",
+    "microsoft copilot",
+    "copilot",
+    "meta ai",
+    "llama",
+    "xai",
+    "grok",
+    "mistral ai",
+    "perplexity ai",
+)
+
+# Regulatory action, market availability and enforcement language. This
+# class of story ("Anthropic pauses a Claude feature in Europe") often
+# contains no AI-specific keyword beyond the vendor name itself, but every
+# term here is also common in entirely unrelated contexts (pharma
+# regulation, telecom antitrust, any company's GDPR fine) - so these only
+# count as AI-relevant when they co-occur with an AI_VENDOR_PRODUCT_NAMES
+# match (see is_ai_security_relevant below), never on their own.
+AI_REGULATORY_AVAILABILITY_TERMS = (
+    "blocked in the eu",
+    "banned in the eu",
+    "restricted in the eu",
+    "paused in europe",
+    "pulled from europe",
+    "withdrawn from europe",
+    "delayed in europe",
+    "not available in the eu",
+    "not available in europe",
+    "geo-blocked",
+    "geoblocked",
+    "regulatory delay",
+    "regulatory pause",
+    "regulatory scrutiny",
+    "antitrust investigation",
+    "antitrust probe",
+    "competition authority",
+    "data protection authority",
+    "data protection commission",
+    "privacy regulator",
+    "privacy watchdog",
+    "ico investigation",
+    "gdpr complaint",
+    "gdpr investigation",
+    "market withdrawal",
+    "feature withheld",
+    "regulatory fine",
+)
+
+
+def is_ai_security_relevant(text: str) -> bool:
+    """Decide whether text qualifies for the AI Security and Trustworthiness
+    section: either a directly AI-specific term (AI_SECURITY_TERMS), or a
+    generic regulatory/availability term that co-occurs with a named AI
+    vendor or product - the latter alone is too generic to route on safely
+    (see AI_REGULATORY_AVAILABILITY_TERMS)."""
+
+    lowered = text.lower()
+    if any(term in lowered for term in AI_SECURITY_TERMS):
+        return True
+    if any(term in lowered for term in AI_REGULATORY_AVAILABILITY_TERMS):
+        return any(name in lowered for name in AI_VENDOR_PRODUCT_NAMES)
+    return False
 
 RELEVANCE_RULES = (
     (
@@ -818,6 +896,17 @@ DETECTION_TEMPLATES = {
         ),
         "T1078 Valid Accounts; T1528 Steal Application Access Token",
     ),
+    "AI security and abuse": (
+        "Monitor for anomalous LLM/agent API usage, prompt-injection payloads "
+        "in logs, unauthorised model or agent credential use, and AI-generated "
+        "content (phishing, voice/deepfake) in reported incidents.",
+        (
+            "LLM/API gateway logs, agent/service-account identity logs, email "
+            "and endpoint telemetry, and MITRE ATLAS case studies for "
+            "adversary tactics against AI systems"
+        ),
+        "T1588.007 Obtain Capabilities: Artificial Intelligence; see MITRE ATLAS for AI-specific tactics",
+    ),
     "Active exploitation": (
         "Monitor internet-facing services for exploit chains, unexpected child "
         "processes, web shells, new accounts and configuration changes.",
@@ -990,6 +1079,11 @@ CATEGORY_RULES = (
         23,
     ),
     (
+        "AI security and abuse",
+        AI_SECURITY_TERMS,
+        22,
+    ),
+    (
         "Regulatory and compliance",
         (
             "nis2",
@@ -1159,6 +1253,12 @@ WHY = {
         "Identity compromise can provide direct access to cloud, email, "
         "administrative, and business systems."
     ),
+    "AI security and abuse": (
+        "The development involves AI as an attack tool, a security "
+        "limitation, an abused capability, or a governance/trustworthiness "
+        "concern with operational security consequence - distinct handling "
+        "from a routine vendor or vulnerability item is warranted."
+    ),
     "Regulatory and compliance": (
         "The development may change legal duties, reporting expectations, "
         "audit scope, implementation timelines, or evidence requirements."
@@ -1226,6 +1326,13 @@ ACTIONS = {
     "Identity security": (
         "Review sign-ins and token use, enforce phishing-resistant MFA where "
         "possible, and revoke suspicious sessions or credentials."
+    ),
+    "AI security and abuse": (
+        "Assess whether the organisation's AI tooling, agents or exposed "
+        "endpoints are affected; review AI-related access/identity controls; "
+        "and evaluate detection coverage for AI-generated attack content "
+        "(phishing, deepfakes, synthetic media) relevant to the workforce or "
+        "customers."
     ),
     "Regulatory and compliance": (
         "Identify affected entities and deadlines, map the change to current "

@@ -14,7 +14,7 @@ from pathlib import Path
 from unittest.mock import patch
 
 from security_brief.models import Item
-from security_brief.analysis import route_section
+from security_brief.analysis import classify, route_section
 from security_brief.models import Source
 from security_brief.pipeline_state import effective_daily_cutoff, mark_daily_success
 from security_brief.report_policy import (
@@ -383,6 +383,123 @@ class AiUsedOrAbusedRoutingTests(unittest.TestCase):
         self.assertEqual(
             route_section("General security", generic_source, combined),
             "Threat Intelligence",
+        )
+
+
+class AiSecurityCategoryTests(unittest.TestCase):
+    def test_ai_content_gets_dedicated_category_not_general_security(self) -> None:
+        generic_source = Source(
+            name="Generic News",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        text = "Attackers used a deepfake voice clone in an ai-powered scam against a bank."
+        category, weight = classify(text, generic_source)
+        self.assertEqual(category, "AI security and abuse")
+        self.assertGreater(weight, 0)
+
+    def test_active_exploitation_still_takes_precedence_over_ai_labeling(self) -> None:
+        """Operational urgency (active exploitation) must not be masked by
+        topical AI labeling - exploitation-level guidance is more actionable
+        than generic AI-security guidance."""
+
+        generic_source = Source(
+            name="Generic News",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        text = (
+            "CISA confirms this jailbreak-as-a-service vulnerability affecting an AI "
+            "agent platform is being actively exploited in the wild."
+        )
+        category, _ = classify(text, generic_source)
+        self.assertEqual(category, "Active exploitation")
+
+    def test_ai_category_has_matching_actions_why_and_detection_entries(self) -> None:
+        from security_brief.rules import ACTIONS, DETECTION_TEMPLATES, WHY
+
+        self.assertIn("AI security and abuse", WHY)
+        self.assertIn("AI security and abuse", ACTIONS)
+        self.assertIn("AI security and abuse", DETECTION_TEMPLATES)
+        # None of these should silently fall back to generic placeholder text
+        self.assertNotEqual(WHY["AI security and abuse"], WHY["General security"])
+        self.assertNotEqual(ACTIONS["AI security and abuse"], ACTIONS["General security"])
+
+
+class AiRegulatoryAvailabilityRoutingTests(unittest.TestCase):
+    """Covers: 'Priority 2 is also intended to capture information such as
+    Anthropic update blocked for Europe and similar news about the biggest
+    and most prominent AIs on the market.'"""
+
+    def test_vendor_plus_regulatory_term_routes_to_ai_section(self) -> None:
+        generic_source = Source(
+            name="Generic Tech Press",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        combined = "Anthropic pauses the rollout of a new Claude feature in Europe amid regulatory scrutiny."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "AI Security and Trustworthiness",
+        )
+
+    def test_bare_regulatory_term_without_ai_vendor_does_not_route_to_ai_section(self) -> None:
+        """The precision guard: 'antitrust investigation' alone (e.g. about
+        an unrelated telecom company) must NOT get pulled into AI Security
+        just because the phrase happens to also appear in AI_REGULATORY_
+        AVAILABILITY_TERMS - it needs vendor co-occurrence."""
+
+        generic_source = Source(
+            name="Generic Tech Press",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        combined = "Regulators opened an antitrust investigation into the telecom merger."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "Threat Intelligence",
+        )
+
+    def test_gdpr_fine_without_ai_context_does_not_route_to_ai_section(self) -> None:
+        generic_source = Source(
+            name="Generic Tech Press",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Compliance",
+        )
+        combined = "A retailer faces a regulatory fine after a data protection authority found GDPR violations."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "Compliance",
+        )
+
+    def test_openai_geo_blocking_story_routes_correctly(self) -> None:
+        generic_source = Source(
+            name="Politico Tech",
+            vendor="Generic",
+            url="https://example.invalid/",
+            source_type="rss",
+            base_score=10,
+            section="Threat Intelligence",
+        )
+        combined = "OpenAI's newest ChatGPT feature is geo-blocked in the EU pending an AI Act compliance review."
+        self.assertEqual(
+            route_section("General security", generic_source, combined),
+            "AI Security and Trustworthiness",
         )
 
 

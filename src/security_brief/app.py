@@ -49,7 +49,7 @@ from .governance import (
     detect_governance_go_live_events,
     load_configured_governance_events,
 )
-from .models import ExposureSignal, Item, NewsLink
+from .models import ExposureSignal, Item, NewsLink, PartialItemList
 from .pipeline_state import (
     effective_daily_cutoff,
     effective_lookback_hours,
@@ -59,11 +59,12 @@ from .priority_vendor_sources import (
     AUTHORITATIVE_VENDOR_RSS_SOURCES,
     REPLACED_GENERIC_HTML_SOURCES,
     fetch_authoritative_vendor_rss,
-    fetch_hpe_security_bulletins,
     fetch_priority_vendor_nvd,
 )
+from .hpe_security_bulletins_rss import fetch_hpe_security_bulletins_rss
 from .cisa_csaf import fetch_cisa_csaf_branch
 from .ai_security_trackers import fetch_mitre_atlas_updates, fetch_owasp_llm_top10_updates
+from .kubernetes_cve_feed import fetch_kubernetes_cve_feed
 from .open_source_sources import OPEN_VULNERABILITY_SOURCES
 from .report_policy import ensure_mandatory_vulnerabilities, render_report
 from .runtime_profile import RuntimeProfiler
@@ -218,6 +219,10 @@ class FetchOutcome(Generic[T]):
     values: list[T]
     error: Exception | None = None
 
+    @property
+    def partial(self) -> bool:
+        return isinstance(self.values, PartialItemList)
+
 
 def _execute_task(task: FetchTask[T]) -> FetchOutcome[T]:
     try:
@@ -271,6 +276,7 @@ def collect_tasks(
                             "detail": task.detail,
                             "checked_at": datetime.now(timezone.utc).isoformat(),
                             "newest_item": _newest_value_timestamp(outcome.values),
+                            "partial": outcome.partial,
                         },
                         freshness_days=task.freshness_days,
                     )
@@ -339,9 +345,9 @@ def primary_tasks(
     tasks.append(
         FetchTask(
             name="HPE Security Bulletin Library",
-            fetch=lambda: fetch_hpe_security_bulletins(vendor_cutoff),
-            detail="Authoritative HPE/Aruba bulletin library with historical context",
-            freshness_days=45,
+            fetch=lambda: fetch_hpe_security_bulletins_rss(vendor_cutoff),
+            detail="Official HPE Security Bulletin RSS feed",
+            freshness_days=30,
         )
     )
 
@@ -387,6 +393,16 @@ def primary_tasks(
                 fetch=lambda: fetch_owasp_llm_top10_updates(vendor_cutoff),
                 detail="AI Security & Trustworthiness: OWASP GenAI LLM Top 10 changes",
                 freshness_days=60,
+            )
+        )
+
+    if overrides.get("Kubernetes Official CVE Feed", {}).get("enabled") is not False:
+        tasks.append(
+            FetchTask(
+                name="Kubernetes Official CVE Feed",
+                fetch=lambda: fetch_kubernetes_cve_feed(vendor_cutoff),
+                detail="Official Kubernetes CVE JSON Feed (kubernetes.io)",
+                freshness_days=30,
             )
         )
 

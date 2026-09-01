@@ -14,6 +14,49 @@ history remains available in Git history.
 
 ---
 
+## 6.1.5 - 2026-08-29
+
+### Source fixes
+
+- Fixed Trend Micro Research feed URL (http, not https - the https variant
+  does not resolve; was causing "temporarily unavailable" collector status).
+- Fixed Nozomi Networks Labs Blog HTML selectors: the site is Webflow-built
+  with no semantic h2/h3/article wrapper tags, so the original selectors
+  (assuming those tags) matched zero elements, triggering "Selector health
+  check found no usable article candidates". Replaced with href-pattern
+  selectors matching the site's actual `/blog/{slug}` link convention,
+  validated against a representative Webflow-style DOM structure.
+- Switched Kubernetes Official CVE Feed from RSS/Atom to the official JSON
+  Feed (kubernetes.io, jsonfeed.org spec): clean ISO8601 dates (no
+  feedparser struct_time handling), the literal CVE ID with no regex
+  extraction from title text, and best-effort CVSS extraction from the
+  advisory body - validated 7/7 against real production text samples
+  pulled from the live feed, not just hand-written fixtures.
+- Switched HPE Security Bulletin Library from a custom HTML table scrape to
+  HPE's official RSS feed (`support.hpe.com/hpesc/public/api/document/
+  sec_bull_rss_feed.xml`). Note: the feed's item-description format was not
+  directly inspected against live content in this environment - CVSS/
+  severity extraction is best-effort with graceful "Not available"
+  fallback (never fabricated), same principle as the CSAF and Kubernetes
+  collectors. The previous custom parser (`parse_hpe_security_bulletins_html`
+  in `priority_vendor_sources.py`) is left in place, tested but unused, as
+  a fallback pending confirmation against real feed content.
+
+### Documented follow-on (MAINTENANCE.md)
+
+- Nozomi Networks Vulnerability Advisories page identified as high-value
+  (third-party OT/ICS/IoT CVE disclosures, openly available) but requiring
+  a dedicated row-based table parser rather than the generic link-based
+  HTML collector, given duplicated table+card DOM rendering and unreliable
+  per-row links to Nozomi's own domain.
+- Nozomi Networks Threat Intelligence Feed (STIX/TAXII) documented as the
+  proper structured alternative to scraping, with concrete steps to pursue
+  it (subscription purchase, TAXII credentials, TAXII 2.x client), plus two
+  lower-cost paths to try first (direct PSIRT/Labs contact, partner
+  relationship exploration).
+
+---
+
 ## 6.1.4 - 2026-08-28
 
 ### Nordics and IT/OT source integrity

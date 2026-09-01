@@ -13,6 +13,19 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 
+
+class PartialItemList(list):
+    """A collector's ``list[Item]`` result, marked as a truncated/incomplete
+    collection rather than the full available result set.
+
+    Used to signal "PARTIAL" source health (see ``source_health.py``)
+    without changing every collector's return type: a collector returns
+    this instead of a plain ``list`` only when it detects it stopped short
+    of the full available data (e.g. a bounded pagination loop hit its
+    page limit while the API still reported more pages available).
+    """
+
+
 @dataclass(frozen=True)
 class Source:
     """Describe one configured intelligence source and its parser rules.

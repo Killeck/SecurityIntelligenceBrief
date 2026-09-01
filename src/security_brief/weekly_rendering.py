@@ -18,6 +18,8 @@ from datetime import date
 from typing import Any, Iterable
 
 from .branding import LOGO_CONTENT_ID
+from .models import Item
+from .utils import truncate
 from .vulnerability_reporting import VulnerabilityRecord
 
 
@@ -423,6 +425,67 @@ def _health_state(entry: dict[str, Any]) -> str:
     return "CONTENT" if int(entry.get("items", 0) or 0) else "QUIET"
 
 
+def _ai_digest_entries(items: list[Item] | None, limit: int = 12) -> list[Item]:
+    """Select and order this week's AI Security/Development digest entries.
+
+    Deduplicates by link (the same story can surface from more than one
+    source route), then sorts by recency - this is an awareness digest,
+    not a severity-ranked list, so "most recent" is the right ordering
+    rather than the score-based ranking used for vulnerability records.
+    """
+
+    if not items:
+        return []
+    seen_links: set[str] = set()
+    deduped: list[Item] = []
+    for item in items:
+        if item.link in seen_links:
+            continue
+        seen_links.add(item.link)
+        deduped.append(item)
+    deduped.sort(key=lambda item: item.published, reverse=True)
+    return deduped[:limit]
+
+
+def _ai_digest_plain(items: list[Item]) -> list[str]:
+    if not items:
+        return ["No qualifying AI security or AI development items this week."]
+    lines: list[str] = []
+    for item in items:
+        summary = truncate(item.summary, 160) if item.summary else ""
+        lines.append(f"- {item.title} ({item.source}, {item.published.date().isoformat()})")
+        if summary:
+            lines.append(f"  {summary}")
+        lines.append(f"  {item.link}")
+    return lines
+
+
+def _ai_digest_html(items: list[Item], colours: dict[str, str]) -> str:
+    if not items:
+        return (
+            f'<div style="color:{colours["muted"]};">'
+            "No qualifying AI security or AI development items this week.</div>"
+        )
+    rows = []
+    for item in items:
+        summary = truncate(item.summary, 160) if item.summary else ""
+        rows.append(
+            '<div style="margin-bottom:10px;padding-bottom:10px;'
+            f'border-bottom:1px solid {colours["border"]};">'
+            f'<a href="{_esc(item.link)}" style="color:{colours["link"]};'
+            f'font-weight:700;text-decoration:none;font-size:13px;">{_esc(item.title)}</a>'
+            f'<div style="color:{colours["muted"]};font-size:11px;margin-top:2px;">'
+            f'{_esc(item.source)} &middot; {item.published.date().isoformat()}</div>'
+            + (
+                f'<div style="color:{colours["text"]};font-size:12px;margin-top:4px;">{_esc(summary)}</div>'
+                if summary
+                else ""
+            )
+            + "</div>"
+        )
+    return "".join(rows)
+
+
 def render_weekly_vulnerability_report(
     records: list[VulnerabilityRecord],
     changes: list[str],
@@ -433,6 +496,7 @@ def render_weekly_vulnerability_report(
     source_health: list[dict[str, Any]],
     *,
     quarterly_trend: dict[str, Any] | None = None,
+    ai_digest: list[Item] | None = None,
 ) -> tuple[str, str]:
     """Render aligned text/HTML weekly reports with ISO week identification."""
 
@@ -441,6 +505,7 @@ def render_weekly_vulnerability_report(
     week_label = iso_week_label(week_end)
     top_week = _prominent_vulnerabilities(records, limit=10)
     rearview = _prominent_vulnerabilities(mtd_records, limit=20)
+    ai_digest_entries = _ai_digest_entries(ai_digest)
     quarterly_trend = quarterly_trend or {"weeks": [], "totals": {}, "latest_four": {}, "previous_four": {}, "direction": "stable", "peak_week": "", "peak_count": 0, "concentrations": [], "counting_note": "No lifecycle trend history available yet."}
 
     lines = [
@@ -504,6 +569,15 @@ def render_weekly_vulnerability_report(
         lines.extend(_prominent_plain(record, rank) for rank, record in enumerate(rearview, start=1))
     else:
         lines.append("No month-to-date vulnerability history available.")
+
+    lines.extend(
+        [
+            "",
+            "AI Security and AI Development",
+            "-------------------------------",
+        ]
+    )
+    lines.extend(_ai_digest_plain(ai_digest_entries))
 
     failed = [
         entry["source"]
@@ -736,6 +810,7 @@ def render_weekly_vulnerability_report(
     <tr><td>{panel('4. Remediation Priority', remediation_body, colours['high'])}</td></tr>
     <tr><td>{panel('Quarterly Vulnerability Trend — Rolling 13 Weeks', quarterly_trend_body, colours['blue'])}</td></tr>
     <tr><td>{panel('A month in the Rearview', rearview_body, colours['green'])}</td></tr>
+    <tr><td>{panel('AI Security and AI Development', _ai_digest_html(ai_digest_entries, colours), colours['purple'])}</td></tr>
     <tr><td>{panel('Month-to-Date Vulnerability Overview — ' + week_end.strftime('%B %Y'), mtd_body, colours['green'])}</td></tr>
     <tr><td>{panel('Source Coverage & Trust', source_note + '<p style="color:' + colours['muted'] + ';font-size:11px;">Tier A authoritative · Tier B primary research · Tier C trusted reporting · Tier D discovery only.</p>', colours['blue'])}</td></tr>
     </table></td></tr></table></body></html>"""

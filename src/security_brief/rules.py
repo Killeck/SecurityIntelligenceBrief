@@ -376,6 +376,120 @@ RELEVANCE_RULES = (
         32,
     ),
     (
+        "Salmon Farming/Aquaculture",
+        (
+            "salmon farming",
+            "aquaculture",
+            "fish farming",
+            "fish farm",
+            "lakseoppdrett",
+            "oppdrettsnæring",
+            "oppdrettsanlegg",
+            "sea lice",
+            "fish pen",
+            "marine cage",
+            "recirculating aquaculture",
+            "nordlaks",
+            "salmar",
+            "mowi",
+            "lerøy",
+            "cermaq",
+        ),
+        28,
+    ),
+    (
+        "Water/Wastewater Utilities",
+        (
+            "water utility",
+            "wastewater",
+            "water treatment",
+            "sewage",
+            "water supply",
+            "drinking water",
+            "water infrastructure",
+        ),
+        28,
+    ),
+    (
+        "Manufacturing/Industrial Production",
+        (
+            "manufacturing",
+            "industrial production",
+            "factory",
+            "production line",
+            "industrial robot",
+            "manufacturing plant",
+            "assembly line",
+        ),
+        24,
+    ),
+    (
+        "Mining and Minerals",
+        (
+            "mining",
+            "mineral extraction",
+            "ore processing",
+            "smelter",
+            "quarry",
+            "mining operation",
+            "lkab",
+            "boliden",
+        ),
+        26,
+    ),
+    (
+        "Defense and Government Security",
+        (
+            "defense contractor",
+            "defence contractor",
+            "military",
+            "armed forces",
+            "arms industry",
+            "weapons systems",
+            "nato",
+            "kongsberg gruppen",
+            "nammo",
+            "defense industry",
+            "defence industry",
+        ),
+        30,
+    ),
+    (
+        "Legal and Professional Services",
+        (
+            "law firm",
+            "legal services",
+            "professional services firm",
+            "accounting firm",
+            "advokatfirma",
+        ),
+        22,
+    ),
+    (
+        "Space and Satellite",
+        (
+            "satellite",
+            "space industry",
+            "andøya space",
+            "ksat",
+            "satellite ground station",
+            "space launch",
+        ),
+        24,
+    ),
+    (
+        "Pharma/Life Sciences",
+        (
+            "pharmaceutical",
+            "life sciences",
+            "drug manufacturer",
+            "biotech",
+            "clinical trial",
+            "pharma company",
+        ),
+        24,
+    ),
+    (
         "Public/Regulated",
         (
             "government",
@@ -828,6 +942,160 @@ SECTOR_IMPACT_RULES = (
             "supply-chain dependencies."
         ),
         26,
+    ),
+    (
+        "Salmon Farming and Aquaculture",
+        (
+            "salmon farming",
+            "aquaculture",
+            "fish farming",
+            "fish farm",
+            "lakseoppdrett",
+            "oppdrettsnæring",
+            "oppdrettsanlegg",
+            "sea lice",
+            "fish pen",
+            "marine cage",
+            "recirculating aquaculture",
+            "biomass sensor",
+            "nordlaks",
+            "salmar",
+            "mowi",
+            "lerøy",
+            "cermaq",
+        ),
+        (
+            "Heavily OT-dependent sector: assess SCADA/PLC exposure for feeding "
+            "and pen-control systems, underwater camera/ROV and environmental "
+            "sensor networks, remote/vessel-based operational access, and "
+            "biosecurity/monitoring system availability."
+        ),
+        26,
+    ),
+    (
+        "Water and Wastewater Utilities",
+        (
+            "water utility",
+            "wastewater",
+            "water treatment",
+            "sewage",
+            "water supply",
+            "drinking water",
+            "water infrastructure",
+        ),
+        (
+            "Assess SCADA/ICS exposure for treatment and distribution control "
+            "systems, remote monitoring access, and public-health/safety-"
+            "critical operational continuity."
+        ),
+        28,
+    ),
+    (
+        "Manufacturing and Industrial Production",
+        (
+            "manufacturing",
+            "industrial production",
+            "factory",
+            "production line",
+            "industrial robot",
+            "manufacturing plant",
+            "assembly line",
+        ),
+        (
+            "Assess OT/ICS exposure on production-line control systems, "
+            "industrial robotics, and supply-chain/vendor remote-access "
+            "dependencies."
+        ),
+        24,
+    ),
+    (
+        "Mining and Minerals",
+        (
+            "mining",
+            "mineral extraction",
+            "ore processing",
+            "smelter",
+            "quarry",
+            "mining operation",
+            "lkab",
+            "boliden",
+        ),
+        (
+            "Assess OT exposure on extraction and processing control systems, "
+            "remote/autonomous vehicle operations, and critical-minerals "
+            "supply-chain dependencies."
+        ),
+        26,
+    ),
+    (
+        "Defense and Government Security",
+        (
+            "defense contractor",
+            "defence contractor",
+            "military",
+            "armed forces",
+            "arms industry",
+            "weapons systems",
+            "nato",
+            "kongsberg gruppen",
+            "nammo",
+            "defense industry",
+            "defence industry",
+        ),
+        (
+            "Assess exposure of defense-industrial systems, classified/"
+            "controlled information handling, and nation-state-grade threat "
+            "actor targeting distinct from general public-sector risk."
+        ),
+        30,
+    ),
+    (
+        "Legal and Professional Services",
+        (
+            "law firm",
+            "legal services",
+            "professional services firm",
+            "accounting firm",
+            "advokatfirma",
+        ),
+        (
+            "Assess exposure of client-confidential data, business email "
+            "compromise risk, and privileged communication handling."
+        ),
+        22,
+    ),
+    (
+        "Space and Satellite",
+        (
+            "satellite",
+            "space industry",
+            "andøya space",
+            "ksat",
+            "satellite ground station",
+            "space launch",
+        ),
+        (
+            "Assess exposure of satellite ground-station and telemetry "
+            "systems, and space-industry supply-chain dependencies."
+        ),
+        24,
+    ),
+    (
+        "Pharma and Life Sciences",
+        (
+            "pharmaceutical",
+            "life sciences",
+            "drug manufacturer",
+            "biotech",
+            "clinical trial",
+            "pharma company",
+        ),
+        (
+            "Assess IP-theft targeting distinct from patient-care healthcare "
+            "risk, clinical-trial data integrity, and pharmaceutical "
+            "manufacturing OT exposure."
+        ),
+        24,
     ),
     (
         "Property, Housing and Construction",

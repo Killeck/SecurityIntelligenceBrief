@@ -113,6 +113,11 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
     with profiler.stage("enrichment"):
         all_items = deduplicate(state.primary_items)
         current_items = [item for item in all_items if item.published >= cutoff]
+        ai_digest_items = [
+            item
+            for item in current_items
+            if item.section == "AI Security and Trustworthiness"
+        ]
         enrich_nvd(current_items, state.warnings)
         records = weekly_display_records(
             build_vulnerability_records(current_items, now=utc_now)
@@ -144,6 +149,7 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
             week_end,
             state.source_health,
             quarterly_trend=quarterly_trend,
+            ai_digest=ai_digest_items,
         )
 
     subject = (

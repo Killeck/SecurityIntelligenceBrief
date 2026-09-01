@@ -110,6 +110,14 @@ jobs:
           NVD_CACHE_FILE: .state/nvd_cache.json
           NVD_CACHE_TTL_HOURS: "24"
 
+          # Raises the GitHub REST API rate limit from 60/hour (unauthenticated)
+          # to 5,000/hour for cisa_csaf.py and ai_security_trackers.py, both of
+          # which poll GitHub's Commits/Releases APIs. Auto-provided per-run by
+          # GitHub Actions - no new secret to create. Requires the workflow's
+          # `permissions:` block to grant at least `contents: read` (already
+          # the default) for this token to be usable for API reads.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
           # Optional dark-web and exposure monitoring.
           HIBP_API_KEY: ${{ secrets.HIBP_API_KEY }}
           MONITORED_DOMAINS: ${{ secrets.MONITORED_DOMAINS }}

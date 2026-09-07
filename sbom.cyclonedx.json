@@ -1,0 +1,1145 @@
+{
+  "components": [
+    {
+      "bom-ref": "beautifulsoup4==4.15.0",
+      "description": "Screen-scraping library",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Download",
+          "type": "distribution",
+          "url": "https://www.crummy.com/software/BeautifulSoup/bs4/download/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Homepage",
+          "type": "website",
+          "url": "https://www.crummy.com/software/BeautifulSoup/bs4/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "beautifulsoup4",
+      "purl": "pkg:pypi/beautifulsoup4@4.15.0",
+      "type": "library",
+      "version": "4.15.0"
+    },
+    {
+      "bom-ref": "certifi==2026.7.22",
+      "description": "Python package for providing Mozilla's CA Bundle.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/certifi/python-certifi"
+        },
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://github.com/certifi/python-certifi"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MPL-2.0"
+          }
+        },
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)"
+          }
+        }
+      ],
+      "name": "certifi",
+      "purl": "pkg:pypi/certifi@2026.7.22",
+      "type": "library",
+      "version": "2026.7.22"
+    },
+    {
+      "bom-ref": "cffi==2.1.1",
+      "description": "Foreign Function Interface for Python calling C code.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Download",
+          "type": "distribution",
+          "url": "https://github.com/python-cffi/cffi/releases"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://cffi.readthedocs.io/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Issue Tracker",
+          "type": "issue-tracker",
+          "url": "https://github.com/python-cffi/cffi/issues"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Source Code",
+          "type": "other",
+          "url": "https://github.com/python-cffi/cffi"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Contact",
+          "type": "other",
+          "url": "https://groups.google.com/forum/#!forum/python-cffi"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Changelog",
+          "type": "release-notes",
+          "url": "https://cffi.readthedocs.io/en/latest/whatsnew.html"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT-0"
+          }
+        }
+      ],
+      "name": "cffi",
+      "purl": "pkg:pypi/cffi@2.1.1",
+      "type": "library",
+      "version": "2.1.1"
+    },
+    {
+      "bom-ref": "charset-normalizer==3.5.1",
+      "description": "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://charset-normalizer.readthedocs.io/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Issue tracker",
+          "type": "issue-tracker",
+          "url": "https://github.com/jawah/charset_normalizer/issues"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Code",
+          "type": "other",
+          "url": "https://github.com/jawah/charset_normalizer"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Changelog",
+          "type": "release-notes",
+          "url": "https://github.com/jawah/charset_normalizer/blob/master/CHANGELOG.md"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "charset-normalizer",
+      "purl": "pkg:pypi/charset-normalizer@3.5.1",
+      "type": "library",
+      "version": "3.5.1"
+    },
+    {
+      "bom-ref": "cryptography==50.0.1",
+      "description": "cryptography is a package which provides cryptographic recipes and primitives to Python developers.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: documentation",
+          "type": "documentation",
+          "url": "https://cryptography.io/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: issues",
+          "type": "issue-tracker",
+          "url": "https://github.com/pyca/cryptography/issues"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: source",
+          "type": "other",
+          "url": "https://github.com/pyca/cryptography/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: changelog",
+          "type": "release-notes",
+          "url": "https://cryptography.io/en/latest/changelog/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: homepage",
+          "type": "website",
+          "url": "https://github.com/pyca/cryptography"
+        }
+      ],
+      "licenses": [
+        {
+          "acknowledgement": "declared",
+          "expression": "Apache-2.0 OR BSD-3-Clause"
+        }
+      ],
+      "name": "cryptography",
+      "purl": "pkg:pypi/cryptography@50.0.1",
+      "type": "library",
+      "version": "50.0.1"
+    },
+    {
+      "bom-ref": "feedparser==6.0.14",
+      "description": "Universal feed parser, handles RSS 0.9x, RSS 1.0, RSS 2.0, CDF, Atom 0.3, and Atom 1.0 feeds",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata: Download-URL",
+          "type": "distribution",
+          "url": "https://pypi.python.org/pypi/feedparser"
+        },
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://github.com/kurtmckee/feedparser"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "name": "feedparser",
+      "purl": "pkg:pypi/feedparser@6.0.14",
+      "type": "library",
+      "version": "6.0.14"
+    },
+    {
+      "bom-ref": "feedparser-sgmllib==2.1.0",
+      "description": "sgmllib from Python 2.7. For feedparser use only.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://feedparser-sgmllib.readthedocs.io"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/python-syndication/feedparser-sgmllib"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Changelog",
+          "type": "release-notes",
+          "url": "https://feedparser-sgmllib.readthedocs.io/en/latest/changelog/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "PSF-2.0"
+          }
+        }
+      ],
+      "name": "feedparser-sgmllib",
+      "purl": "pkg:pypi/feedparser-sgmllib@2.1.0",
+      "type": "library",
+      "version": "2.1.0"
+    },
+    {
+      "bom-ref": "google-api-core==2.34.0",
+      "description": "Google API client core library",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://googleapis.dev/python/google-api-core/latest/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Repository",
+          "type": "vcs",
+          "url": "https://github.com/googleapis/google-cloud-python"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Homepage",
+          "type": "website",
+          "url": "https://github.com/googleapis/google-cloud-python/tree/main/packages/google-api-core"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: Apache Software License"
+          }
+        }
+      ],
+      "name": "google-api-core",
+      "purl": "pkg:pypi/google-api-core@2.34.0",
+      "type": "library",
+      "version": "2.34.0"
+    },
+    {
+      "bom-ref": "google-api-python-client==2.200.0",
+      "description": "Google API Client Library for Python",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://github.com/googleapis/google-api-python-client/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: Apache Software License"
+          }
+        }
+      ],
+      "name": "google-api-python-client",
+      "purl": "pkg:pypi/google-api-python-client@2.200.0",
+      "type": "library",
+      "version": "2.200.0"
+    },
+    {
+      "bom-ref": "google-auth==2.57.0",
+      "description": "Google Authentication Library",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://github.com/googleapis/google-cloud-python/tree/main/packages/google-auth"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: Apache Software License"
+          }
+        }
+      ],
+      "name": "google-auth",
+      "properties": [
+        {
+          "name": "cdx:python:package:required-extra",
+          "value": "aiohttp"
+        }
+      ],
+      "purl": "pkg:pypi/google-auth@2.57.0",
+      "type": "library",
+      "version": "2.57.0"
+    },
+    {
+      "bom-ref": "google-auth-httplib2==0.4.2",
+      "description": "Google Authentication Library: httplib2 transport",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://github.com/googleapis/google-cloud-python/packages/google-auth-httplib2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: Apache Software License"
+          }
+        }
+      ],
+      "name": "google-auth-httplib2",
+      "purl": "pkg:pypi/google-auth-httplib2@0.4.2",
+      "type": "library",
+      "version": "0.4.2"
+    },
+    {
+      "bom-ref": "googleapis-common-protos==1.75.2",
+      "description": "Common protobufs used in Google APIs",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Repository",
+          "type": "vcs",
+          "url": "https://github.com/googleapis/google-cloud-python/tree/main/packages/googleapis-common-protos"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: Apache Software License"
+          }
+        }
+      ],
+      "name": "googleapis-common-protos",
+      "purl": "pkg:pypi/googleapis-common-protos@1.75.2",
+      "type": "library",
+      "version": "1.75.2"
+    },
+    {
+      "bom-ref": "httplib2==0.32.0",
+      "description": "A comprehensive HTTP client library.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://github.com/httplib2/httplib2"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "httplib2",
+      "purl": "pkg:pypi/httplib2@0.32.0",
+      "type": "library",
+      "version": "0.32.0"
+    },
+    {
+      "bom-ref": "idna==3.19",
+      "description": "Internationalized Domain Names in Applications (IDNA)",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Issue tracker",
+          "type": "issue-tracker",
+          "url": "https://github.com/kjd/idna/issues"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/kjd/idna"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Changelog",
+          "type": "release-notes",
+          "url": "https://github.com/kjd/idna/blob/master/HISTORY.md"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "idna",
+      "purl": "pkg:pypi/idna@3.19",
+      "type": "library",
+      "version": "3.19"
+    },
+    {
+      "bom-ref": "pip==26.2.1",
+      "description": "The PyPA recommended tool for installing Python packages.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://pip.pypa.io"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/pypa/pip"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Changelog",
+          "type": "release-notes",
+          "url": "https://pip.pypa.io/en/stable/news/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Homepage",
+          "type": "website",
+          "url": "https://pip.pypa.io/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "pip",
+      "purl": "pkg:pypi/pip@26.2.1",
+      "type": "library",
+      "version": "26.2.1"
+    },
+    {
+      "bom-ref": "proto-plus==1.28.4",
+      "description": "Beautiful, Pythonic protocol buffers",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://googleapis.dev/python/proto-plus/latest/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Repository",
+          "type": "vcs",
+          "url": "https://github.com/googleapis/google-cloud-python"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Homepage",
+          "type": "website",
+          "url": "https://github.com/googleapis/google-cloud-python/tree/main/packages/proto-plus"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: Apache Software License"
+          }
+        }
+      ],
+      "name": "proto-plus",
+      "purl": "pkg:pypi/proto-plus@1.28.4",
+      "type": "library",
+      "version": "1.28.4"
+    },
+    {
+      "bom-ref": "protobuf==7.36.1",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://developers.google.com/protocol-buffers/"
+        }
+      ],
+      "name": "protobuf",
+      "purl": "pkg:pypi/protobuf@7.36.1",
+      "type": "library",
+      "version": "7.36.1"
+    },
+    {
+      "bom-ref": "pyasn1==0.6.4",
+      "description": "Pure-Python implementation of ASN.1 types and DER/BER/CER codecs (X.208)",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://pyasn1.readthedocs.io"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Issues",
+          "type": "issue-tracker",
+          "url": "https://github.com/pyasn1/pyasn1/issues"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/pyasn1/pyasn1"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Changelog",
+          "type": "release-notes",
+          "url": "https://pyasn1.readthedocs.io/en/latest/changelog.html"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Homepage",
+          "type": "website",
+          "url": "https://github.com/pyasn1/pyasn1"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "BSD-2-Clause"
+          }
+        }
+      ],
+      "name": "pyasn1",
+      "purl": "pkg:pypi/pyasn1@0.6.4",
+      "type": "library",
+      "version": "0.6.4"
+    },
+    {
+      "bom-ref": "pyasn1_modules==0.4.2",
+      "description": "A collection of ASN.1-based protocols modules",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Issues",
+          "type": "issue-tracker",
+          "url": "https://github.com/pyasn1/pyasn1-modules/issues"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/pyasn1/pyasn1-modules"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Changelog",
+          "type": "release-notes",
+          "url": "https://github.com/pyasn1/pyasn1-modules/blob/master/CHANGES.txt"
+        },
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://github.com/pyasn1/pyasn1-modules"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: BSD License"
+          }
+        }
+      ],
+      "name": "pyasn1_modules",
+      "purl": "pkg:pypi/pyasn1-modules@0.4.2",
+      "type": "library",
+      "version": "0.4.2"
+    },
+    {
+      "bom-ref": "pycparser==3.0",
+      "description": "C parser in Python",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Homepage",
+          "type": "website",
+          "url": "https://github.com/eliben/pycparser"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "BSD-3-Clause"
+          }
+        }
+      ],
+      "name": "pycparser",
+      "purl": "pkg:pypi/pycparser@3.0",
+      "type": "library",
+      "version": "3.0"
+    },
+    {
+      "bom-ref": "pyparsing==3.3.2",
+      "description": "pyparsing - Classes and methods to define and execute parsing grammars",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://pyparsing-docs.readthedocs.io/en/latest/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/pyparsing/pyparsing.git"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Homepage",
+          "type": "website",
+          "url": "https://github.com/pyparsing/pyparsing/"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "pyparsing",
+      "purl": "pkg:pypi/pyparsing@3.3.2",
+      "type": "library",
+      "version": "3.3.2"
+    },
+    {
+      "bom-ref": "python-dateutil==2.9.0.post0",
+      "description": "Extensions to the standard Python datetime module",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://dateutil.readthedocs.io/en/stable/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/dateutil/dateutil"
+        },
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://github.com/dateutil/dateutil"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: Apache Software License"
+          }
+        },
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: BSD License"
+          }
+        }
+      ],
+      "name": "python-dateutil",
+      "purl": "pkg:pypi/python-dateutil@2.9.0.post0",
+      "type": "library",
+      "version": "2.9.0.post0"
+    },
+    {
+      "bom-ref": "requests==2.34.2",
+      "description": "Python HTTP for Humans.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://requests.readthedocs.io"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/psf/requests"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "Apache-2.0"
+          }
+        },
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "name": "License :: OSI Approved :: Apache Software License"
+          }
+        }
+      ],
+      "name": "requests",
+      "purl": "pkg:pypi/requests@2.34.2",
+      "type": "library",
+      "version": "2.34.2"
+    },
+    {
+      "bom-ref": "six==1.17.0",
+      "description": "Python 2 and 3 compatibility utilities",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://github.com/benjaminp/six"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "six",
+      "purl": "pkg:pypi/six@1.17.0",
+      "type": "library",
+      "version": "1.17.0"
+    },
+    {
+      "bom-ref": "soupsieve==2.9.2",
+      "description": "A modern CSS selector implementation for Beautiful Soup.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Homepage",
+          "type": "website",
+          "url": "https://github.com/facelessuser/soupsieve"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "soupsieve",
+      "purl": "pkg:pypi/soupsieve@2.9.2",
+      "type": "library",
+      "version": "2.9.2"
+    },
+    {
+      "bom-ref": "typing_extensions==4.16.0",
+      "description": "Backported and Experimental Type Hints for Python 3.9+",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://typing-extensions.readthedocs.io/"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Bug Tracker",
+          "type": "issue-tracker",
+          "url": "https://github.com/python/typing_extensions/issues"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Q & A",
+          "type": "other",
+          "url": "https://github.com/python/typing/discussions"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Changes",
+          "type": "release-notes",
+          "url": "https://github.com/python/typing_extensions/blob/main/CHANGELOG.md"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Repository",
+          "type": "vcs",
+          "url": "https://github.com/python/typing_extensions"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Home",
+          "type": "website",
+          "url": "https://github.com/python/typing_extensions"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "PSF-2.0"
+          }
+        }
+      ],
+      "name": "typing_extensions",
+      "purl": "pkg:pypi/typing-extensions@4.16.0",
+      "type": "library",
+      "version": "4.16.0"
+    },
+    {
+      "bom-ref": "uritemplate==4.2.0",
+      "description": "Implementation of RFC 6570 URI Templates",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Source",
+          "type": "other",
+          "url": "https://github.com/python-hyper/uritemplate"
+        },
+        {
+          "comment": "from packaging metadata: Home-page",
+          "type": "website",
+          "url": "https://uritemplate.readthedocs.org"
+        }
+      ],
+      "name": "uritemplate",
+      "purl": "pkg:pypi/uritemplate@4.2.0",
+      "type": "library",
+      "version": "4.2.0"
+    },
+    {
+      "bom-ref": "urllib3==2.7.0",
+      "description": "HTTP library with thread-safe connection pooling, file post, and more.",
+      "externalReferences": [
+        {
+          "comment": "from packaging metadata Project-URL: Documentation",
+          "type": "documentation",
+          "url": "https://urllib3.readthedocs.io"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Issue tracker",
+          "type": "issue-tracker",
+          "url": "https://github.com/urllib3/urllib3/issues"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Code",
+          "type": "other",
+          "url": "https://github.com/urllib3/urllib3"
+        },
+        {
+          "comment": "from packaging metadata Project-URL: Changelog",
+          "type": "release-notes",
+          "url": "https://github.com/urllib3/urllib3/blob/main/CHANGES.rst"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "acknowledgement": "declared",
+            "id": "MIT"
+          }
+        }
+      ],
+      "name": "urllib3",
+      "purl": "pkg:pypi/urllib3@2.7.0",
+      "type": "library",
+      "version": "2.7.0"
+    }
+  ],
+  "dependencies": [
+    {
+      "dependsOn": [
+        "charset-normalizer==3.5.1",
+        "soupsieve==2.9.2",
+        "typing_extensions==4.16.0"
+      ],
+      "ref": "beautifulsoup4==4.15.0"
+    },
+    {
+      "ref": "certifi==2026.7.22"
+    },
+    {
+      "dependsOn": [
+        "pycparser==3.0"
+      ],
+      "ref": "cffi==2.1.1"
+    },
+    {
+      "ref": "charset-normalizer==3.5.1"
+    },
+    {
+      "dependsOn": [
+        "cffi==2.1.1",
+        "typing_extensions==4.16.0"
+      ],
+      "ref": "cryptography==50.0.1"
+    },
+    {
+      "ref": "feedparser-sgmllib==2.1.0"
+    },
+    {
+      "dependsOn": [
+        "feedparser-sgmllib==2.1.0"
+      ],
+      "ref": "feedparser==6.0.14"
+    },
+    {
+      "dependsOn": [
+        "google-auth==2.57.0",
+        "googleapis-common-protos==1.75.2",
+        "proto-plus==1.28.4",
+        "protobuf==7.36.1",
+        "requests==2.34.2"
+      ],
+      "ref": "google-api-core==2.34.0"
+    },
+    {
+      "dependsOn": [
+        "google-api-core==2.34.0",
+        "google-auth-httplib2==0.4.2",
+        "google-auth==2.57.0",
+        "httplib2==0.32.0",
+        "uritemplate==4.2.0"
+      ],
+      "ref": "google-api-python-client==2.200.0"
+    },
+    {
+      "dependsOn": [
+        "google-auth==2.57.0",
+        "httplib2==0.32.0"
+      ],
+      "ref": "google-auth-httplib2==0.4.2"
+    },
+    {
+      "dependsOn": [
+        "cryptography==50.0.1",
+        "pyasn1_modules==0.4.2",
+        "requests==2.34.2",
+        "urllib3==2.7.0"
+      ],
+      "ref": "google-auth==2.57.0"
+    },
+    {
+      "dependsOn": [
+        "protobuf==7.36.1"
+      ],
+      "ref": "googleapis-common-protos==1.75.2"
+    },
+    {
+      "dependsOn": [
+        "pyparsing==3.3.2"
+      ],
+      "ref": "httplib2==0.32.0"
+    },
+    {
+      "ref": "idna==3.19"
+    },
+    {
+      "ref": "pip==26.2.1"
+    },
+    {
+      "dependsOn": [
+        "google-api-core==2.34.0",
+        "protobuf==7.36.1"
+      ],
+      "ref": "proto-plus==1.28.4"
+    },
+    {
+      "ref": "protobuf==7.36.1"
+    },
+    {
+      "ref": "pyasn1==0.6.4"
+    },
+    {
+      "dependsOn": [
+        "pyasn1==0.6.4"
+      ],
+      "ref": "pyasn1_modules==0.4.2"
+    },
+    {
+      "ref": "pycparser==3.0"
+    },
+    {
+      "ref": "pyparsing==3.3.2"
+    },
+    {
+      "dependsOn": [
+        "six==1.17.0"
+      ],
+      "ref": "python-dateutil==2.9.0.post0"
+    },
+    {
+      "dependsOn": [
+        "certifi==2026.7.22",
+        "charset-normalizer==3.5.1",
+        "idna==3.19",
+        "urllib3==2.7.0"
+      ],
+      "ref": "requests==2.34.2"
+    },
+    {
+      "ref": "six==1.17.0"
+    },
+    {
+      "ref": "soupsieve==2.9.2"
+    },
+    {
+      "ref": "typing_extensions==4.16.0"
+    },
+    {
+      "ref": "uritemplate==4.2.0"
+    },
+    {
+      "ref": "urllib3==2.7.0"
+    }
+  ],
+  "metadata": {
+    "timestamp": "2026-09-03T21:15:48.515221+00:00",
+    "tools": {
+      "components": [
+        {
+          "description": "CycloneDX Software Bill of Materials (SBOM) generator for Python projects and environments",
+          "externalReferences": [
+            {
+              "type": "build-system",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/actions"
+            },
+            {
+              "type": "distribution",
+              "url": "https://pypi.org/project/cyclonedx-bom/"
+            },
+            {
+              "type": "documentation",
+              "url": "https://cyclonedx-bom-tool.readthedocs.io/"
+            },
+            {
+              "type": "issue-tracker",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/issues"
+            },
+            {
+              "type": "license",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/blob/main/LICENSE"
+            },
+            {
+              "type": "release-notes",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/blob/main/CHANGELOG.md"
+            },
+            {
+              "type": "vcs",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/"
+            },
+            {
+              "type": "website",
+              "url": "https://github.com/CycloneDX/cyclonedx-python/#readme"
+            }
+          ],
+          "group": "CycloneDX",
+          "licenses": [
+            {
+              "license": {
+                "acknowledgement": "declared",
+                "id": "Apache-2.0"
+              }
+            }
+          ],
+          "name": "cyclonedx-py",
+          "type": "application",
+          "version": "7.3.1"
+        },
+        {
+          "description": "Python library for CycloneDX",
+          "externalReferences": [
+            {
+              "type": "build-system",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/actions"
+            },
+            {
+              "type": "distribution",
+              "url": "https://pypi.org/project/cyclonedx-python-lib/"
+            },
+            {
+              "type": "documentation",
+              "url": "https://cyclonedx-python-library.readthedocs.io/"
+            },
+            {
+              "type": "issue-tracker",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/issues"
+            },
+            {
+              "type": "license",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/blob/main/LICENSE"
+            },
+            {
+              "type": "release-notes",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/blob/main/CHANGELOG.md"
+            },
+            {
+              "type": "vcs",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib"
+            },
+            {
+              "type": "website",
+              "url": "https://github.com/CycloneDX/cyclonedx-python-lib/#readme"
+            }
+          ],
+          "group": "CycloneDX",
+          "licenses": [
+            {
+              "license": {
+                "acknowledgement": "declared",
+                "id": "Apache-2.0"
+              }
+            }
+          ],
+          "name": "cyclonedx-python-lib",
+          "type": "library",
+          "version": "11.12.0"
+        }
+      ]
+    }
+  },
+  "serialNumber": "urn:uuid:2f4f81d3-da2f-4231-8128-6e8f52693a27",
+  "version": 1,
+  "$schema": "http://cyclonedx.org/schema/bom-1.6.schema.json",
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6"
+}

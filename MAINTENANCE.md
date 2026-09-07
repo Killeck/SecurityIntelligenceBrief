@@ -1,7 +1,7 @@
 <!--
 Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
-Last modified: v6.1.6
+Last modified: v6.1.7
 -->
 
 # Maintenance Backlog
@@ -287,13 +287,47 @@ Implemented in 6.1.4: Retail, Housing Estates/BoligByggerlag, and Energy
 
 ## Priority 5 — Reliability, security and CI integrity
 
-- Pin Python dependencies with hashes.
-- Generate a machine-readable CycloneDX or SPDX SBOM.
+- [DONE 6.1.7] Pin Python dependencies with hashes. `requirements.in`
+  (loose, human-editable) is now the source of truth for version ranges;
+  `requirements.txt` is generated via `pip-compile --generate-hashes
+  --allow-unsafe` into a fully pinned + hashed closure (27 packages,
+  direct and transitive). `pip install -r requirements.txt` auto-enforces
+  hash verification (pip's `--require-hashes` mode triggers automatically
+  once any hash is present). Verified twice: a clean install in an
+  isolated venv with hash checking enforced, and the actual application
+  importing cleanly against that exact environment.
+- [DONE 6.1.7] Generate a machine-readable CycloneDX or SPDX SBOM.
+  `sbom.cyclonedx.json` (CycloneDX 1.6, 28 components) generated via
+  `cyclonedx-py environment` against a properly isolated venv containing
+  only the pinned runtime dependencies (first attempt was contaminated by
+  installing the SBOM tool inside the venv being scanned - caught and
+  redone with the tool run from outside against the clean venv).
+  Regenerate after any requirements.txt change.
 - Review `main` branch protection and require Repository CI before merge.
-- Review repository visibility against the proprietary/confidential project posture.
+- Review repository visibility against the proprietary/confidential
+  project posture. [FLAGGED 6.1.x] Every clone this session succeeded
+  with zero authentication - strong behavioural evidence the repo is
+  currently public despite every file's own "Proprietary and
+  confidential" header. Worth confirming and fixing directly on GitHub;
+  not something fixable from within the codebase.
 - Add parser-fixture tests for source pages that have historically changed templates.
 - Consider a controlled source-health canary that checks parser structure without
   treating publication cadence as collector failure.
+- [DONE 6.1.7] `SOURCE_WORKERS` raised from 8 to 16 (the code's own
+  existing ceiling in `app.py`'s `integer_setting` call - not a new
+  safety limit, just using headroom that was already permitted) across
+  all three workflows (daily, weekly, and the manual test-dispatch
+  workflow). ~66 total configured fetch tasks were running against only
+  8 parallel workers - purely I/O-bound work, safe to raise.
+- [DONE 6.1.7] The Weekly lifecycle SQLite database
+  (`vulnerability_history.sqlite3`) had no pruning logic at all -
+  every observation ever recorded stayed forever, unbounded, even though
+  the longest actual consumer (13-week Quarterly Trend) only needs a
+  fraction of that. Added `VulnerabilityStore.prune_old_observations()`:
+  52-week retention (4x the active consumer, leaving room for the
+  Priority 7 backfill idea below), FK-ordered cleanup (observations
+  first, then orphaned vulnerability rows), `VACUUM` to actually reclaim
+  disk space. Wired into the Weekly pipeline, runs every execution.
 
 ## Priority 6 — Maintainability
 

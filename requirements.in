@@ -1,0 +1,13 @@
+# Direct runtime dependencies (loose, human-editable). This is the source
+# of truth for allowed version ranges - requirements.txt is generated FROM
+# this file and must not be hand-edited (see requirements.txt's own header
+# for the regeneration command). Pinned+hashed in 6.1.7 as a supply-chain
+# security measure: `pip install -r requirements.txt` now verifies every
+# package (direct and transitive) against a known hash before installing.
+beautifulsoup4>=4.12,<5.0
+feedparser>=6.0,<7.0
+python-dateutil>=2.9,<3.0
+requests>=2.32,<3.0
+google-api-python-client>=2,<3
+google-auth>=2,<3
+google-auth-httplib2>=0.2,<1

@@ -1,6 +1,6 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary and confidential. See LICENSE.
-# Last modified: v6.1.6
+# Last modified: v6.1.7
 
 """Orchestration for the Weekly Vulnerability Report."""
 
@@ -133,6 +133,13 @@ def run_weekly_pipeline(settings: WeeklySettings) -> None:
             changes = store.record(records, utc_now)
             mtd_records = store.month_to_date(week_end)
             monthly_counts = store.monthly_counts(week_end)
+            pruned = store.prune_old_observations(now=utc_now)
+            if pruned["observations_removed"] or pruned["vulnerabilities_removed"]:
+                print(
+                    f"Lifecycle DB pruned: {pruned['observations_removed']} "
+                    f"observation(s), {pruned['vulnerabilities_removed']} "
+                    "orphaned vulnerability record(s) removed (retention: 52 weeks)"
+                )
 
         quarterly_trend = build_quarterly_vulnerability_trend(
             settings.database_path,

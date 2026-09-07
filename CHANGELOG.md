@@ -1,7 +1,7 @@
 <!--
 Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
-Last modified: v6.1.6
+Last modified: v6.1.7
 -->
 
 # Changelog
@@ -12,6 +12,58 @@ maintained exclusively in `MAINTENANCE.md`.
 The project used working milestones before the formal v4/v5 release line. From
 v5 onward this changelog is intentionally release-oriented; detailed prototype
 history remains available in Git history.
+
+---
+
+## 6.1.7 - 2026-09-03
+
+### Security and optimisation review
+
+Full codebase review from a security and optimisation perspective. Bandit
+(full scan, not just -ll): 2 Low findings, both verified false positives.
+pip-audit: 0 known CVEs. No eval/exec/pickle/subprocess usage. No SSL/TLS
+verification bypasses. Request timeouts present on every network call
+across all collector modules. HTML escaping of untrusted third-party feed
+content verified properly centralised and consistently applied (this
+pipeline embeds external content into an emailed HTML report - a real
+stored-content-injection surface if escaping weren't handled correctly).
+Email subject line confirmed to be a hardcoded constant, not derived from
+feed content - no header-injection surface.
+
+### Dependency security
+
+- Pinned all Python dependencies with hashes. `requirements.in` (loose,
+  human-editable version ranges) is the new source of truth;
+  `requirements.txt` is generated via `pip-compile --generate-hashes` into
+  a fully pinned, hashed closure (27 packages, direct and transitive).
+  `pip install -r requirements.txt` now auto-enforces hash verification.
+- Generated a CycloneDX 1.6 SBOM (`sbom.cyclonedx.json`, 28 components)
+  from a properly isolated venv containing only the pinned runtime
+  dependencies.
+
+### Optimisation
+
+- Raised `SOURCE_WORKERS` from 8 to 16 (the pre-existing ceiling already
+  coded in `app.py`) across all three workflows - ~66 configured fetch
+  tasks were running against only 8 parallel workers for purely I/O-bound
+  work.
+- Added pruning to the Weekly lifecycle SQLite database
+  (`VulnerabilityStore.prune_old_observations()`): 52-week retention,
+  FK-ordered cleanup, `VACUUM` to reclaim disk space. The database
+  previously had no pruning logic at all and grew unbounded forever.
+
+### Findings requiring action outside the codebase
+
+- Repository visibility: strong behavioural evidence (every clone this
+  session succeeded without authentication) that the repository is
+  currently public despite every file's "Proprietary and confidential"
+  header. Not fixable from within the codebase - needs a direct GitHub
+  settings change.
+- `main` branch protection: confirmed not enforced (direct pushes to
+  `main` happened multiple times this session without any CI gate).
+
+176/176 tests pass (3 new). Bandit: 0 findings (2 Low false positives
+noted above). pip-audit: 0 known vulnerabilities.
 
 ---
 

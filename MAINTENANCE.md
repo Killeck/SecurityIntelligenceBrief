@@ -1,7 +1,7 @@
 <!--
 Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
-Last modified: v6.1.7
+Last modified: v6.1.8
 -->
 
 # Maintenance Backlog
@@ -328,6 +328,28 @@ Implemented in 6.1.4: Retail, Housing Estates/BoligByggerlag, and Energy
   Priority 7 backfill idea below), FK-ordered cleanup (observations
   first, then orphaned vulnerability rows), `VACUUM` to actually reclaim
   disk space. Wired into the Weekly pipeline, runs every execution.
+- [MITIGATED 6.1.8] Daily brief was arriving around lunch instead of
+  ~06:17-07:30 Europe/Oslo. Root cause: GitHub Actions' `schedule:`
+  trigger is documented as best-effort - delays of tens of minutes to
+  several hours (and occasional complete drops under high load) are a
+  widely-reported platform characteristic, not specific to this repo's
+  config. Mitigated with a second "backup" trigger 3 hours after the
+  primary, guarded by a step that checks `pipeline_state.json`'s
+  `daily_last_success` against today's Europe/Oslo date and skips all
+  downstream steps if the primary already succeeded (no duplicate
+  email). This reduces the frequency/severity of late delivery but does
+  NOT guarantee exact timing - GitHub's own docs are explicit that
+  sufficiently high load can still delay or drop scheduled jobs
+  regardless of in-workflow mitigations. The fully reliable fix, if
+  exact-time delivery becomes a hard requirement, is an external
+  scheduler (a free service like cron-job.org, or a cloud function/
+  scheduler) calling the GitHub REST API's `workflow_dispatch` endpoint
+  (`POST /repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches`)
+  at the precise desired time - `workflow_dispatch`-triggered runs fire
+  immediately and reliably, unlike `schedule:`-triggered ones. Requires
+  a repo-scoped PAT with `actions:write` stored in the external service,
+  which is why this wasn't implemented directly - needs your decision on
+  whether to set up that external infrastructure.
 
 ## Priority 6 — Maintainability
 

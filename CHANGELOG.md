@@ -1,7 +1,7 @@
 <!--
 Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
-Last modified: v6.1.7
+Last modified: v6.1.8
 -->
 
 # Changelog
@@ -12,6 +12,57 @@ maintained exclusively in `MAINTENANCE.md`.
 The project used working milestones before the formal v4/v5 release line. From
 v5 onward this changelog is intentionally release-oriented; detailed prototype
 history remains available in Git history.
+
+---
+
+## 6.1.8 - 2026-09-09
+
+### Daily delivery timing
+
+User-reported symptom: the Daily brief was arriving around lunch instead of
+its intended ~06:17-07:30 Europe/Oslo window. Root-caused (not a bug in
+this repo's own config, though initially misdiagnosed as one - see below):
+
+- Confirmed via research that GitHub Actions' `schedule:` trigger is
+  documented as best-effort: "The schedule event can be delayed during
+  periods of high loads of GitHub Actions workflow runs... If the load
+  is sufficiently high enough, some queued jobs may be dropped." Delays
+  of tens of minutes to several hours, and occasional complete drops,
+  are a widely-reported platform characteristic affecting many unrelated
+  repositories, not something specific to this project's configuration.
+- Ruled out during investigation: the `timezone: "Europe/Oslo"` field on
+  the schedule entry was already correctly present (this GitHub Actions
+  feature shipped March 2026) - initially suspected as a missing DST-
+  awareness bug, confirmed already fixed, no action needed there.
+
+Mitigation added to `daily-security-brief.yml` (delivered separately -
+cannot be pushed via PAT without a `Workflows` scope, same limitation as
+every previous workflow change this project):
+
+- Added a second, independent "backup" schedule trigger 3 hours after
+  the primary (09:17 vs 06:17 Europe/Oslo), to give a second chance at
+  timely delivery if the primary is severely delayed or dropped entirely
+  (the documented high-load failure mode) rather than silently waiting
+  on the primary's own schedule.
+- Added a guard step ("Check if today's report was already sent") that
+  reads the existing `daily_last_success` field from
+  `.state/pipeline_state.json` (already persisted via `actions/cache`)
+  and compares it against today's Europe/Oslo date. If the primary
+  trigger already succeeded today, every subsequent step in the backup
+  run is skipped - no duplicate email. Verified against all three real
+  cases (already sent today, no state file / first run, sent yesterday
+  not today) before writing to the workflow file.
+- Also folded in the still-pending `SOURCE_WORKERS: 8 -> 16` change from
+  6.1.7 into the same file, so there is only one workflow file to apply
+  manually instead of two in sequence.
+
+This mitigates but does not eliminate the underlying platform behaviour -
+GitHub's own documentation is explicit that under sufficiently high load,
+scheduled jobs may still be delayed or dropped regardless of workarounds
+within the workflow file itself. Documented in MAINTENANCE.md as the
+real, fully-reliable fix (external scheduler calling the REST API
+`workflow_dispatch` endpoint at the precise desired time) if exact-time
+guarantees become a hard requirement.
 
 ---
 

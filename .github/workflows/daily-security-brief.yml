@@ -1,11 +1,31 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary software. See LICENSE.
+# Last modified: v6.1.8
 
 name: Daily Security Brief
 
 on:
   schedule:
+    # Primary trigger. GitHub Actions documents scheduled workflows as
+    # best-effort: "The schedule event can be delayed during periods of
+    # high loads of GitHub Actions workflow runs... If the load is
+    # sufficiently high enough, some queued jobs may be dropped." Delays
+    # of tens of minutes to several hours (and occasional complete drops)
+    # are a documented platform characteristic, not specific to this repo
+    # - real-world reports across many unrelated projects show the same
+    # pattern. Confirmed against this repo's own run history: every Daily
+    # run in the week of 2026-09-08 completed between 08:40-09:57 UTC
+    # (10:40-11:57 CEST) against a 06:17 Oslo target - a 4.5-6 hour delay
+    # every single day, not an occasional outlier.
     - cron: "17 6 * * *"
+      timezone: "Europe/Oslo"
+    # Backup trigger, 3 hours later. Guarded by the "Check if today's
+    # report was already sent" step below: if the primary trigger above
+    # already succeeded today, every subsequent step in this run is
+    # skipped (no duplicate email). If the primary was severely delayed
+    # or dropped entirely (the documented high-load failure mode), this
+    # gives a second, independent attempt.
+    - cron: "17 9 * * *"
       timezone: "Europe/Oslo"
 
   workflow_dispatch:
@@ -77,12 +97,45 @@ jobs:
           restore-keys: |
             daily-state-${{ runner.os }}-
 
+      - name: Check if today's report was already sent
+        id: check-sent
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from datetime import datetime, timezone
+          from zoneinfo import ZoneInfo
+
+          oslo = ZoneInfo("Europe/Oslo")
+          today_oslo = datetime.now(timezone.utc).astimezone(oslo).date()
+
+          already_sent = False
+          try:
+              with open(".state/pipeline_state.json") as handle:
+                  state = json.load(handle)
+              raw = state.get("daily_last_success")
+              if raw:
+                  last_success = datetime.fromisoformat(raw)
+                  if last_success.tzinfo is None:
+                      last_success = last_success.replace(tzinfo=timezone.utc)
+                  already_sent = last_success.astimezone(oslo).date() == today_oslo
+          except (FileNotFoundError, json.JSONDecodeError, ValueError):
+              already_sent = False
+
+          print(f"Today (Europe/Oslo): {today_oslo} | already sent today: {already_sent}")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as handle:
+              handle.write(f"already-sent={'true' if already_sent else 'false'}\n")
+          PY
+
       - name: Run offline regression tests
+        if: steps.check-sent.outputs.already-sent != 'true'
         env:
           PYTHONPATH: src
         run: python -m unittest discover -s tests -v
 
       - name: Verify Gmail delivery configuration
+        if: steps.check-sent.outputs.already-sent != 'true'
         env:
           GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
@@ -99,6 +152,7 @@ jobs:
           PY
 
       - name: Generate and send daily security brief
+        if: steps.check-sent.outputs.already-sent != 'true'
         env:
           GMAIL_USERNAME: ${{ secrets.GMAIL_USERNAME }}
           GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
@@ -130,7 +184,7 @@ jobs:
           EXPOSURE_MAX_ITEMS: ${{ inputs.exposure_max || '20' }}
           EXEC_NEWS_MIN_SCORE: "24"
           UPCOMING_GOVERNANCE_DAYS: "365"
-          SOURCE_WORKERS: "8"
+          SOURCE_WORKERS: "16"
           HTML_DETAIL_FETCH_LIMIT: "8"
           DAILY_DEDUP_DAYS: "7"
           DAILY_DEDUP_STATE_FILE: .state/daily_dedup.json
@@ -140,7 +194,7 @@ jobs:
         run: python src/send_security_advisory.py
 
       - name: Save persistent pipeline state
-        if: success() && hashFiles('.state/**') != ''
+        if: steps.check-sent.outputs.already-sent != 'true' && success() && hashFiles('.state/**') != ''
         uses: actions/cache/save@v6
         with:
           path: .state

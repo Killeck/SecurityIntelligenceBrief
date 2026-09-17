@@ -1,7 +1,7 @@
 <!--
 Copyright © 2026 John-Helge Gantz. All rights reserved.
 Proprietary software. See LICENSE.
-Last modified: v6.1.8
+Last modified: v6.1.9
 -->
 
 # Changelog
@@ -12,6 +12,40 @@ maintained exclusively in `MAINTENANCE.md`.
 The project used working milestones before the formal v4/v5 release line. From
 v5 onward this changelog is intentionally release-oriented; detailed prototype
 history remains available in Git history.
+
+---
+
+## 6.1.9 - 2026-09-17
+
+### Daily delivery timing - real-data adjustment
+
+6.1.8's mitigation (a second same-day scheduled trigger, guarded to avoid
+duplicate sends) was deployed and its guard logic confirmed working
+correctly via real production data - the backup run on 2026-09-16
+completed in ~20 seconds, correctly detecting the primary had already
+succeeded and skipping all further steps.
+
+However, the same real data showed the underlying assumption was wrong:
+the primary trigger (nominally 06:17 Oslo) actually started at 09:20 UTC
+(11:20 Oslo) - a ~5 hour delay - and the backup trigger (nominally 09:17
+Oslo) was *also* delayed to 12:36 UTC (14:36 Oslo), a similarly severe
+~5 hour delay. A second same-day scheduled attempt does not help when
+GitHub's delay affects both triggers by a similar magnitude rather than
+independently.
+
+Adjustment: both triggers moved earlier by the same ~5 hour margin
+(01:17 and 04:17 Oslo, keeping the original 3-hour gap between them)
+rather than adding new infrastructure - the user's own stated
+preference was to keep this simple. If the same ~5 hour delay pattern
+recurs, actual delivery should now land close to the original 07:00
+target instead of 4-6 hours past it. This is a buffer sized to observed
+real delay, not a guarantee - MAINTENANCE.md still notes the fully
+reliable fix (an external scheduler calling the workflow_dispatch REST
+API at the exact desired time) as the option if the delay pattern
+changes or a hard timing guarantee becomes necessary.
+
+No code changed - workflow schedule times only (delivered separately,
+same PAT Workflows-scope limitation as every previous workflow change).
 
 ---
 

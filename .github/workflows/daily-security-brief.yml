@@ -1,31 +1,33 @@
 # Copyright © 2026 John-Helge Gantz. All rights reserved.
 # Proprietary software. See LICENSE.
-# Last modified: v6.1.8
+# Last modified: v6.1.9
 
 name: Daily Security Brief
 
 on:
   schedule:
-    # Primary trigger. GitHub Actions documents scheduled workflows as
-    # best-effort: "The schedule event can be delayed during periods of
-    # high loads of GitHub Actions workflow runs... If the load is
-    # sufficiently high enough, some queued jobs may be dropped." Delays
-    # of tens of minutes to several hours (and occasional complete drops)
-    # are a documented platform characteristic, not specific to this repo
-    # - real-world reports across many unrelated projects show the same
-    # pattern. Confirmed against this repo's own run history: every Daily
-    # run in the week of 2026-09-08 completed between 08:40-09:57 UTC
-    # (10:40-11:57 CEST) against a 06:17 Oslo target - a 4.5-6 hour delay
-    # every single day, not an occasional outlier.
-    - cron: "17 6 * * *"
+    # Primary trigger, scheduled well before the actual 07:00 Oslo target
+    # to absorb GitHub Actions' documented scheduling delay: "The schedule
+    # event can be delayed during periods of high loads of GitHub Actions
+    # workflow runs... If the load is sufficiently high enough, some
+    # queued jobs may be dropped." Real data from this repo's own run
+    # history confirmed a consistent ~5 hour delay (e.g. a 06:17 Oslo
+    # trigger actually starting around 11:20 Oslo on 2026-09-16) - a
+    # second same-day scheduled trigger did NOT help, since it experienced
+    # a similarly severe delay rather than an independent, shorter one.
+    # 01:17 Oslo is a deliberate large buffer chosen to still land close
+    # to 07:00 Oslo even if the same ~5 hour delay pattern recurs, rather
+    # than relying on a second scheduled attempt landing sooner.
+    - cron: "17 1 * * *"
       timezone: "Europe/Oslo"
-    # Backup trigger, 3 hours later. Guarded by the "Check if today's
-    # report was already sent" step below: if the primary trigger above
-    # already succeeded today, every subsequent step in this run is
-    # skipped (no duplicate email). If the primary was severely delayed
-    # or dropped entirely (the documented high-load failure mode), this
-    # gives a second, independent attempt.
-    - cron: "17 9 * * *"
+    # Backup trigger, kept at the same 3-hour offset from primary as
+    # before. Guarded by the "Check if today's report was already sent"
+    # step below: if the primary trigger above already succeeded today,
+    # every subsequent step in this run is skipped (no duplicate email).
+    # Kept as a safety net for the case where the primary is delayed or
+    # dropped even more severely than the buffer above accounts for -
+    # costs nothing when unused (the guarded run completes in ~20 seconds).
+    - cron: "17 4 * * *"
       timezone: "Europe/Oslo"
 
   workflow_dispatch:
